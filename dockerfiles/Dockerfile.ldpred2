@@ -1,0 +1,19 @@
+# syntax=docker/dockerfile:1
+# ARM64 image for ldpred2
+FROM --platform=linux/arm64 bioconductor/bioconductor_docker:RELEASE_3_18
+
+LABEL maintainer="OmniBioAI <team@omnibioai.io>"
+LABEL tool="ldpred2"
+LABEL platform="linux/arm64"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcurl4-openssl-dev libssl-dev libxml2-dev && rm -rf /var/lib/apt/lists/* && \
+    Rscript -e "install.packages('bigsnpr', repos='https://cloud.r-project.org')"
+# ── OmniBioAI tool runtime ─────────────────────────────────────────────────
+RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir
+COPY omnibioai-tool-runtime/tools /app/tools
+COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
+COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
+WORKDIR /app
+RUN pip3 install . --no-cache-dir
+CMD ["python3", "-m", "tools.generic_sif_runner.run"]

@@ -1,0 +1,4 @@
+FROM mambaorg/micromamba:1.5.8
+RUN micromamba install -y -n base -c bioconda -c conda-forge \
+    minimap2=2.28 && \
+    micromamba clean --all --yes

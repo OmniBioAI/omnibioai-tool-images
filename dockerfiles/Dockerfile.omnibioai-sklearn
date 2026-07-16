@@ -11,5 +11,5 @@ COPY omnibioai-tool-runtime/tools /app/tools
 COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
-RUN pip install -e . --no-cache-dir
+RUN pip install . --no-cache-dir
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

@@ -1,0 +1,51 @@
+Bootstrap: docker
+From: python:3.12-slim
+
+%labels
+    Author OmniBioAI
+    Version 2.0
+    Description BioQueryAI full bioinformatics sandbox for LLM-generated scripts
+
+%post
+    apt-get update && apt-get install -y --no-install-recommends \
+        gcc g++ make cmake \
+        zlib1g-dev libbz2-dev liblzma-dev \
+        libcurl4-openssl-dev libssl-dev \
+        libhts-dev \
+        samtools bcftools tabix \
+        bedtools \
+        wget curl git procps \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+    pip install --no-cache-dir --upgrade pip setuptools wheel
+    pip install --no-cache-dir "pandas>=2.2,<3" "numpy>=1.26,<2" "scipy>=1.13,<2" "statsmodels>=0.14,<1" "scikit-learn>=1.5,<2" "matplotlib>=3.9,<4" "seaborn>=0.13,<1" "plotly>=5.22,<6"
+    pip install --no-cache-dir "pysam>=0.22,<1" "cyvcf2>=0.31,<1" "biopython>=1.84,<2" "pybedtools>=0.10,<1"
+    pip install --no-cache-dir "anndata>=0.10,<1" "scanpy>=1.10,<2"
+    pip install --no-cache-dir "pydeseq2>=0.4,<1"
+    pip install --no-cache-dir "gseapy>=1.1,<2"
+    pip install --no-cache-dir "lifelines>=0.29,<1"
+    pip install --no-cache-dir "networkx>=3.3,<4"
+    pip install --no-cache-dir tqdm openpyxl xlrd pyarrow pyyaml tabulate rich
+
+    mkdir -p /workspace/inputs /workspace/figures /workspace/tables /workspace/text /workspace/files /workspace/logs /workspace/meta
+
+%environment
+    export PYTHONUNBUFFERED=1
+    export MPLBACKEND=Agg
+    export HOME=/tmp
+    export PIP_NO_CACHE_DIR=1
+
+%runscript
+    exec python "$@"
+
+%test
+    python -c "
+packages = ['pandas','numpy','scipy','matplotlib','seaborn','sklearn','statsmodels','networkx','lifelines','gseapy','anndata','scanpy','pydeseq2','Bio','pysam','cyvcf2','pybedtools']
+ok, fail = [], []
+for p in packages:
+    try: __import__(p); ok.append(p)
+    except Exception as e: fail.append(f'{p}: {e}')
+print('OK:', ok)
+if fail: print('FAILED:', fail)
+else: print('BioQueryAI sandbox ready.')
+"

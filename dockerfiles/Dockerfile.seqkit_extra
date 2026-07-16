@@ -1,0 +1,4 @@
+FROM mambaorg/micromamba:1.5.8
+RUN micromamba install -y -n base -c bioconda -c conda-forge \
+    seqkit=2.7.0 && \
+    micromamba clean --all --yes
