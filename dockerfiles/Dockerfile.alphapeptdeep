@@ -1,0 +1,3 @@
+FROM mambaorg/micromamba:latest
+RUN micromamba install -y -n base -c bioconda -c conda-forge alphapeptdeep \
+    && micromamba clean --all --yes

@@ -1,0 +1,3 @@
+FROM mambaorg/micromamba:latest
+RUN micromamba install -y -n base -c bioconda -c conda-forge phylowgs \
+    && micromamba clean --all --yes
