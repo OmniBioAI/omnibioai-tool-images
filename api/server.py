@@ -245,6 +245,17 @@ async def _stream_build(cmd: list[str]) -> AsyncGenerator[dict, None]:
     yield {"data": f"\n[exit code: {rc}]", "event": "done" if rc == 0 else "error"}
 
 
+# NOT WIRED UP (issue #13, closed as won't-fix): build_all.sh isn't
+# present in this image (Dockerfile only COPYs api/), and even if it were,
+# this container has no docker CLI, no /var/run/docker.sock, and no
+# singularity/apptainer binary -- build_all.sh needs all three. The real
+# ARM64 SIF build path is the host-side
+# omnibioai-tool-images/build_missing_sifs.sh script (see project memory
+# project_sif_build.md), run directly on the host against its own Docker
+# + Singularity install, not through this HTTP endpoint. These two routes
+# are left as-is (they'll fail with exit 127) rather than silently
+# reworked into something that looks functional but isn't the real build
+# mechanism.
 @app.post("/v1/build/{tool}")
 def build_tool(tool: str):
     df = DOCKERFILES_DIR / f"Dockerfile.{tool}"
