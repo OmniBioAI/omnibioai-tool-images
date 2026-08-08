@@ -3,13 +3,18 @@
 ARM64-compatible Docker/Singularity images for bioinformatics and ML tools
 running on DGX Spark via Slurm.
 
-> **459 SIF images · ~235G total · ARM64 (aarch64)**
+> **1,000 SIF images built locally · 1,249 Dockerfiles defined · ARM64 (aarch64)**
+> (verified 2026-08-07 by direct file count; SIF count reflects this machine's
+> local `sif/` state, not a fixed platform-wide total)
 
 ## Structure
 
 ```
 omnibioai-tool-images/
-├── dockerfiles/          ← 454 Dockerfiles, one per tool
+├── dockerfiles/          ← 1,249 Dockerfiles, one per tool (33 more under obsolete/)
+├── api/
+│   └── server.py         ← Build/status API — see "API" below
+├── frontend/tool-images-ui/  ← React + TypeScript UI (Vite) — see "Frontend" below
 ├── sif/                  ← built Singularity SIF images (gitignored)
 ├── build_logs/           ← build output logs (gitignored)
 ├── tests/                ← pytest test suite (97% coverage)
@@ -42,9 +47,13 @@ pytest tests/ -v -k "not test_tool_runs_in_sif"
 
 ---
 
-## Tools Available (459 SIF images · 29 domains)
+## Tools Available (29 domains)
 
 Tool configurations live in `omnibioai-tes/configs/tools/` — one YAML file per domain.
+Per-domain counts below sum to 1,007 and were **not independently
+re-verified** in this pass — they may lag the 1,249 real Dockerfiles
+and 1,000 built SIFs above; treat the per-domain breakdown as
+directional, not exact.
 
 | # | Domain | Config file | Tools | Examples |
 |---|--------|-------------|-------|---------|
@@ -94,9 +103,50 @@ pytest tests/ --cov=tests --cov-report=term-missing \
 pytest tests/ -v
 ```
 
-**Test results: 1026 passed · 97% coverage · 2.45s**
+**Test results (verified 2026-08-07): 10,008 passed · 1,525 failed · 1 skipped
+in 31s** (excludes live SIF-execution tests). The failures are all one
+category — `test_dockerfiles.py::TestDockerfileStructure::test_dockerfile_uses_approved_base`,
+parametrized per tool (`yak`, `yara`, `zarr_extra`, `zarr_v2_extra`, and
+many more) — a base-image policy check a large number of Dockerfiles
+currently fail, not 1,525 independent issues. Not investigated further
+here (README-only pass); flagging honestly rather than repeating the
+stale "1026 passed" figure, which predates this.
 
 ---
+
+## API
+
+`api/server.py` (FastAPI) serves as the `tool-images` container in
+`omnibioai-studio`'s compose stack, port **8097**.
+
+| Method | Endpoint | Status |
+|--------|----------|--------|
+| GET | `/health` | Working |
+| GET | `/v1/tools` | Working — lists tools discovered from `dockerfiles/Dockerfile.*` |
+| GET | `/v1/tools/{tool}/dockerfile` | Working — returns the raw Dockerfile |
+| GET | `/v1/tools/{tool}/log` | Working — returns the build log if one exists |
+| POST | `/v1/build/{tool}` | **Known non-functional** (documented in code, issue #13, closed won't-fix) |
+| POST | `/v1/build-all` | **Known non-functional** (same reason) |
+
+The two build endpoints shell out to `build_all.sh`, but the container
+this API runs in only has `api/` copied into it — no Docker CLI, no
+`/var/run/docker.sock`, no Singularity/Apptainer binary, and
+`build_all.sh` itself isn't even present in the image. They're left in
+place returning exit 127 rather than reworked into something that looks
+functional but isn't. **The real build path is host-side**:
+`build_missing_sifs.sh` (or `build_all.sh` directly), run on a host with
+Docker + Singularity installed — never through this HTTP API.
+
+## Frontend
+
+`frontend/tool-images-ui/` (React + TypeScript, Vite) — ships in this
+same repo, not documented elsewhere.
+
+```bash
+cd frontend/tool-images-ui
+npm install
+npm run dev
+```
 
 ## Notes
 
