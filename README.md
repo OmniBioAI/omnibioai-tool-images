@@ -11,13 +11,13 @@ running on DGX Spark via Slurm.
 
 ```
 omnibioai-tool-images/
-├── dockerfiles/          ← 1,249 Dockerfiles, one per tool (33 more under obsolete/)
+├── dockerfiles/          ← 1,249 Dockerfiles, one per tool
 ├── api/
 │   └── server.py         ← Build/status API — see "API" below
 ├── frontend/tool-images-ui/  ← React + TypeScript UI (Vite) — see "Frontend" below
 ├── sif/                  ← built Singularity SIF images (gitignored)
 ├── build_logs/           ← build output logs (gitignored)
-├── tests/                ← pytest test suite (97% coverage)
+├── tests/                ← pytest test suite (coverage configured at 95% minimum)
 ├── build_all.sh          ← build all images
 └── build_missing_sifs.sh ← rebuild only missing/failed SIFs
 ```
@@ -31,8 +31,8 @@ bash build_all.sh fastqc
 # Build all tools
 bash build_all.sh
 
-# Build in parallel (N workers)
-bash build_all.sh --parallel 4
+# Build selected missing tools with the fallback builder
+bash build_new_tools.sh tool_a tool_b
 
 # Run tests
 pytest tests/ -v -k "not test_tool_runs_in_sif"
@@ -96,15 +96,15 @@ directional, not exact.
 pytest tests/ -v -k "not test_tool_runs_in_sif"
 
 # Run with coverage
-pytest tests/ --cov=tests --cov-report=term-missing \
+pytest tests/ --cov=scripts --cov-report=term-missing \
   -k "not test_tool_runs_in_sif"
 
 # Run including SIF execution tests (requires Singularity)
 pytest tests/ -v
 ```
 
-**Test results (verified 2026-08-07): 10,008 passed · 1,525 failed · 1 skipped
-in 31s** (excludes live SIF-execution tests). The failures are all one
+**Historical test result (verified 2026-08-07): 10,008 passed · 1,525 failed · 1 skipped
+in 31s** (excludes live SIF-execution tests). The failures were all one
 category — `test_dockerfiles.py::TestDockerfileStructure::test_dockerfile_uses_approved_base`,
 parametrized per tool (`yak`, `yara`, `zarr_extra`, `zarr_v2_extra`, and
 many more) — a base-image policy check a large number of Dockerfiles
@@ -137,6 +137,15 @@ functional but isn't. **The real build path is host-side**:
 `build_missing_sifs.sh` (or `build_all.sh` directly), run on a host with
 Docker + Singularity installed — never through this HTTP API.
 
+The API container exposes two ports in the Compose deployment:
+
+- `8097` — FastAPI API (`/health`, `/v1/*`, and `/docs`)
+- `5179` — nginx-served React frontend, proxying `/v1/*` to the API
+
+The standalone Docker image copies the API and frontend only. Compose mounts
+the host `dockerfiles/`, `sif/`, and `build_logs/` directories into the
+container so the UI can inspect the current host-side build state.
+
 ## Frontend
 
 `frontend/tool-images-ui/` (React + TypeScript, Vite) — ships in this
@@ -148,13 +157,34 @@ npm install
 npm run dev
 ```
 
+The production frontend is served by nginx on port 5179. The Vite
+development server uses its own development port and is useful when working
+on the UI independently of the Compose container.
+
 ## Notes
 
 - All images are built for `linux/arm64` (aarch64) — DGX Spark / Grace Hopper
+- `build_all.sh`, `build_missing_sifs.sh`, and the fallback builders are ARM64
+  workflows; `build_multiarch_sifs.sh` is the separate workflow for its
+  explicitly selected `amd64` + `arm64` tool set
 - SIF files are stored in `sif/` (gitignored — ~235G total)
 - Tools marked ⚠️ require an external license or manual download
 - Tools reusing an existing SIF are noted as `reused`
 - Build logs are in `build_logs/` (gitignored)
+
+## Requirements
+
+For host-side image/SIF builds, install:
+
+- Python 3.11 or newer
+- Docker with BuildKit/buildx support
+- Singularity or Apptainer
+- Sufficient local storage for Docker layers, build logs, and SIF images
+
+For the frontend, use Node.js/npm. The API container installs its Python
+runtime dependencies during the Docker build; host-side test execution uses
+the dependencies in `requirements-test.txt` and the coverage configuration
+in `pyproject.toml`.
 
 ## Related Repos
 
