@@ -13,3 +13,4 @@ omnibioai_tool_images.egg-info/
 push_omnibioai.log
 htmlcov/
 coverage_html/
+.claude/
