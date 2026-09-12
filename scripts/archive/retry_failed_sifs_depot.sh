@@ -1,4 +1,11 @@
 #!/bin/bash
+# ARCHIVED 2026-09-12 — DO NOT RUN AS-IS.
+# depot.galaxyproject.org/singularity/ hosts zero true arm64/aarch64 builds
+# (confirmed by grepping its ~122,676-entry index). A direct curl/singularity-pull
+# of a depot file URL does no arch translation, so this script's output was
+# x86_64 binaries mislabeled "*_arm64.sif". Killed mid-run on 2026-07-07 before
+# it could produce more bad SIFs. Kept here for history only. See
+# scripts/archive/README.md.
 # Retry build for previously-failed SIFs using resolved Galaxy depot URLs
 # (real tags verified against https://depot.galaxyproject.org/singularity/ index,
 #  since quay.io/biocontainers ARM64 images were missing for these tools)

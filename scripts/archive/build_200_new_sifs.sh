@@ -1,4 +1,11 @@
 #!/bin/bash
+# ARCHIVED 2026-09-12 — DO NOT RUN AS-IS.
+# Confirmed on 2026-07-07 that `singularity pull --arch arm64` against
+# quay.io/biocontainers docker:// refs silently accepted x86_64-only images
+# for many of these tools and wrote them out as "*_arm64.sif". All 29 SIFs
+# built by this script that day were verified x86_64 (via `singularity exec
+# <file> uname -m`) and deleted. Kept here for history only. See
+# scripts/archive/README.md.
 set -e
 SIF_DIR=~/Desktop/machine/omnibioai-tool-images/sif
 LOG=~/Desktop/machine/omnibioai-tool-images/build_logs/build_200_$(date +%Y%m%d).log
