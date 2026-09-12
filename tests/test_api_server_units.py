@@ -127,10 +127,10 @@ def test_stream_build_passes_safe_subprocess_boundary_and_decodes_output(monkeyp
     create = AsyncMock(return_value=process)
     monkeypatch.setattr(server.asyncio, "create_subprocess_exec", create)
 
-    events = collect(server._stream_build(["bash", "build_all.sh", "demo"]))
+    events = collect(server._stream_build(["bash", "scripts/build_all.sh", "demo"]))
 
     create.assert_awaited_once_with(
-        "bash", "build_all.sh", "demo",
+        "bash", "scripts/build_all.sh", "demo",
         stdout=server.asyncio.subprocess.PIPE,
         stderr=server.asyncio.subprocess.STDOUT,
         cwd=str(server.BASE),

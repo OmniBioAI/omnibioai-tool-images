@@ -19,7 +19,7 @@ import pytest
 ROOT           = Path(__file__).parent.parent
 DOCKERFILE_DIR = ROOT / "dockerfiles"
 SIF_DIR        = ROOT / "sif"
-BUILD_SCRIPT   = ROOT / "build_all.sh"
+BUILD_SCRIPT   = ROOT / "scripts" / "build_all.sh"
 
 APPROVED_BASES = [
     # Ubuntu

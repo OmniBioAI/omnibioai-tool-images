@@ -2,9 +2,9 @@
 
 Superseded one-off / historical batch scripts (March–July 2026), kept for
 debugging and historical reference. None of these are referenced by
-README.md, the API, or the test suite. **The current build scripts live at
-the repo root:** `build_all.sh`, `build_missing_sifs.sh`, `build_new_tools.sh`,
-`build_multiarch_sifs.sh`.
+README.md, the API, or the test suite. **The current build scripts live in
+the parent `scripts/` directory:** `build_all.sh`, `build_missing_sifs.sh`,
+`build_new_tools.sh`, `build_multiarch_sifs.sh`.
 
 | Script | Why archived |
 |---|---|

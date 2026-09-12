@@ -1,15 +1,15 @@
 #!/bin/bash
 # Build all ARM64 Docker images and convert to Singularity SIF
-# Usage: bash build_all.sh [tool_name]
-# Example: bash build_all.sh fastqc
-# Example: bash build_all.sh  (builds all)
+# Usage (run from repo root): bash scripts/build_all.sh [tool_name]
+# Example: bash scripts/build_all.sh fastqc
+# Example: bash scripts/build_all.sh  (builds all)
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DOCKERFILE_DIR="$SCRIPT_DIR/dockerfiles"
-SIF_DIR="$SCRIPT_DIR/sif"
-LOG_DIR="$SCRIPT_DIR/build_logs"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+DOCKERFILE_DIR="$ROOT_DIR/dockerfiles"
+SIF_DIR="$ROOT_DIR/sif"
+LOG_DIR="$ROOT_DIR/build_logs"
 
 mkdir -p "$SIF_DIR" "$LOG_DIR"
 

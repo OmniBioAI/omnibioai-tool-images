@@ -12,7 +12,7 @@
 #   4. Pull each arch-specific image from the local registry and convert to .sif with apptainer,
 #      writing <tool>_amd64.sif and <tool>_arm64.sif into sif/OmniBioAI-SIFs/
 #
-# Run this from: ~/Desktop/machine/omnibioai-tool-images
+# Run from the repo root: bash scripts/build_multiarch_sifs.sh
 #
 set -euo pipefail
 

@@ -29,21 +29,22 @@ omnibioai-tool-images/
 ├── sif/                  ← built Singularity SIF images (gitignored)
 ├── build_logs/           ← build output logs (gitignored)
 ├── tests/                ← pytest test suite (coverage configured at 95% minimum)
-├── build_all.sh          ← build all images
-└── build_missing_sifs.sh ← rebuild only missing/failed SIFs
+├── scripts/
+│   ├── build_all.sh          ← build all images
+│   └── build_missing_sifs.sh ← rebuild only missing/failed SIFs
 ```
 
 ## Quick Start
 
 ```bash
 # Build a single tool
-bash build_all.sh fastqc
+bash scripts/build_all.sh fastqc
 
 # Build all tools
-bash build_all.sh
+bash scripts/build_all.sh
 
 # Build selected missing tools with the fallback builder
-bash build_new_tools.sh tool_a tool_b
+bash scripts/build_new_tools.sh tool_a tool_b
 
 # Run tests
 pytest tests/ -v -k "not test_tool_runs_in_sif"
@@ -52,7 +53,7 @@ pytest tests/ -v -k "not test_tool_runs_in_sif"
 ## Add a New Tool
 
 1. Write `dockerfiles/Dockerfile.toolname`
-2. Run `bash build_all.sh toolname`
+2. Run `bash scripts/build_all.sh toolname`
 3. Add tool entry to `omnibioai-tes/configs/tools/<domain>.yaml` (edit the appropriate category file)
 4. Run `make restart` in `omnibioai-tes` — done!
 
@@ -136,13 +137,13 @@ were fixed in commit `5d85eb2` ("update Dockerfile contract checks").
 | POST | `/v1/build/{tool}` | **Known non-functional** (documented in code, issue #13, closed won't-fix) |
 | POST | `/v1/build-all` | **Known non-functional** (same reason) |
 
-The two build endpoints shell out to `build_all.sh`, but the container
+The two build endpoints shell out to `scripts/build_all.sh`, but the container
 this API runs in only has `api/` copied into it — no Docker CLI, no
 `/var/run/docker.sock`, no Singularity/Apptainer binary, and
-`build_all.sh` itself isn't even present in the image. They're left in
+`scripts/build_all.sh` itself isn't even present in the image. They're left in
 place returning exit 127 rather than reworked into something that looks
 functional but isn't. **The real build path is host-side**:
-`build_missing_sifs.sh` (or `build_all.sh` directly), run on a host with
+`scripts/build_missing_sifs.sh` (or `scripts/build_all.sh` directly), run on a host with
 Docker + Singularity installed — never through this HTTP API.
 
 The API container exposes two ports in the Compose deployment:
@@ -172,9 +173,9 @@ on the UI independently of the Compose container.
 ## Notes
 
 - All images are built for `linux/arm64` (aarch64) — DGX Spark / Grace Hopper
-- `build_all.sh`, `build_missing_sifs.sh`, and the fallback builders are ARM64
-  workflows; `build_multiarch_sifs.sh` is the separate workflow for its
-  explicitly selected `amd64` + `arm64` tool set
+- `scripts/build_all.sh`, `scripts/build_missing_sifs.sh`, and the fallback
+  builders are ARM64 workflows; `scripts/build_multiarch_sifs.sh` is the
+  separate workflow for its explicitly selected `amd64` + `arm64` tool set
 - SIF files are stored in `sif/` (gitignored — ~235G total)
 - Tools marked ⚠️ require an external license or manual download
 - Tools reusing an existing SIF are noted as `reused`

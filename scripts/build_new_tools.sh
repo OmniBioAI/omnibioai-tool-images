@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Build missing Docker images for linux/arm64 and convert to Singularity SIF.
-# Usage: ./build_new_tools.sh [tool1 tool2 ...]
+# Usage (run from repo root): bash scripts/build_new_tools.sh [tool1 tool2 ...]
 #   No args = build all missing tools (defined in ALL_TOOLS array).
 #   With args = build only the named tools.
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SIF_DIR="${SCRIPT_DIR}/sif"
-DOCKERFILE_DIR="${SCRIPT_DIR}/dockerfiles"
-LOG_DIR="${SCRIPT_DIR}/build_logs"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SIF_DIR="${ROOT_DIR}/sif"
+DOCKERFILE_DIR="${ROOT_DIR}/dockerfiles"
+LOG_DIR="${ROOT_DIR}/build_logs"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 MAIN_LOG="${LOG_DIR}/build_${TIMESTAMP}.log"
 
@@ -98,7 +98,7 @@ build_tool() {
   if ! docker build \
       -t "${image}" \
       -f "${dockerfile}" \
-      "${SCRIPT_DIR}" \
+      "${ROOT_DIR}" \
       > "${tool_log}" 2>&1; then
     fail "${tool}: Docker build failed — see ${tool_log}"
     FAILED+=("${tool} (docker build)")
