@@ -29,9 +29,6 @@ dependencies = [
 Homepage = "https://github.com/man4ish/omnibioai-tool-images"
 Repository = "https://github.com/man4ish/omnibioai-tool-images"
 
-[project.scripts]
-omnibioai-build = "scripts.build_orchestrator:main"
-
 [tool.setuptools]
 package-dir = { "" = "." }
 packages = ["scripts"]
