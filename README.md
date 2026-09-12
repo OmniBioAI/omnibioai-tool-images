@@ -4,8 +4,19 @@ ARM64-compatible Docker/Singularity images for bioinformatics and ML tools
 running on DGX Spark via Slurm.
 
 > **1,000 SIF images built locally · 1,249 Dockerfiles defined · ARM64 (aarch64)**
-> (verified 2026-08-07 by direct file count; SIF count reflects this machine's
+> (verified 2026-09-12 by direct file count; SIF count reflects this machine's
 > local `sif/` state, not a fixed platform-wide total)
+
+### OmniBioAI Tool Images preview
+
+The frontend (`frontend/tool-images-ui/`) lists every tool discovered from
+`dockerfiles/Dockerfile.*` with its live build/SIF status — at the time of
+this screenshot, 996 built, 2 needing a license, and 249 missing or broken
+out of 1,247 tracked tools:
+
+![OmniBioAI Tool Images — tool catalog and build status](images/omnibioai-tool-images.png)
+
+---
 
 ## Structure
 
@@ -103,14 +114,11 @@ pytest tests/ --cov=scripts --cov-report=term-missing \
 pytest tests/ -v
 ```
 
-**Historical test result (verified 2026-08-07): 10,008 passed · 1,525 failed · 1 skipped
-in 31s** (excludes live SIF-execution tests). The failures were all one
-category — `test_dockerfiles.py::TestDockerfileStructure::test_dockerfile_uses_approved_base`,
-parametrized per tool (`yak`, `yara`, `zarr_extra`, `zarr_v2_extra`, and
-many more) — a base-image policy check a large number of Dockerfiles
-currently fail, not 1,525 independent issues. Not investigated further
-here (README-only pass); flagging honestly rather than repeating the
-stale "1026 passed" figure, which predates this.
+**Test result (verified 2026-09-12): 11,545 passed · 1 skipped · 24 deselected
+in 32s** (excludes live SIF-execution tests). This is a clean run — the
+previously reported 1,525 failures (all one category,
+`test_dockerfiles.py::TestDockerfileStructure::test_dockerfile_uses_approved_base`)
+were fixed in commit `5d85eb2` ("update Dockerfile contract checks").
 
 ---
 
