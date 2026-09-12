@@ -23,6 +23,7 @@ out of 1,247 tracked tools:
 ```
 omnibioai-tool-images/
 ├── dockerfiles/          ← 1,249 Dockerfiles, one per tool
+├── sandbox.def           ← BioQueryAI Python sandbox def — see Notes
 ├── api/
 │   └── server.py         ← Build/status API — see "API" below
 ├── frontend/tool-images-ui/  ← React + TypeScript UI (Vite) — see "Frontend" below
@@ -30,8 +31,13 @@ omnibioai-tool-images/
 ├── build_logs/           ← build output logs (gitignored)
 ├── tests/                ← pytest test suite (coverage configured at 95% minimum)
 ├── scripts/
-│   ├── build_all.sh          ← build all images
-│   └── build_missing_sifs.sh ← rebuild only missing/failed SIFs
+│   ├── build_all.sh                          ← build all images
+│   ├── build_missing_sifs.sh                 ← rebuild only missing/failed SIFs
+│   ├── build_new_tools.sh                    ← fallback builder for named tools
+│   ├── build_multiarch_sifs.sh               ← separate amd64+arm64 workflow
+│   ├── push_to_hf.sh / push_to_ghcr.sh       ← push SIFs to Hugging Face / GHCR
+│   ├── upload_sifs_s3.sh / upload_sifs_azure.sh ← push SIFs to S3 / Azure Blob
+│   └── archive/                              ← superseded one-off build scripts (historical)
 ```
 
 ## Quick Start
@@ -56,6 +62,24 @@ pytest tests/ -v -k "not test_tool_runs_in_sif"
 2. Run `bash scripts/build_all.sh toolname`
 3. Add tool entry to `omnibioai-tes/configs/tools/<domain>.yaml` (edit the appropriate category file)
 4. Run `make restart` in `omnibioai-tes` — done!
+
+---
+
+## Distribution
+
+Once SIFs are built, four scripts push them off this machine to a remote
+store. None of these are wired into the API — they're run manually, host-side:
+
+| Script | Target | Requires |
+|---|---|---|
+| `scripts/push_to_hf.sh` | Hugging Face dataset repo `omnibioai/omnibioai-sif-images` | `huggingface-cli`, logged in |
+| `scripts/push_to_ghcr.sh` | `ghcr.io/omnibioai/omnibioai-sif/<tool>:arm64` via `oras` (vendored in `scripts/`, auto-installed if missing) | `GH_USER` and `GH_TOKEN` env vars |
+| `scripts/upload_sifs_s3.sh` | `s3://<S3_SIF_BUCKET>-<AWS account ID>/` (bucket auto-created) | AWS CLI credentials |
+| `scripts/upload_sifs_azure.sh` | Azure Blob container `${AZURE_SIF_CONTAINER:-omnibioai-sif}` (auto-created) | `AZURE_STORAGE_CONNECTION_STRING` |
+
+All four skip files already present at the destination and are safe to
+re-run. `scripts/push_omnibioai_images.sh` (the original combined
+Sylabs+GHCR pusher) is superseded by these and kept only for history.
 
 ---
 
@@ -180,6 +204,13 @@ on the UI independently of the Compose container.
 - Tools marked ⚠️ require an external license or manual download
 - Tools reusing an existing SIF are noted as `reused`
 - Build logs are in `build_logs/` (gitignored)
+- `sandbox.def` is a separate, manually-built Apptainer definition (not part
+  of the `dockerfiles/` + `scripts/build_all.sh` pipeline) that produces
+  `sif/bioqueryai_sandbox.sif` — a general-purpose Python analysis sandbox
+  (pandas/scanpy/pydeseq2/etc.). It's consumed outside this repo: `omnibioai-tes`
+  (`tool_id: bioqueryai_python_runner` / `bioqueryai_sandbox_script`) and
+  `omnibioai-workbench`'s BioQueryAI agent run LLM-generated Python scripts
+  inside it via `apptainer exec --writable-tmpfs`, over Slurm/TES.
 
 ## Requirements
 
