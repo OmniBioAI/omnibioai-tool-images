@@ -1,4 +1,8 @@
-"""Focused unit tests for API behavior without TestClient or host services."""
+"""Focused unit tests for API behavior without TestClient or host services.
+
+Developer:
+    Manish Kumar <manish@omnibioai.org>
+"""
 
 from __future__ import annotations
 
@@ -18,6 +22,7 @@ import server  # noqa: E402
 
 
 def collect(async_generator):
+    """Run an async generator to completion and return its collected events."""
     async def run():
         return [event async for event in async_generator]
 
@@ -25,10 +30,12 @@ def collect(async_generator):
 
 
 def test_health_returns_service_status():
+    """health() returns {"status": "ok"} directly, without going through TestClient."""
     assert server.health() == {"status": "ok"}
 
 
 def test_tool_info_reports_built_sif_metadata(tmp_path, monkeypatch):
+    """_tool_info() reports full metadata (path, size in MB, status "built") for a tool with a SIF on disk."""
     sif = tmp_path / "demo_arm64.sif"
     sif.write_bytes(b"x" * (2 * 1024 * 1024 + 100))
     monkeypatch.setattr(server, "SIF_DIR", tmp_path)
@@ -51,6 +58,7 @@ def test_tool_info_reports_built_sif_metadata(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("tool", ["missing_tool", "cellranger"])
 def test_tool_info_reports_nonbuilt_statuses_without_sif(tmp_path, monkeypatch, tool):
+    """A tool with no SIF reports status "missing", or "license" when it's in LICENSE_NEEDED."""
     monkeypatch.setattr(server, "SIF_DIR", tmp_path)
 
     info = server._tool_info(tool)
@@ -64,6 +72,7 @@ def test_tool_info_reports_nonbuilt_statuses_without_sif(tmp_path, monkeypatch, 
 
 
 def test_list_tools_is_sorted_and_skips_internal_tools(tmp_path, monkeypatch):
+    """list_tools() sorts alphabetically and excludes internal tools like "template" and "obsolete"."""
     for name in ("zeta", "alpha", "template", "obsolete"):
         (tmp_path / f"Dockerfile.{name}").write_text(f"FROM alpine\nCMD ['{name}']\n")
     monkeypatch.setattr(server, "DOCKERFILES_DIR", tmp_path)
@@ -76,6 +85,7 @@ def test_list_tools_is_sorted_and_skips_internal_tools(tmp_path, monkeypatch):
 
 
 def test_get_dockerfile_reads_text_and_preserves_plain_content(tmp_path, monkeypatch):
+    """get_dockerfile() returns a Dockerfile's exact text content unmodified."""
     dockerfiles = tmp_path / "dockerfiles"
     dockerfiles.mkdir()
     expected = "FROM python:3.12-slim\nCMD [\"tool\"]\n"
@@ -86,6 +96,7 @@ def test_get_dockerfile_reads_text_and_preserves_plain_content(tmp_path, monkeyp
 
 
 def test_get_dockerfile_missing_file_raises_http_404(tmp_path, monkeypatch):
+    """get_dockerfile() raises HTTPException(404, "Dockerfile not found") for a missing tool."""
     monkeypatch.setattr(server, "DOCKERFILES_DIR", tmp_path)
 
     with pytest.raises(HTTPException) as exc:
@@ -96,6 +107,7 @@ def test_get_dockerfile_missing_file_raises_http_404(tmp_path, monkeypatch):
 
 
 def test_get_build_log_reads_log_and_reports_missing_log(tmp_path, monkeypatch):
+    """get_build_log() returns log text when present and raises HTTPException(404) when absent."""
     (tmp_path / "demo.log").write_text("build output\n")
     monkeypatch.setattr(server, "BUILD_LOGS_DIR", tmp_path)
     assert server.get_build_log("demo") == "build output\n"
@@ -106,6 +118,7 @@ def test_get_build_log_reads_log_and_reports_missing_log(tmp_path, monkeypatch):
 
 
 def test_build_endpoints_validate_tool_and_construct_sse_response(tmp_path, monkeypatch):
+    """build_tool()/build_all() return an EventSourceResponse for a valid tool and raise HTTPException(404) for a missing one."""
     dockerfiles = tmp_path / "dockerfiles"
     dockerfiles.mkdir()
     (dockerfiles / "Dockerfile.demo").write_text("FROM alpine\n")
@@ -122,6 +135,7 @@ def test_build_endpoints_validate_tool_and_construct_sse_response(tmp_path, monk
 
 
 def test_stream_build_passes_safe_subprocess_boundary_and_decodes_output(monkeypatch):
+    """_stream_build() invokes create_subprocess_exec with the exact argv/pipes/cwd and decodes stdout lines, including non-UTF-8 bytes."""
     stdout = _AsyncLines([b"first\n", b"\xffsecond\n"])
     process = SimpleNamespace(returncode=0, stdout=stdout, wait=AsyncMock())
     create = AsyncMock(return_value=process)
@@ -143,6 +157,7 @@ def test_stream_build_passes_safe_subprocess_boundary_and_decodes_output(monkeyp
 
 @pytest.mark.parametrize("returncode,event", [(1, "error"), (127, "error")])
 def test_stream_build_emits_error_event_for_nonzero_exit(monkeypatch, returncode, event):
+    """Any non-zero exit code yields a single final "error" event reporting that code."""
     process = SimpleNamespace(
         returncode=returncode,
         stdout=_AsyncLines([]),
@@ -156,6 +171,8 @@ def test_stream_build_emits_error_event_for_nonzero_exit(monkeypatch, returncode
 
 
 class _AsyncLines:
+    """Minimal async iterator over a fixed list of byte lines, standing in for a subprocess's stdout stream."""
+
     def __init__(self, lines):
         self.lines = iter(lines)
 

@@ -4,6 +4,9 @@ Tests for omnibioai-tool-images Dockerfiles and SIF images.
 Run:
     cd omnibioai-tool-images
     pytest tests/ -v
+
+Developer:
+    Manish Kumar <manish@omnibioai.org>
 """
 from __future__ import annotations
 
@@ -86,6 +89,7 @@ BUILT_TOOLS = get_built_tools()
 # 1. Dockerfile structure tests
 # ─────────────────────────────────────────────────────────────────────────────
 class TestDockerfileStructure:
+    """Structural checks on every Dockerfile.<tool>: non-empty, has FROM, has a runtime command, uses an approved base image, and is free of apt-get upgrade."""
 
     def test_dockerfiles_exist(self):
         """At least one Dockerfile exists."""
@@ -155,7 +159,7 @@ class TestDockerfileStructure:
 
     @pytest.mark.parametrize("tool", ALL_TOOLS)
     def test_dockerfile_has_no_syntax_errors(self, tool):
-        """Validate Dockerfile syntax using docker build --dry-run or check."""
+        """First non-comment line of each Dockerfile is FROM or ARG."""
         path = DOCKERFILE_DIR / f"Dockerfile.{tool}"
         content = path.read_text()
         lines = content.strip().splitlines()
@@ -169,6 +173,7 @@ class TestDockerfileStructure:
 # 2. SIF file tests
 # ─────────────────────────────────────────────────────────────────────────────
 class TestSIFFiles:
+    """Checks on built SIF images: non-empty, minimum size, valid Singularity format, and a matching Dockerfile."""
 
     def test_sif_directory_exists(self):
         """SIF directory exists."""
@@ -222,6 +227,7 @@ class TestSIFFiles:
 # 3. Build script tests
 # ─────────────────────────────────────────────────────────────────────────────
 class TestBuildScript:
+    """Checks on scripts/build_all.sh: exists, executable, has a shebang, valid bash syntax, and invokes docker build / singularity pull."""
 
     def test_build_script_exists(self):
         """build_all.sh exists."""
@@ -322,6 +328,7 @@ TESTABLE_TOOLS = {
 
 
 class TestToolCommands:
+    """Spot-checks that key tools actually run inside their built SIF image."""
 
     @pytest.mark.parametrize("tool,command", TESTABLE_TOOLS.items())
     def test_tool_runs_in_sif(self, tool, command):
@@ -344,6 +351,7 @@ class TestToolCommands:
 # 5. Summary report
 # ─────────────────────────────────────────────────────────────────────────────
 class TestSummary:
+    """Prints a build-status summary; always passes (informational only)."""
 
     def test_print_summary(self, capsys):
         """Print summary of all tools and their build status."""
@@ -376,7 +384,7 @@ class TestSummary:
 
 
 class TestCoverage:
-    """Extra tests to improve coverage."""
+    """Additional coverage for run_singularity() and the extra-SIF branch of the summary logic."""
 
     def test_run_singularity_helper(self):
         """Test run_singularity helper with a simple built tool."""
