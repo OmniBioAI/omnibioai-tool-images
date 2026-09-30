@@ -9,5 +9,5 @@ if (!identical(as.character(BiocManager::version()), "3.20")) stop("Bioconductor
 if (!startsWith(as.character(getRversion()), "4.4")) stop("R major/minor mismatch")
 for (pkg in expected) if (!requireNamespace(pkg, quietly = TRUE)) stop("cannot load ", pkg)
 cat("manifest_consistency=PASS\n")
-cat("R=", getRversion(), "\n", sep = "")
-cat("Bioconductor=", BiocManager::version(), "\n", sep = "")
+cat("R=", as.character(getRversion()), "\n", sep = "")
+cat("Bioconductor=", as.character(BiocManager::version()), "\n", sep = "")

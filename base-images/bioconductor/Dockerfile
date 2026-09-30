@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.title="OmniBioAI Bioconductor scientific base" \
       org.opencontainers.image.description="Pinned Bioconductor 3.20 / R 4.4 scientific foundation" \
       org.opencontainers.image.vendor="OmniBioAI" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.source="https://github.com/man4ish/omnibioai-tool-images" \
+      org.opencontainers.image.source="https://github.com/OmniBioAI/omnibioai-tool-images" \
       org.opencontainers.image.base.name="bioconductor/bioconductor_docker:RELEASE_3_20" \
       org.omnibioai.bioconductor="3.20" \
       org.omnibioai.r="4.4"
@@ -44,7 +44,7 @@ RUN Rscript /usr/local/share/omnibioai/install-base.R \
 RUN useradd --create-home --uid 10001 --shell /bin/bash omnibioai \
     && install -d -o omnibioai -g omnibioai -m 0700 /home/omnibioai/.cache \
     && install -d -o omnibioai -g omnibioai -m 1777 /tmp/omnibioai \
-    && install -d -o omnibioai -g omnibioai /workspace \
+    && install -d -o omnibioai -g omnibioai /workspace
 COPY base-images/bioconductor/verify-base.R /usr/local/share/omnibioai/verify-base.R
 COPY base-images/bioconductor/smoke-test.sh /usr/local/share/omnibioai/smoke-test.sh
 # Re-run after copying the verifier so the image build fails on manifest drift.

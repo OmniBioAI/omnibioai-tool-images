@@ -68,3 +68,13 @@ jobs:
             echo 'latest must not be published' >&2
             exit 1
           fi
+      - name: Smoke test published ARM64 image
+        run: >-
+          docker run --rm --platform linux/arm64
+          --entrypoint /usr/local/share/omnibioai/smoke-test.sh
+          ghcr.io/omnibioai/omnibioai-base-bioconductor:1.0.0
+      - name: Smoke test published AMD64 image under emulation
+        run: >-
+          docker run --rm --platform linux/amd64
+          --entrypoint /usr/local/share/omnibioai/smoke-test.sh
+          ghcr.io/omnibioai/omnibioai-base-bioconductor:1.0.0
