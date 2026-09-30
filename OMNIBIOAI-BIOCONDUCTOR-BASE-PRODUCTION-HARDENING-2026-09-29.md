@@ -75,3 +75,33 @@ Remote attestation manifests were inspected for both child digests. Each contain
 Required release status: published ARM64 package smoke failed; the release is incomplete. The corrective run must complete and its new remote manifest, published ARM64/AMD64 runtimes, attestations, and labels must be rechecked before any verified classification.
 
 OMNIBIOAI BIOCONDUCTOR BASE RELEASE INCOMPLETE — PUBLISHED ARM64 PACKAGE SMOKE FAILED
+
+## Corrective Release Final Verification
+
+Workflow `36655397301`: **success**. Source revision: `570e0fd6e9a2772ce672a4834b76076a3908ed15`.
+
+The original failed top-level digest was `sha256:a5ba988e89036f3c6c7677286be9b2425207bdcc37b5cbd603cbd313ea85f80b`. The corrected current tags all resolve to:
+
+```text
+1.0.0 = sha256:1fc747e1984420fd0ed246eb39d403bbc9a76e4c29fe21ea36f6a16a2a5fe6fd
+1.0   = sha256:1fc747e1984420fd0ed246eb39d403bbc9a76e4c29fe21ea36f6a16a2a5fe6fd
+1     = sha256:1fc747e1984420fd0ed246eb39d403bbc9a76e4c29fe21ea36f6a16a2a5fe6fd
+```
+
+The corrected OCI index contains exactly the intended architecture image manifests plus separate unknown/unknown attestation manifests:
+
+```text
+amd64 child = sha256:a227135a593b5e56f85013c5df88d1fe4374b636354c7789fad5149fbdb1dbbf
+arm64 child = sha256:5e2c28daaea862de2768b359e26c1f45f94bb6e5cc2b919faa68f8fd1197fb42
+```
+
+Remote ARM64 was pulled directly by the new child digest on Apple Silicon: `linux/arm64`, UID/GID `10001`, R `4.4.2`, Bioconductor `3.20`, foundation packages **PASS**, Bioconductor object smoke **PASS**, TLS **PASS**, and writable runtime paths **PASS**. Remote AMD64 was pulled directly by the new child digest and run under QEMU emulation: manifest **PASS**, package smoke **PASS**, R `4.4.2`, non-root, TLS, and filesystem **PASS**. This is explicitly not native AMD64 runtime evidence.
+
+Corrected attestation manifests were inspected. AMD64 SBOM **VERIFIED** and ARM64 SBOM **VERIFIED** as SPDX in-toto layers whose subjects match the new child digests. AMD64 provenance **VERIFIED** and ARM64 provenance **VERIFIED** as SLSA v1 in-toto layers whose subjects match the new child digests and whose source revision is `570e0fd...`. OCI metadata **VERIFIED**: source is `https://github.com/OmniBioAI/omnibioai-tool-images`, revision is `570e0fd...`, and version is `1.0.0` on both children.
+
+`latest`: **NOT PUBLISHED**. Package visibility observed: **public**; `visibility_changed = NO`. Vulnerability status remains `VULNERABILITY_SCAN_BLOCKED_EXTERNAL_TOOLING`; no scanner credentials or security settings were changed. No source code, workflow, package visibility, or tags were modified during this verification.
+
+Corrective release status: all mandatory remote release gates pass. The Bioconductor base is now frozen at the verified 1.0.0 release.
+
+OMNIBIOAI BIOCONDUCTOR BASE 1.0.0 RELEASE VERIFIED
+FROZEN
