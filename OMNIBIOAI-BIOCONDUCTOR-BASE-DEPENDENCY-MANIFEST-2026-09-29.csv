@@ -1,0 +1,15 @@
+package,ecosystem,role,workload_count,version_source
+BiocManager,CRAN,release installer,0,CRAN snapshot 2024-11-01
+data.table,CRAN,shared low-cost tabular runtime,8,CRAN snapshot 2024-11-01
+jsonlite,CRAN,shared low-cost serialization runtime,3,CRAN snapshot 2024-11-01
+renv,CRAN,downstream lock tooling,0,CRAN snapshot 2024-11-01
+BiocVersion,BIOCONDUCTOR,release identity,0,Bioconductor 3.20 repository
+BiocGenerics,BIOCONDUCTOR,core S4 infrastructure,0,Bioconductor 3.20 repository
+S4Vectors,BIOCONDUCTOR,core vector infrastructure,0,Bioconductor 3.20 repository
+IRanges,BIOCONDUCTOR,core range infrastructure,0,Bioconductor 3.20 repository
+GenomeInfoDb,BIOCONDUCTOR,genome metadata infrastructure,0,Bioconductor 3.20 repository
+GenomicRanges,BIOCONDUCTOR,genomic range infrastructure,0,Bioconductor 3.20 repository
+SummarizedExperiment,BIOCONDUCTOR,common assay container,0,Bioconductor 3.20 repository
+SingleCellExperiment,BIOCONDUCTOR,common single-cell container,1,Bioconductor 3.20 repository
+BiocParallel,BIOCONDUCTOR,common parallel infrastructure,0,Bioconductor 3.20 repository
+Biostrings,BIOCONDUCTOR,common sequence infrastructure,0,Bioconductor 3.20 repository

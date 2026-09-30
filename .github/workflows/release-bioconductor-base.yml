@@ -1,0 +1,70 @@
+name: Release Bioconductor scientific base
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (must be 1.0.0 for the initial release)"
+        required: true
+        default: "1.0.0"
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate release version
+        run: test "${{ inputs.version }}" = "1.0.0"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve immutable upstream parent
+        id: parent
+        run: |
+          set -euo pipefail
+          digest="$(docker buildx imagetools inspect \
+            docker.io/bioconductor/bioconductor_docker:RELEASE_3_20 \
+            --format '{{json .Manifest.Digest}}' | tr -d '"')"
+          test "${digest#sha256:}" != "$digest"
+          echo "image=docker.io/bioconductor/bioconductor_docker@${digest}" >> "$GITHUB_OUTPUT"
+          echo "Resolved upstream parent: ${digest}"
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/omnibioai/omnibioai-base-bioconductor
+          tags: |
+            type=raw,value=1.0.0
+            type=raw,value=1.0
+            type=raw,value=1
+          flavor: |
+            latest=false
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: base-images/bioconductor/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          build-args: UPSTREAM_IMAGE=${{ steps.parent.outputs.image }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: mode=max
+      - name: Verify published manifest and tags
+        run: |
+          set -euo pipefail
+          image=ghcr.io/omnibioai/omnibioai-base-bioconductor
+          for tag in 1.0.0 1.0 1; do
+            docker buildx imagetools inspect "${image}:${tag}" --format '{{.Manifest.Digest}}'
+          done
+          if docker buildx imagetools inspect "${image}:latest" >/dev/null 2>&1; then
+            echo 'latest must not be published' >&2
+            exit 1
+          fi

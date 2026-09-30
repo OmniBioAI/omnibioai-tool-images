@@ -1,0 +1,8 @@
+{
+  "org.opencontainers.image.title": "OmniBioAI Bioconductor scientific base",
+  "org.opencontainers.image.description": "Bioconductor 3.20 / R 4.4 reusable scientific foundation",
+  "org.opencontainers.image.vendor": "OmniBioAI",
+  "org.opencontainers.image.source": "https://github.com/man4ish/omnibioai-tool-images",
+  "org.omnibioai.release-family": "1.0.0,1.0,1",
+  "org.omnibioai.latest-tag": "intentionally-not-published"
+}

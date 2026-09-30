@@ -1,0 +1,74 @@
+workload_id,classification,observed_r,observed_bioc,observed_base,canonical_line,compatibility,reason
+deseq2_analysis,R_BIOCONDUCTOR,3_20,,bioconductor/bioconductor_docker:RELEASE_3_20,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+rnaseq_analysis,R_BIOCONDUCTOR,4.4.2,,pathlib;typing;outputs.normalized.json.,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+multiome_archr,R_BIOCONDUCTOR_HEAVY,3_19,3_19,bioconductor/bioconductor_docker:RELEASE_3_19,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+fragmentomics,R_BIOCONDUCTOR,4.3.3,,condaforge/miniforge3:24.3.0-0;4.3.3;r-base,R 4.4 / Bioconductor 3.20,R43_COMPATIBILITY_EXCEPTION,observed R 4.3 requires Bioconductor 3.18; test or retain a legacy downstream image
+epigenomics,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+cell_communication,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+sce_bioconductor,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+rna_velocity,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+spatial_scrna_integration,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+sctcr_bcr_repertoire,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+scrna_quality_control,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+scrna_batch_integration,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+perturbation_seq,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+archr_scatac,R_BIOCONDUCTOR_HEAVY,,,,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+diversity_analysis,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+taxonomy_assignment,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+amplicon_processing,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+metagenome_visualization,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+differential_abundance,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+xcms_preprocessing,R_BIOCONDUCTOR_HEAVY,,,,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+flow_cytometry_bead_normalization,R_BIOCONDUCTOR_HEAVY,,,,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+ecological_genomics_edna_metabarcoding,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+expression_matrix_normalization,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+expression_matrix_counts_ingest,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+statistical_analysis,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+mofa_integration,R_BIOCONDUCTOR_HEAVY,,,,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+flow_cytometry_clustering_phenotyping,R_BIOCONDUCTOR_HEAVY,,,,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+count_matrix_qc,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+bulk_rnaseq_deseq2,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+tximport_workflow,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+outlier_splicing_detection,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+geo_data_access,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+isoform_switching,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+translation_efficiency,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+differential_mirna,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+tcga_data_preprocessing,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+go_enrichment,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+gsea,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+quality_metrics,R_BIOCONDUCTOR_HEAVY,,,,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+kegg_pathways,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+tumor_fraction_estimation,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+reactome_pathways,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+wikipathways,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+enrichment_visualization,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+mint_chip,R_BIOCONDUCTOR,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+faire_seq,R_BIOCONDUCTOR,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+differential_binding,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+wgbs,R_BIOCONDUCTOR,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+peak_annotation,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+methylkit_analysis,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+binding_site_annotation,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+chipseq_differential,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+spike_in_normalization,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+differential_clip,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+nome_seq,R_BIOCONDUCTOR,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+chip_atac_joint,R_BIOCONDUCTOR,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+cut_and_tag,R_BIOCONDUCTOR,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+lipidomics,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+cross_platform_proteomics_harmonization,R_BIOCONDUCTOR,,,two;that,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+glycoproteomics,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+dia_proteomics,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+xlms,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+mofa2_integration,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+differential_abundance,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+phosphoproteomics,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+gwas_pipeline,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;source;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+genomic_sem,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+overlap_significance,R_BIOCONDUCTOR,,,,R 4.4 / Bioconductor 3.20,CAN_USE_R44_BIOC320_AFTER_PACKAGE_TEST,candidate for canonical foundation; workload package lock and runtime test remain downstream
+micro_c,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;source;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+chia_pet,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;source;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+crispr_screen_mageck,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;source;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+eqtl_mapping,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;source;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
+transposable_elements,R_BIOCONDUCTOR_HEAVY,,,ubuntu:22.04;source;r-base,R 4.4 / Bioconductor 3.20,SPECIALIZED_HEAVY,heavy package or mixed system footprint; downstream image required
