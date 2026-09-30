@@ -55,4 +55,23 @@ Parent architecture, compatibility rationale, dependency boundary, manifest cons
 
 Files changed are listed by `git status --short`; all are new R2 files in this repository, and the concurrent runtime-R worktree is preserved.
 
-OMNIBIOAI BIOCONDUCTOR BASE READY TO RELEASE
+## Final release verification
+
+Initial release commit: `105cc59fc08dd0ea217a02cf8ab7ae05542113a5`.
+Initial GitHub Actions run: `36653353539` (workflow success, but remote runtime verification exposed a defective ARM64 artifact). Corrective hardening commits: `b02a53ae945bc2228df9633512713d25895a9e56` and `570e0fd6e9a2772ce672a4834b76076a3908ed15`. Corrective native-ARM workflow run: `36655397301`, still in progress at final evidence capture; it is not release evidence.
+
+The published `1.0.0`, `1.0`, and `1` tags currently resolve to the same index digest:
+
+```text
+index: sha256:a5ba988e89036f3c6c7677286be9b2425207bdcc37b5cbd603cbd313ea85f80b
+amd64: sha256:0bdbdda6fc3a19a5b72721049bfcadd7a816c493a49e6c82a5a499b02434df2d
+arm64: sha256:42ed97087c893b442aa9fe594a9d3a6a816db23703b8a6b881e8281dd280d3ce
+```
+
+The published ARM64 runtime check failed: `SummarizedExperiment` and the other foundation packages were absent, so published ARM64 package smoke did not pass. The published AMD64 emulated package/runtime check passed. The root cause was the original Dockerfile continuation bug combined with non-fatal package-install warnings under QEMU; the corrective Dockerfile now copies and executes the verifier, fails on missing packages, and serializes installation. A local native ARM64 rebuild with the correction passed verification and smoke (`R 4.4.2`, Bioconductor `3.20`, package smoke, TLS, non-root, writable paths).
+
+Remote attestation manifests were inspected for both child digests. Each contains SPDX SBOM and SLSA provenance in-toto layers, with subjects matching the respective child digest. The available provenance for the published artifact records source commit `105cc59...`, workflow BuildKit, the pinned upstream parent, and Dockerfile context. GHCR package visibility observed: `public`; no visibility mutation was performed. `latest` was absent and was not modified. Vulnerability status remains `VULNERABILITY_SCAN_BLOCKED_EXTERNAL_TOOLING`.
+
+Required release status: published ARM64 package smoke failed; the release is incomplete. The corrective run must complete and its new remote manifest, published ARM64/AMD64 runtimes, attestations, and labels must be rechecked before any verified classification.
+
+OMNIBIOAI BIOCONDUCTOR BASE RELEASE INCOMPLETE — PUBLISHED ARM64 PACKAGE SMOKE FAILED
