@@ -8,6 +8,11 @@ on:
         required: true
         default: false
         type: boolean
+      tool:
+        description: "Validated pilot tool ID, or all"
+        required: true
+        default: all
+        type: string
 
 permissions:
   contents: read
@@ -28,7 +33,8 @@ jobs:
         name: Reject publication and emit the fixed pilot matrix
         env:
           PUBLISH: ${{ inputs.publish }}
-        run: python3 scripts/pilot_manifest.py --publish "$PUBLISH" --github-output "$GITHUB_OUTPUT"
+          TOOL: ${{ inputs.tool }}
+        run: python3 scripts/pilot_manifest.py --publish "$PUBLISH" --tool "$TOOL" --github-output "$GITHUB_OUTPUT"
 
   build-verify-and-convert:
     needs: validate

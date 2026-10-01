@@ -171,6 +171,8 @@ def test_workflow_has_read_only_permissions_and_fail_closed_matrix():
     assert "continue-on-error" not in WORKFLOW.read_text()
     assert 'PUBLISH: ${{ inputs.publish }}' in WORKFLOW.read_text()
     assert '--publish "$PUBLISH"' in WORKFLOW.read_text()
+    assert 'TOOL: ${{ inputs.tool }}' in WORKFLOW.read_text()
+    assert '--tool "$TOOL"' in WORKFLOW.read_text()
     assert "docker push" not in WORKFLOW.read_text().lower()
     assert "oras push" not in WORKFLOW.read_text().lower()
     assert "--push" not in WORKFLOW.read_text()

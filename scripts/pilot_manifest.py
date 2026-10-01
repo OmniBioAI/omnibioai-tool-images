@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the audit-backed ten-tool roster and emit only its 20 fixed jobs."""
+"""Validate the audit-backed roster and emit its fixed jobs or one tool's pair."""
 from __future__ import annotations
 
 import argparse
@@ -118,6 +118,16 @@ def matrix(data: dict) -> list[dict]:
     return entries
 
 
+def selected_matrix(data: dict, tool_id: str | None = None) -> list[dict]:
+    entries = matrix(data)
+    if tool_id in (None, "", "all"):
+        return entries
+    selected = [item for item in entries if item["tool_id"] == tool_id]
+    if len(selected) != 2 or {item["platform"] for item in selected} != set(ARCHES):
+        raise ValueError(f"unknown or incomplete pilot tool selection: {tool_id}")
+    return selected
+
+
 def get_tool(tool_id: str) -> dict:
     for tool in load_and_validate()["tools"]:
         if tool["tool_id"] == tool_id:
@@ -138,11 +148,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--matrix", action="store_true")
     parser.add_argument("--publish", choices=("false", "true"), default="false")
+    parser.add_argument("--tool", default="all")
     parser.add_argument("--github-output")
     args = parser.parse_args()
     try:
         require_nonpublishing(args.publish == "true")
-        payload = json.dumps(matrix(load_and_validate()), separators=(",", ":"))
+        payload = json.dumps(selected_matrix(load_and_validate(), args.tool), separators=(",", ":"))
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         print(f"pilot validation failed: {exc}", file=sys.stderr)
         return 1

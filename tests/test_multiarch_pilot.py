@@ -8,7 +8,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from scripts.pilot_manifest import ARCHES, RUNNERS, load_and_validate, matrix, validate
+from scripts.pilot_manifest import ARCHES, RUNNERS, load_and_validate, matrix, selected_matrix, validate
 
 
 def test_exact_roster_architectures_and_matrix_bound():
@@ -21,6 +21,19 @@ def test_exact_roster_architectures_and_matrix_bound():
     assert len({(job["tool_id"], job["platform"]) for job in jobs}) == 20
     assert {job["runner"] for job in jobs} == set(RUNNERS.values())
     assert all(job["dockerfile"] == f"dockerfiles/Dockerfile.{job['tool_id']}" for job in jobs)
+
+
+def test_exact_tool_selection_keeps_both_native_architectures():
+    jobs = selected_matrix(load_and_validate(), "muscle")
+    assert len(jobs) == 2
+    assert {job["tool_id"] for job in jobs} == {"muscle"}
+    assert {job["platform"] for job in jobs} == set(ARCHES)
+    assert {job["runner"] for job in jobs} == set(RUNNERS.values())
+
+
+def test_tool_selection_cannot_expand_outside_validated_roster():
+    with pytest.raises(ValueError, match="unknown or incomplete"):
+        selected_matrix(load_and_validate(), "not-a-pilot-tool")
 
 
 @pytest.mark.parametrize("arches", [[], ["linux/amd64"], ["linux/amd64", "linux/amd64"],
