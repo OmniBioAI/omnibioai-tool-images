@@ -90,7 +90,8 @@ def complete_record(tool="fastqc", arch="amd64"):
     for phase in ("oci", "sif"):
         for check_name, output in (("version", version), ("smoke", smoke)):
             gates[f"{phase}_{check_name}"] = {"status": "PASS", "command": entry[f"{check_name}_command"],
-                                              "returncode": 0, "stdout": output + "\n", "stderr": "", "output": output}
+                                              "returncode": 0, "stdout": output + "\n", "stderr": "",
+                                              "output": output, "meaningful_output": output}
     gates["sif_inspect"] = {"status": "PASS", "metadata": {"data": "verified"}}
     for name in ("oci_architecture", "sif_architecture"):
         gates[name] = {"status": "PASS", "uname": machine, "target": arch}
@@ -165,7 +166,9 @@ def test_runner_architecture_and_native_strategy_are_explicit():
 def test_workflow_has_read_only_permissions_and_fail_closed_matrix():
     workflow = yaml.safe_load(WORKFLOW.read_text())
     assert workflow["permissions"] == {"contents": "read"}
+    assert workflow["jobs"]["build-verify-and-convert"]["strategy"]["fail-fast"] is False
     assert workflow["jobs"]["build-verify-and-convert"]["strategy"]["max-parallel"] == 4
+    assert "continue-on-error" not in WORKFLOW.read_text()
     assert 'PUBLISH: ${{ inputs.publish }}' in WORKFLOW.read_text()
     assert '--publish "$PUBLISH"' in WORKFLOW.read_text()
     assert "docker push" not in WORKFLOW.read_text().lower()

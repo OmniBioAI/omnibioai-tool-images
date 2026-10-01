@@ -11,6 +11,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import unicodedata
 
 
 def fixtures(directory: Path) -> None:
@@ -44,16 +45,45 @@ def fixtures(directory: Path) -> None:
 
 
 def run(command: str, cwd: Path, timeout: int = 120) -> subprocess.CompletedProcess:
-    return subprocess.run(
+    # Debian build flags can contain non-UTF-8 bytes (e.g. samtools --version).
+    # Capture bytes first so the raw execution result remains distinct from the
+    # human-readable rendering. Escape bad bytes visibly; never drop them or
+    # suppress exit failures.
+    raw = subprocess.run(
         ["/bin/bash", "-euo", "pipefail", "-c", command],
-        cwd=cwd, text=True, capture_output=True, timeout=timeout,
+        cwd=cwd, capture_output=True, timeout=timeout,
     )
+    stdout = raw.stdout.decode("utf-8", errors="backslashreplace") if isinstance(raw.stdout, bytes) else raw.stdout
+    stderr = raw.stderr.decode("utf-8", errors="backslashreplace") if isinstance(raw.stderr, bytes) else raw.stderr
+    result = subprocess.CompletedProcess(raw.args, raw.returncode, stdout=stdout, stderr=stderr)
+    if isinstance(raw.stdout, bytes):
+        result.stdout_bytes = raw.stdout
+    if isinstance(raw.stderr, bytes):
+        result.stderr_bytes = raw.stderr
+    return result
 
 
 def require_text(value, label: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"missing/empty/non-string {label}")
     return value.strip()
+
+
+def meaningful_stream(result, name: str) -> str:
+    """Return only valid, non-control UTF-8 evidence from one command stream."""
+    raw = getattr(result, f"{name}_bytes", None)
+    if isinstance(raw, bytes):
+        value = raw.decode("utf-8", errors="ignore")
+    else:
+        value = getattr(result, name, None)
+        if not isinstance(value, str):
+            return ""
+        # Conservatively reject visible byte escapes when raw bytes are absent.
+        value = re.sub(r"\\x[0-9a-fA-F]{2}", "", value).replace("\ufffd", "")
+    return "".join(
+        character for character in value
+        if character in "\n\t" or unicodedata.category(character)[0] != "C"
+    ).strip()
 
 
 def validate_native_file(report, arch: str) -> None:
@@ -69,20 +99,26 @@ def validate_command_evidence(gate, entry: dict, phase: str) -> None:
         raise ValueError(f"missing/failed {phase} gate")
     if type(gate.get("returncode")) is not int or gate["returncode"] != 0:
         raise ValueError(f"{phase} returncode must be integer zero")
-    output = require_text(gate.get("output"), f"{phase} output")
+    require_text(gate.get("output"), f"{phase} output")
+    meaningful_output = require_text(gate.get("meaningful_output"), f"{phase} meaningful output")
     if gate.get("command") != entry[f"{phase}_command"]:
         raise ValueError(f"{phase} command does not match manifest")
-    if not re.search(entry[f"{phase}_pattern"], output, re.MULTILINE):
+    if not re.search(entry[f"{phase}_pattern"], meaningful_output, re.MULTILINE):
         raise ValueError(f"{phase} output does not match manifest pattern")
 
 
 def command_evidence(result, entry: dict, phase: str) -> dict:
     # Tools such as BWA and Prodigal legitimately emit versions on stderr.
     # Preserve both streams and normalize only outer whitespace and separation.
-    output = "\n".join(stream.strip() for stream in (result.stdout, result.stderr) if stream.strip())
+    streams = (getattr(result, "stdout", None), getattr(result, "stderr", None))
+    output = "\n".join(stream.strip() for stream in streams if isinstance(stream, str) and stream.strip())
+    meaningful_output = "\n".join(
+        stream for stream in (meaningful_stream(result, "stdout"), meaningful_stream(result, "stderr")) if stream
+    )
     gate = {"status": "PASS", "command": entry[f"{phase}_command"],
             "returncode": result.returncode, "stdout": result.stdout,
-            "stderr": result.stderr, "output": output}
+            "stderr": result.stderr, "output": output,
+            "meaningful_output": meaningful_output}
     try:
         validate_command_evidence(gate, entry, phase)
     except ValueError as exc:
