@@ -234,3 +234,41 @@ in `pyproject.toml`.
 | `omnibioai-tool-runtime` | Containerized tool runner |
 | `omnibioai` | Main Django application |
 | `omnibioai-toolserver` | HTTP ToolServer shim |
+
+## v1.0 multiarchitecture pilot
+
+The bounded pilot is implemented in `.github/workflows/pilot-multiarch-sifs.yml`
+and is limited structurally to the ten entries in `.github/pilot/manifest.json`
+(20 tool/architecture combinations). It is manual-only and defaults to
+`publish=false`. Existing local builders remain available for development and
+testing; this workflow becomes the candidate production authority only after
+the pilot succeeds.
+
+Status at introduction: implementation and static validation are complete;
+runtime validation has not yet occurred, and no pilot artifacts are published.
+The ten-tool pilot does not establish architecture verification for the rest
+of the catalog. OCI and SIF runtime results must be reviewed separately.
+
+The workflow builds and verifies architecture-specific OCI images on matching
+native runners, exports a single-image local archive, and converts that exact
+architecture-bound archive to a SIF only after OCI gates pass. It then verifies
+the SIF and records its local immutable image identity and SHA256. This repair
+workflow is validation-only: `publish=true` is rejected before the matrix, it
+has no registry-write job or credentials, and optional SBOM output is reported
+as `SBOM_OPTIONAL_NOT_GENERATED`. The existing catalog and the separate
+`release-bioconductor-base.yml` workflow remain unchanged.
+
+Host entrypoints run as repository-relative modules, for example
+`python3 -m scripts.pilot_runner --help` and
+`python3 -m scripts.record_pilot_provenance --help`. The native runner check
+captures GitHub `runner.os`, `runner.arch`, and the host's `uname -m` before
+installation/builds. These actual values must match the target in provenance.
+
+The manifest distinguishes `native_binary` from `interpreted` executables.
+FastQC declares its Perl launcher and Java runtime; MultiQC declares Python.
+Interpreted launchers are checked for presence, executability and a shebang
+bound to the declared interpreter; the interpreter/runtime binaries must match
+the target architecture. Both OCI and SIF version gates require integer exit
+code zero and meaningful output normalized from stdout and stderr. Every
+mandatory scientific gate and interpreter record is retained and validated
+before PASS provenance is written.

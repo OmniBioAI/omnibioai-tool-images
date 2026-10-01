@@ -1,0 +1,105 @@
+name: v1.0 pilot - multiarchitecture OCI and SIF (validation only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Must remain false; this pilot contains no publication path"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: omnibioai-v1-pilot-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.manifest.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: manifest
+        name: Reject publication and emit the fixed pilot matrix
+        env:
+          PUBLISH: ${{ inputs.publish }}
+        run: python3 scripts/pilot_manifest.py --publish "$PUBLISH" --github-output "$GITHUB_OUTPUT"
+
+  build-verify-and-convert:
+    needs: validate
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: true
+      max-parallel: 4
+      matrix:
+        include: ${{ fromJSON(needs.validate.outputs.matrix) }}
+    env:
+      PILOT_TOOL: ${{ matrix.tool_id }}
+      PILOT_ARCH: ${{ matrix.arch }}
+      PILOT_PLATFORM: ${{ matrix.platform }}
+      PILOT_DOCKERFILE: ${{ matrix.dockerfile }}
+      PILOT_SOURCE_COMMIT: ${{ github.sha }}
+      PILOT_RUNNER: ${{ matrix.runner }}
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture and validate actual native runner before installing or building
+        env:
+          PILOT_RUNNER_OS: ${{ runner.os }}
+          PILOT_RUNNER_ARCH: ${{ runner.arch }}
+        run: python3 -m scripts.pilot_runner --output pilot-output --runner-only
+      - name: Checkout pinned tool runtime
+        uses: actions/checkout@v4
+        with:
+          repository: OmniBioAI/omnibioai-tool-runtime
+          ref: a4f3da56c2e6e9fd85e54ba009f6f3456de3b5b5
+          path: omnibioai-tool-runtime
+      - uses: docker/setup-buildx-action@v3
+      - name: Install native Apptainer
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository -y ppa:apptainer/ppa
+          sudo apt-get update
+          sudo apt-get install -y apptainer file
+          apptainer_version="$(apptainer --version)"
+          test -n "$apptainer_version"
+          echo "Apptainer: $apptainer_version; runner machine: $(uname -m)"
+      - name: Build, verify, convert, and record evidence (no registry writes)
+        env:
+          PILOT_RUNNER_OS: ${{ runner.os }}
+          PILOT_RUNNER_ARCH: ${{ runner.arch }}
+        run: python3 -m scripts.pilot_runner --output pilot-output
+      - name: Upload verification evidence, including failed-job diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-${{ matrix.tool_id }}-${{ matrix.arch }}
+          path: pilot-output
+          if-no-files-found: warn
+          retention-days: 30
+
+  summarize:
+    if: ${{ always() }}
+    needs: [validate, build-verify-and-convert]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Report matrix outcome
+        env:
+          VALIDATION_RESULT: ${{ needs.validate.result }}
+          MATRIX_RESULT: ${{ needs.build-verify-and-convert.result }}
+        run: |
+          set -euo pipefail
+          printf 'manifest validation: %s\narchitecture jobs: %s\n' "$VALIDATION_RESULT" "$MATRIX_RESULT"
+          test "$VALIDATION_RESULT" = success
+          test "$MATRIX_RESULT" = success

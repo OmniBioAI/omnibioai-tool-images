@@ -1,6 +1,6 @@
 FROM python:3.11-slim-bookworm
 
-RUN apt-get update && apt-get install -y bcftools && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y bcftools file && rm -rf /var/lib/apt/lists/*
 
 RUN pip install boto3 azure-storage-blob azure-identity google-cloud-storage --no-cache-dir
 

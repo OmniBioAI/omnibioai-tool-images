@@ -1,0 +1,238 @@
+{
+  "schema_version": 3,
+  "classification_source": "audit-evidence.json (saved 2026-09-30 reconciliation; static eligibility, not runtime proof)",
+  "architectures": [
+    "linux/amd64",
+    "linux/arm64"
+  ],
+  "sbom_policy": "optional",
+  "tools": [
+    {
+      "tool_id": "fastqc",
+      "dockerfile": "dockerfiles/Dockerfile.fastqc",
+      "expected_executable": "fastqc",
+      "runtime_executables": [
+        "perl",
+        "java"
+      ],
+      "version_command": "fastqc --version",
+      "version_pattern": "FastQC v[0-9]",
+      "smoke_command": "fastqc --quiet reads.fastq; test -s reads_fastqc.html; echo fastqc-ok",
+      "smoke_pattern": "fastqc-ok",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "GPL-3.0-or-later",
+      "selection_reason": "Java/Perl read QC; packaged executable and tiny FASTQ report.",
+      "executable_type": "interpreted",
+      "launcher_interpreter": "perl"
+    },
+    {
+      "tool_id": "samtools",
+      "dockerfile": "dockerfiles/Dockerfile.samtools",
+      "expected_executable": "samtools",
+      "runtime_executables": [],
+      "version_command": "samtools --version",
+      "version_pattern": "samtools [0-9]",
+      "smoke_command": "samtools view -c reads.sam",
+      "smoke_pattern": "^1$",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "MIT",
+      "selection_reason": "Foundational native alignment-file CLI; counts a one-read SAM fixture.",
+      "executable_type": "native_binary"
+    },
+    {
+      "tool_id": "bcftools",
+      "dockerfile": "dockerfiles/Dockerfile.bcftools",
+      "expected_executable": "bcftools",
+      "runtime_executables": [],
+      "version_command": "bcftools --version",
+      "version_pattern": "bcftools [0-9]",
+      "smoke_command": "bcftools view -H variants.vcf",
+      "smoke_pattern": "chr1\\s+10",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "GPL-3.0-or-later",
+      "selection_reason": "Native variant-processing CLI; reads one VCF variant.",
+      "executable_type": "native_binary"
+    },
+    {
+      "tool_id": "bedtools",
+      "dockerfile": "dockerfiles/Dockerfile.bedtools",
+      "expected_executable": "bedtools",
+      "runtime_executables": [],
+      "version_command": "bedtools --version",
+      "version_pattern": "bedtools v[0-9]",
+      "smoke_command": "bedtools intersect -a a.bed -b b.bed",
+      "smoke_pattern": "chr1\\s+5\\s+10",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "MIT",
+      "selection_reason": "Native interval arithmetic; deterministic small interval intersection.",
+      "executable_type": "native_binary"
+    },
+    {
+      "tool_id": "bwa",
+      "dockerfile": "dockerfiles/Dockerfile.bwa",
+      "expected_executable": "bwa",
+      "runtime_executables": [],
+      "version_command": "bwa index reference.fa",
+      "version_pattern": "Version: [0-9]",
+      "smoke_command": "bwa mem reference.fa reads.fastq > aligned.sam; grep -q '^@PG' aligned.sam; echo bwa-ok",
+      "smoke_pattern": "bwa-ok",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "GPL-3.0-or-later",
+      "selection_reason": "Short-read alignment; successful index command emits the real BWA version on stderr, without accepting usage exit 1.",
+      "executable_type": "native_binary"
+    },
+    {
+      "tool_id": "minimap2",
+      "dockerfile": "dockerfiles/Dockerfile.minimap2",
+      "expected_executable": "minimap2",
+      "runtime_executables": [],
+      "version_command": "minimap2 --version",
+      "version_pattern": "^[0-9]+\\.[0-9]+",
+      "smoke_command": "minimap2 -a reference.fa reads.fastq > aligned.sam; grep -q '^@PG' aligned.sam; echo minimap2-ok",
+      "smoke_pattern": "minimap2-ok",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "MIT",
+      "selection_reason": "Long-read alignment CLI; tiny alignment emits a SAM header.",
+      "executable_type": "native_binary"
+    },
+    {
+      "tool_id": "multiqc",
+      "dockerfile": "dockerfiles/Dockerfile.multiqc",
+      "expected_executable": "multiqc",
+      "runtime_executables": [
+        "python"
+      ],
+      "version_command": "multiqc --version",
+      "version_pattern": "multiqc, version [0-9]",
+      "smoke_command": "multiqc . --force --filename report.html; test -s report.html; echo multiqc-ok",
+      "smoke_pattern": "multiqc-ok",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "GPL-3.0-or-later",
+      "selection_reason": "Python QC aggregation; generates a report from a tiny FastQC fixture.",
+      "executable_type": "interpreted",
+      "launcher_interpreter": "python"
+    },
+    {
+      "tool_id": "muscle",
+      "dockerfile": "dockerfiles/Dockerfile.muscle",
+      "expected_executable": "muscle",
+      "runtime_executables": [],
+      "version_command": "muscle -version",
+      "version_pattern": "muscle [0-9]",
+      "smoke_command": "muscle -align pairs.fa -output aligned.fa; test -s aligned.fa; echo muscle-ok",
+      "smoke_pattern": "muscle-ok",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "GPL-3.0-or-later",
+      "selection_reason": "Lightweight multiple-sequence alignment; Debian executable and three-sequence fixture.",
+      "executable_type": "native_binary"
+    },
+    {
+      "tool_id": "prodigal",
+      "dockerfile": "dockerfiles/Dockerfile.prodigal",
+      "expected_executable": "prodigal",
+      "runtime_executables": [],
+      "version_command": "prodigal -v",
+      "version_pattern": "Prodigal V[0-9]",
+      "smoke_command": "prodigal -i reference.fa -p meta -o genes.gff -f gff -q; test -s genes.gff; echo prodigal-ok",
+      "smoke_pattern": "prodigal-ok",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "GPL-3.0-or-later",
+      "selection_reason": "Prokaryotic gene prediction; meta mode on a small synthetic reference.",
+      "executable_type": "native_binary"
+    },
+    {
+      "tool_id": "vcftools",
+      "dockerfile": "dockerfiles/Dockerfile.vcftools",
+      "expected_executable": "vcftools",
+      "runtime_executables": [],
+      "version_command": "vcftools --version",
+      "version_pattern": "VCFtools \\([0-9]",
+      "smoke_command": "vcftools --vcf variants.vcf --freq --out freq; test -s freq.frq; echo vcftools-ok",
+      "smoke_pattern": "vcftools-ok",
+      "architectures": [
+        "linux/amd64",
+        "linux/arm64"
+      ],
+      "category": "MULTIARCH_READY",
+      "published_in_ghcr": true,
+      "stub_or_placeholder": false,
+      "architecture_dependent": false,
+      "license_restricted": false,
+      "license": "LGPL-3.0-or-later",
+      "selection_reason": "Population/variant statistics; one-variant frequency calculation.",
+      "executable_type": "native_binary"
+    }
+  ]
+}

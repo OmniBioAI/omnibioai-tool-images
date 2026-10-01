@@ -1,6 +1,6 @@
 FROM python:3.11-slim-bookworm
 
-RUN apt-get update && apt-get install -y muscle && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y muscle file && rm -rf /var/lib/apt/lists/*
 
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
 
