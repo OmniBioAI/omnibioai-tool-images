@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -42,8 +43,92 @@ class CanaryError(RuntimeError):
     pass
 
 
+# Ordered most-specific-first; the first matching classification wins.
+_FAILURE_CLASSIFIERS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("ORAS_AUTH_FAILURE", ("unauthorized", "authentication required")),
+    ("ORAS_PERMISSION_FAILURE", ("denied", "permission_denied", "insufficient_scope", "forbidden")),
+    ("ORAS_REFERENCE_FAILURE", ("manifest unknown", "name unknown", "not found", "invalid reference")),
+    ("ORAS_MANIFEST_OR_MEDIA_FAILURE", ("unsupported media type", "manifest invalid", "manifest_invalid", "blob unknown")),
+    ("ORAS_NETWORK_FAILURE", ("dial tcp", "connection refused", "i/o timeout", "no such host", "tls handshake", "temporary failure in name resolution")),
+)
+
+# Defense-in-depth redaction of credential-bearing material that should never
+# appear in ORAS stdout/stderr under normal operation, but must never reach a
+# log if it somehow does.
+_REDACTION_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"(?i)(authorization:\s*(?:bearer|basic)\s+)\S+"), r"\1[REDACTED]"),
+    (re.compile(r"\b(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b"), "[REDACTED]"),
+    (re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"), "[REDACTED]"),
+    (re.compile(r'(?i)("auth"\s*:\s*")[A-Za-z0-9+/=]+(")'), r"\1[REDACTED]\2"),
+    (re.compile(r"(?i)\b(password|token|secret)\b\s*[:=]\s*\S+"), r"\1=[REDACTED]"),
+)
+
+
+def _sanitize(text: str) -> str:
+    """Redact recognizable credential-bearing material from captured output.
+
+    Returns a fixed safe placeholder instead of raising if sanitization
+    itself fails for any reason, so a defect here can never leak raw output.
+    """
+    try:
+        sanitized = text
+        for pattern, replacement in _REDACTION_PATTERNS:
+            sanitized = pattern.sub(replacement, sanitized)
+        return sanitized
+    except Exception:
+        return "[OUTPUT UNAVAILABLE: sanitization failed closed]"
+
+
+def _classify_oras_failure(stdout: str, stderr: str) -> str:
+    combined = f" {stdout}\n{stderr} ".lower()
+    for classification, markers in _FAILURE_CLASSIFIERS:
+        if any(marker in combined for marker in markers):
+            return classification
+    return "ORAS_UNKNOWN_FAILURE"
+
+
+class OrasInvocationFailed(CanaryError):
+    """An ORAS subprocess exited non-zero.
+
+    Carries the sanitized diagnostics as attributes (for tests/tools that
+    want structured access) in addition to a human-readable message (so the
+    existing generic `except Exception` handler in main() surfaces them
+    without any further changes).
+    """
+
+    def __init__(
+        self, argv: Sequence[str], returncode: int, stdout: str, stderr: str, classification: str
+    ) -> None:
+        self.argv = list(argv)
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+        self.classification = classification
+        super().__init__(
+            f"ORAS_INVOCATION_FAILED classification={classification} "
+            f"exit_code={returncode} command={' '.join(self.argv)}\n"
+            f"stdout: {stdout}\nstderr: {stderr}"
+        )
+
+
 def run(argv: Sequence[str], *, text: bool = True) -> subprocess.CompletedProcess:
-    return subprocess.run(list(argv), check=True, capture_output=True, text=text)
+    completed = subprocess.run(
+        list(argv),
+        check=False,
+        capture_output=True,
+        text=text,
+        errors="replace" if text else None,
+    )
+    if completed.returncode != 0:
+        if text:
+            stdout = _sanitize(completed.stdout or "")
+            stderr = _sanitize(completed.stderr or "")
+        else:
+            stdout = "<binary output not captured>"
+            stderr = "<binary output not captured>"
+        classification = _classify_oras_failure(stdout, stderr)
+        raise OrasInvocationFailed(argv, completed.returncode, stdout, stderr, classification)
+    return completed
 
 
 def sha256_file(path: Path) -> str:
