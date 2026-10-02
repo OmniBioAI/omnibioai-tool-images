@@ -111,6 +111,33 @@ class OrasInvocationFailed(CanaryError):
         )
 
 
+def require_contained_staging_file(path: Path, staging_root: Path) -> Path:
+    """Resolve `path` and require it to be a regular file strictly inside `staging_root`.
+
+    Uses real, symlink-resolved filesystem ancestry (`Path.resolve()` +
+    `is_relative_to`) rather than string-prefix comparison, so this rejects
+    external absolute paths, `..` traversal, symlink escapes, and
+    textually-similar sibling directories (e.g. a root of `/tmp/canary`
+    must not accept `/tmp/canary-evil/file`). Returns the resolved path,
+    which is what must actually be handed to ORAS -- validating one path
+    string and then passing a different, unresolved one would defeat the
+    check.
+    """
+    resolved_root = staging_root.resolve(strict=True)
+    try:
+        resolved_path = path.resolve(strict=True)
+    except OSError as error:
+        raise CanaryError(f"staging path does not resolve to an existing file: {path}") from error
+    if not resolved_path.is_file():
+        raise CanaryError(f"staging path is not a regular file: {path}")
+    if not resolved_path.is_relative_to(resolved_root):
+        raise CanaryError(
+            f"staging path escapes the canary staging root: {path} -> {resolved_path} "
+            f"(root {resolved_root})"
+        )
+    return resolved_path
+
+
 def run(argv: Sequence[str], *, text: bool = True) -> subprocess.CompletedProcess:
     completed = subprocess.run(
         list(argv),
@@ -285,18 +312,28 @@ def publish(candidate_path: Path, sif: Path, output: Path) -> dict[str, Any]:
         staged_identity = staging / "identity.json"
         staged_sif.write_bytes(sif.read_bytes())
         staged_identity.write_bytes(canonical_json_bytes(metadata) + b"\n")
+        # Every local path handed to `oras push` must be proven to resolve
+        # strictly inside this run's own staging directory before ORAS's own
+        # (otherwise-correct) absolute-path safety check is disabled below --
+        # see require_contained_staging_file for exactly what this rejects.
+        contained_sif = require_contained_staging_file(staged_sif, staging)
+        contained_identity = require_contained_staging_file(staged_identity, staging)
         manifest_path = staging / "published-manifest.json"
         command = [
             "oras", "push", "--artifact-type", ARTIFACT_TYPE,
             "--artifact-platform", f"linux/{metadata['target_architecture']}",
             "--export-manifest", str(manifest_path),
+            # Safe only because both paths below were just proven, immediately
+            # above, to resolve strictly inside this run's own staging
+            # directory -- this must never be added to any other ORAS call.
+            "--disable-path-validation",
         ]
         for key, value in sorted(annotations.items()):
             command.extend(("--annotation", f"{key}={value}"))
         command.extend((
             f"{REPOSITORY}:{tag}",
-            f"{staged_sif}:{SIF_MEDIA_TYPE}",
-            f"{staged_identity}:{IDENTITY_MEDIA_TYPE}",
+            f"{contained_sif}:{SIF_MEDIA_TYPE}",
+            f"{contained_identity}:{IDENTITY_MEDIA_TYPE}",
         ))
         run(command)
         digest = "sha256:" + hashlib.sha256(manifest_path.read_bytes()).hexdigest()
