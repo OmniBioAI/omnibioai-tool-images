@@ -89,11 +89,8 @@ jobs:
       - name: Resolve and bind the immutable base-image identity
         run: |
           set -euo pipefail
-          base_ref=docker.io/library/python:3.11-slim-bookworm
-          base_digest="$(docker buildx imagetools inspect "$base_ref" | awk '$1 == "Digest:" {print $2; exit}')"
-          test -n "$base_digest"
-          [[ "$base_digest" =~ ^sha256:[0-9a-f]{64}$ ]]
-          printf 'PILOT_BASE_IMAGE_IDENTITY=%s@%s\n' "$base_ref" "$base_digest" >> "$GITHUB_ENV"
+          python3 -m scripts.base_image_identity \
+            --base-ref docker.io/library/python:3.11-slim-bookworm
 
       - name: Build and validate OCI and SIF without registry writes
         env:
