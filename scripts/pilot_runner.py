@@ -20,6 +20,31 @@ def command(argv: list[str], *, capture: bool = False) -> subprocess.CompletedPr
     return subprocess.run(argv, check=True, text=True, capture_output=capture)
 
 
+def architecture_bound_dockerfile(source: Path, output: Path, base_identity: str) -> str:
+    """Render an optionally digest-pinned Dockerfile without changing its source identity."""
+    text = source.read_text()
+    if not base_identity:
+        return str(source)
+    if not base_identity.startswith("docker.io/") or "@sha256:" not in base_identity:
+        raise ValueError("base image identity must be a fully qualified SHA256 reference")
+    lines = text.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if line.startswith("FROM "):
+            parts = line.rstrip("\n").split()
+            source_image = parts[1]
+            requested_image = base_identity.split("@", 1)[0]
+            normalized_source = source_image
+            if normalized_source.startswith("python:"):
+                normalized_source = "docker.io/library/" + normalized_source
+            if normalized_source != requested_image:
+                raise ValueError("resolved base identity does not match Dockerfile FROM")
+            parts[1] = base_identity
+            lines[index] = " ".join(parts) + ("\n" if line.endswith("\n") else "")
+            output.write_text("".join(lines))
+            return str(output)
+    raise ValueError("Dockerfile has no FROM instruction to bind to base identity")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=Path(os.environ.get("PILOT_OUTPUT", "pilot-output")))
@@ -56,6 +81,12 @@ def main() -> int:
         entry_path = out / "entry.json"
         entry_path.write_text(json.dumps(tool, sort_keys=True))
         dockerfile_sha = hashlib.sha256((Path.cwd() / dockerfile).read_bytes()).hexdigest()
+        base_image_identity = os.environ.get("PILOT_BASE_IMAGE_IDENTITY", "")
+        rendered_dockerfile = work / "Dockerfile.architecture-bound"
+        build_dockerfile = architecture_bound_dockerfile(
+            Path.cwd() / dockerfile, rendered_dockerfile, base_image_identity
+        )
+        rendered_dockerfile_sha = hashlib.sha256(Path(build_dockerfile).read_bytes()).hexdigest()
         image = f"omnibioai-pilot/{tool_id}:{commit}-{arch}"
         archive = out / "oci-image.tar"
         sif = out / f"{tool_id}_{arch}.sif"
@@ -68,7 +99,7 @@ def main() -> int:
             "--label", f"org.omnibioai.target-platform={platform_name}",
         ]
         command(["docker", "buildx", "build", "--platform", platform_name,
-                 "--file", dockerfile, "--tag", image, *build_labels, "--load", "."])
+                 "--file", build_dockerfile, "--tag", image, *build_labels, "--load", "."])
         command(["docker", "save", "--output", str(archive), image])
         identity = archive_identity(archive, tool_id, arch, commit, dockerfile_sha)
         image_id = command(["docker", "image", "inspect", image, "--format", "{{.Id}}"], capture=True).stdout.strip()
@@ -111,6 +142,16 @@ def main() -> int:
         gates["sif_smoke"] = sif_result["smoke"]
         gates["sif_sha256"] = hashlib.sha256(sif.read_bytes()).hexdigest()
         gates["verification_result"] = "PASS"
+        package_name = os.environ.get("PILOT_PACKAGE_NAME", "")
+        package_identity = ""
+        if package_name:
+            package_version = command(
+                ["docker", "run", "--rm", "--platform", platform_name, image,
+                 "dpkg-query", "-W", "-f=${Version}", package_name], capture=True
+            ).stdout.strip()
+            if not package_version:
+                raise ValueError("package manager returned empty package version")
+            package_identity = f"{package_name}={package_version}"
         record = {
             "tool": tool_id, "source_commit_sha": commit, "dockerfile": dockerfile,
             "dockerfile_sha256": dockerfile_sha, "target_architecture": arch,
@@ -119,6 +160,9 @@ def main() -> int:
             **actual_runner, "runner_label": runner, "executable_type": tool["executable_type"],
             "build_timestamp": datetime.now(timezone.utc).isoformat(),
             "verification_timestamp": datetime.now(timezone.utc).isoformat(),
+            "base_image_identity": base_image_identity,
+            "rendered_dockerfile_sha256": rendered_dockerfile_sha,
+            "package_identity": package_identity,
             "sbom_status": "SBOM_OPTIONAL_NOT_GENERATED", **gates,
         }
         validate_evidence(record)
