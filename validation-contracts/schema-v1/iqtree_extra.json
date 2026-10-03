@@ -1,0 +1,81 @@
+{
+  "base_image_architecture_evidence": {
+    "quality": "INFERRED",
+    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+  },
+  "base_image_reference": "mambaorg/micromamba:1.5.8",
+  "blocking_reasons": [
+    "no canonical scientific executable is explicitly invoked by the Dockerfile",
+    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+    "no explicit tool-specific version command is present"
+  ],
+  "classification": "MULTIARCH_READY",
+  "contract_confidence": "LOW",
+  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "display_name": "iqtree_extra",
+  "dockerfile_path": "dockerfiles/Dockerfile.iqtree_extra",
+  "dockerfile_sha256": "9fbd84a354407ca6f2f13e9c108f895e0ac019d09e70de84317dae833369069f",
+  "eligibility": {
+    "mapping_status": "EXACT",
+    "package_mapping_confirmed": true,
+    "targeted": true
+  },
+  "evidence": [
+    {
+      "field": "base_image_reference",
+      "line": 1,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.iqtree_extra",
+      "value": "FROM mambaorg/micromamba:1.5.8"
+    },
+    {
+      "field": "classification",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "package",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "ghcr.io/omnibioai/omnibioai-sif/iqtree_extra"
+    },
+    {
+      "field": "scientific_version",
+      "line": 2,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.iqtree_extra",
+      "value": "RUN micromamba install -y -n base -c bioconda -c conda-forge iqtree=2.3.3 && micromamba clean --all --yes"
+    }
+  ],
+  "expected_architectures": [
+    "amd64",
+    "arm64"
+  ],
+  "expected_executable": null,
+  "native_amd64_expected": true,
+  "native_arm64_expected": true,
+  "package": "ghcr.io/omnibioai/omnibioai-sif/iqtree_extra",
+  "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "runtime_database_required": false,
+  "runtime_gpu_required": false,
+  "runtime_license_required": false,
+  "runtime_network_required": false,
+  "runtime_reference_data_required": false,
+  "scientific_version": "2.3.3",
+  "scientific_version_evidence": "iqtree=2.3.3",
+  "scientific_version_source": "pinned_package_version",
+  "smoke_command": null,
+  "smoke_expected_outputs": [],
+  "smoke_inputs": [],
+  "smoke_success_condition": null,
+  "source_immutable_identity": "iqtree=2.3.3",
+  "source_reference": "iqtree=2.3.3",
+  "source_type": "pinned_package_version",
+  "tool_id": "iqtree_extra",
+  "validation_contract_schema_version": 1,
+  "validation_contract_sha256": "c6cfb091db7a8882d79438ecf03f9420a08559a4a2635fb4c3b82cc6d2392912",
+  "version_command": null,
+  "version_expected_value": "2.3.3",
+  "version_parser": null
+}

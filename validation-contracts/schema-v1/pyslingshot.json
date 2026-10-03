@@ -1,0 +1,75 @@
+{
+  "base_image_architecture_evidence": {
+    "quality": "INFERRED",
+    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+  },
+  "base_image_reference": "python:3.11-slim-bookworm",
+  "blocking_reasons": [
+    "no canonical scientific executable is explicitly invoked by the Dockerfile",
+    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+    "no exact tool-associated scientific version or immutable source pin is present",
+    "no explicit tool-specific version command is present"
+  ],
+  "classification": "MULTIARCH_READY",
+  "contract_confidence": "LOW",
+  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "display_name": "pyslingshot",
+  "dockerfile_path": "dockerfiles/Dockerfile.pyslingshot",
+  "dockerfile_sha256": "5b53965f747417d05a5950b73557f2b9cb54c6bfaa1e54dde76cbc69f0295fcb",
+  "eligibility": {
+    "mapping_status": "EXACT",
+    "package_mapping_confirmed": true,
+    "targeted": true
+  },
+  "evidence": [
+    {
+      "field": "base_image_reference",
+      "line": 1,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.pyslingshot",
+      "value": "FROM python:3.11-slim-bookworm"
+    },
+    {
+      "field": "classification",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "package",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "ghcr.io/omnibioai/omnibioai-sif/pyslingshot"
+    }
+  ],
+  "expected_architectures": [
+    "amd64",
+    "arm64"
+  ],
+  "expected_executable": null,
+  "native_amd64_expected": true,
+  "native_arm64_expected": true,
+  "package": "ghcr.io/omnibioai/omnibioai-sif/pyslingshot",
+  "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "runtime_database_required": false,
+  "runtime_gpu_required": false,
+  "runtime_license_required": false,
+  "runtime_network_required": false,
+  "runtime_reference_data_required": false,
+  "scientific_version": null,
+  "scientific_version_evidence": null,
+  "scientific_version_source": null,
+  "smoke_command": null,
+  "smoke_expected_outputs": [],
+  "smoke_inputs": [],
+  "smoke_success_condition": null,
+  "source_immutable_identity": null,
+  "source_reference": null,
+  "source_type": "unknown_unpinned",
+  "tool_id": "pyslingshot",
+  "validation_contract_schema_version": 1,
+  "validation_contract_sha256": "71186f1f26d9566bc5a61201ff4270921b7c7f8e225c8e93738908f2a889be6e",
+  "version_command": null,
+  "version_expected_value": null,
+  "version_parser": null
+}

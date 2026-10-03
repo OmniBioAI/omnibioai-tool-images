@@ -1,0 +1,81 @@
+{
+  "base_image_architecture_evidence": {
+    "quality": "INFERRED",
+    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+  },
+  "base_image_reference": "mambaorg/micromamba:1.5.8",
+  "blocking_reasons": [
+    "no canonical scientific executable is explicitly invoked by the Dockerfile",
+    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+    "no explicit tool-specific version command is present"
+  ],
+  "classification": "MULTIARCH_READY",
+  "contract_confidence": "LOW",
+  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "display_name": "mosdepth_extra",
+  "dockerfile_path": "dockerfiles/Dockerfile.mosdepth_extra",
+  "dockerfile_sha256": "18b11f26b6f1a9cca89d7244d19430c0c1dc8a8f0c6c39ef10e0ff6644568888",
+  "eligibility": {
+    "mapping_status": "EXACT",
+    "package_mapping_confirmed": true,
+    "targeted": true
+  },
+  "evidence": [
+    {
+      "field": "base_image_reference",
+      "line": 1,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.mosdepth_extra",
+      "value": "FROM mambaorg/micromamba:1.5.8"
+    },
+    {
+      "field": "classification",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "package",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "ghcr.io/omnibioai/omnibioai-sif/mosdepth_extra"
+    },
+    {
+      "field": "scientific_version",
+      "line": 2,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.mosdepth_extra",
+      "value": "RUN micromamba install -y -n base -c bioconda -c conda-forge mosdepth=0.3.8 && micromamba clean --all --yes"
+    }
+  ],
+  "expected_architectures": [
+    "amd64",
+    "arm64"
+  ],
+  "expected_executable": null,
+  "native_amd64_expected": true,
+  "native_arm64_expected": true,
+  "package": "ghcr.io/omnibioai/omnibioai-sif/mosdepth_extra",
+  "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "runtime_database_required": false,
+  "runtime_gpu_required": false,
+  "runtime_license_required": false,
+  "runtime_network_required": false,
+  "runtime_reference_data_required": false,
+  "scientific_version": "0.3.8",
+  "scientific_version_evidence": "mosdepth=0.3.8",
+  "scientific_version_source": "pinned_package_version",
+  "smoke_command": null,
+  "smoke_expected_outputs": [],
+  "smoke_inputs": [],
+  "smoke_success_condition": null,
+  "source_immutable_identity": "mosdepth=0.3.8",
+  "source_reference": "mosdepth=0.3.8",
+  "source_type": "pinned_package_version",
+  "tool_id": "mosdepth_extra",
+  "validation_contract_schema_version": 1,
+  "validation_contract_sha256": "b295c3f70be5aa94cf814ad89e7a205733654c861298bebd0406f058c37d52a3",
+  "version_command": null,
+  "version_expected_value": "0.3.8",
+  "version_parser": null
+}

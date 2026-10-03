@@ -1,0 +1,81 @@
+{
+  "base_image_architecture_evidence": {
+    "quality": "INFERRED",
+    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+  },
+  "base_image_reference": "ubuntu:22.04",
+  "blocking_reasons": [
+    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+    "no exact tool-associated scientific version or immutable source pin is present",
+    "no explicit tool-specific version command is present"
+  ],
+  "classification": "MULTIARCH_READY",
+  "contract_confidence": "LOW",
+  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "display_name": "flames",
+  "dockerfile_path": "dockerfiles/Dockerfile.flames",
+  "dockerfile_sha256": "b5e040d86e224330f70ad3f3a4eba5d5ebb6bb727addec3c806e3b4d01386a01",
+  "eligibility": {
+    "mapping_status": "EXACT",
+    "package_mapping_confirmed": true,
+    "targeted": true
+  },
+  "evidence": [
+    {
+      "field": "base_image_reference",
+      "line": 1,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.flames",
+      "value": "FROM ubuntu:22.04"
+    },
+    {
+      "field": "classification",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "expected_executable",
+      "line": 12,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.flames",
+      "value": "CMD [\"Rscript\", \"-e\", \"library(FLAMES); message('FLAMES ready')\"]"
+    },
+    {
+      "field": "package",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "ghcr.io/omnibioai/omnibioai-sif/flames"
+    }
+  ],
+  "expected_architectures": [
+    "amd64",
+    "arm64"
+  ],
+  "expected_executable": "Rscript",
+  "native_amd64_expected": true,
+  "native_arm64_expected": true,
+  "package": "ghcr.io/omnibioai/omnibioai-sif/flames",
+  "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "runtime_database_required": false,
+  "runtime_gpu_required": false,
+  "runtime_license_required": false,
+  "runtime_network_required": false,
+  "runtime_reference_data_required": false,
+  "scientific_version": null,
+  "scientific_version_evidence": null,
+  "scientific_version_source": null,
+  "smoke_command": null,
+  "smoke_expected_outputs": [],
+  "smoke_inputs": [],
+  "smoke_success_condition": null,
+  "source_immutable_identity": null,
+  "source_reference": null,
+  "source_type": "unknown_unpinned",
+  "tool_id": "flames",
+  "validation_contract_schema_version": 1,
+  "validation_contract_sha256": "aac598aa8fd6a026f07928377831169a0dfd5051550ed41503de79d680c3c9c9",
+  "version_command": null,
+  "version_expected_value": null,
+  "version_parser": null
+}

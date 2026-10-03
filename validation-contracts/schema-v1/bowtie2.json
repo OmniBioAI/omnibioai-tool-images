@@ -1,0 +1,90 @@
+{
+  "base_image_architecture_evidence": {
+    "quality": "INFERRED",
+    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+  },
+  "base_image_reference": "ubuntu:22.04",
+  "blocking_reasons": [
+    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+    "no exact tool-associated scientific version or immutable source pin is present"
+  ],
+  "classification": "MULTIARCH_READY",
+  "contract_confidence": "LOW",
+  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "display_name": "bowtie2",
+  "dockerfile_path": "dockerfiles/Dockerfile.bowtie2",
+  "dockerfile_sha256": "161f386b14b0eaceab19a825f3682b675e05f7cedc511d497752c1e3f91b64ea",
+  "eligibility": {
+    "mapping_status": "EXACT",
+    "package_mapping_confirmed": true,
+    "targeted": true
+  },
+  "evidence": [
+    {
+      "field": "base_image_reference",
+      "line": 1,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.bowtie2",
+      "value": "FROM ubuntu:22.04"
+    },
+    {
+      "field": "classification",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "expected_executable",
+      "line": 7,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.bowtie2",
+      "value": "CMD [\"bowtie2\", \"--version\"]"
+    },
+    {
+      "field": "package",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "ghcr.io/omnibioai/omnibioai-sif/bowtie2"
+    },
+    {
+      "field": "version_command",
+      "line": 7,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.bowtie2",
+      "value": "CMD [\"bowtie2\", \"--version\"]"
+    }
+  ],
+  "expected_architectures": [
+    "amd64",
+    "arm64"
+  ],
+  "expected_executable": "bowtie2",
+  "native_amd64_expected": true,
+  "native_arm64_expected": true,
+  "package": "ghcr.io/omnibioai/omnibioai-sif/bowtie2",
+  "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "runtime_database_required": false,
+  "runtime_gpu_required": false,
+  "runtime_license_required": false,
+  "runtime_network_required": false,
+  "runtime_reference_data_required": false,
+  "scientific_version": null,
+  "scientific_version_evidence": null,
+  "scientific_version_source": null,
+  "smoke_command": null,
+  "smoke_expected_outputs": [],
+  "smoke_inputs": [],
+  "smoke_success_condition": null,
+  "source_immutable_identity": null,
+  "source_reference": null,
+  "source_type": "unknown_unpinned",
+  "tool_id": "bowtie2",
+  "validation_contract_schema_version": 1,
+  "validation_contract_sha256": "3cd3db1b5e00e64bd8258fd127328f8732bd197ad5711e24de651f3fe157e3e2",
+  "version_command": [
+    "bowtie2",
+    "--version"
+  ],
+  "version_expected_value": null,
+  "version_parser": null
+}

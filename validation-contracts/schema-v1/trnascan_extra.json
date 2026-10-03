@@ -1,0 +1,75 @@
+{
+  "base_image_architecture_evidence": {
+    "quality": "INFERRED",
+    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+  },
+  "base_image_reference": "mambaorg/micromamba:1.5.8",
+  "blocking_reasons": [
+    "no canonical scientific executable is explicitly invoked by the Dockerfile",
+    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+    "no exact tool-associated scientific version or immutable source pin is present",
+    "no explicit tool-specific version command is present"
+  ],
+  "classification": "MULTIARCH_READY",
+  "contract_confidence": "LOW",
+  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "display_name": "trnascan_extra",
+  "dockerfile_path": "dockerfiles/Dockerfile.trnascan_extra",
+  "dockerfile_sha256": "0db8587a27d8db75521be26297c390162148f27275fa84ad2b9e188d64171035",
+  "eligibility": {
+    "mapping_status": "EXACT",
+    "package_mapping_confirmed": true,
+    "targeted": true
+  },
+  "evidence": [
+    {
+      "field": "base_image_reference",
+      "line": 1,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.trnascan_extra",
+      "value": "FROM mambaorg/micromamba:1.5.8"
+    },
+    {
+      "field": "classification",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "package",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "ghcr.io/omnibioai/omnibioai-sif/trnascan_extra"
+    }
+  ],
+  "expected_architectures": [
+    "amd64",
+    "arm64"
+  ],
+  "expected_executable": null,
+  "native_amd64_expected": true,
+  "native_arm64_expected": true,
+  "package": "ghcr.io/omnibioai/omnibioai-sif/trnascan_extra",
+  "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "runtime_database_required": false,
+  "runtime_gpu_required": false,
+  "runtime_license_required": false,
+  "runtime_network_required": false,
+  "runtime_reference_data_required": false,
+  "scientific_version": null,
+  "scientific_version_evidence": null,
+  "scientific_version_source": null,
+  "smoke_command": null,
+  "smoke_expected_outputs": [],
+  "smoke_inputs": [],
+  "smoke_success_condition": null,
+  "source_immutable_identity": null,
+  "source_reference": null,
+  "source_type": "unknown_unpinned",
+  "tool_id": "trnascan_extra",
+  "validation_contract_schema_version": 1,
+  "validation_contract_sha256": "b63bbb4ac904fa49d0f80784a69a5deaaed2264f938ffa31503f56d133fbd6e5",
+  "version_command": null,
+  "version_expected_value": null,
+  "version_parser": null
+}

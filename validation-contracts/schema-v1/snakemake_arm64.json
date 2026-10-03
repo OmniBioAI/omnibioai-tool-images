@@ -1,0 +1,81 @@
+{
+  "base_image_architecture_evidence": {
+    "quality": "INFERRED",
+    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+  },
+  "base_image_reference": "mambaorg/micromamba:1.5.8",
+  "blocking_reasons": [
+    "no canonical scientific executable is explicitly invoked by the Dockerfile",
+    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+    "no explicit tool-specific version command is present"
+  ],
+  "classification": "MULTIARCH_READY",
+  "contract_confidence": "LOW",
+  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "display_name": "snakemake_arm64",
+  "dockerfile_path": "dockerfiles/Dockerfile.snakemake_arm64",
+  "dockerfile_sha256": "0998dadec33c915ac9eb6e0efb342278e370ccc655e1e92da6a25e3125a7fa2a",
+  "eligibility": {
+    "mapping_status": "EXACT",
+    "package_mapping_confirmed": true,
+    "targeted": true
+  },
+  "evidence": [
+    {
+      "field": "base_image_reference",
+      "line": 1,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.snakemake_arm64",
+      "value": "FROM mambaorg/micromamba:1.5.8"
+    },
+    {
+      "field": "classification",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "package",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "ghcr.io/omnibioai/omnibioai-sif/snakemake_arm64"
+    },
+    {
+      "field": "scientific_version",
+      "line": 2,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.snakemake_arm64",
+      "value": "RUN micromamba install -y -n base -c bioconda -c conda-forge snakemake=7.32.4 && micromamba clean --all --yes"
+    }
+  ],
+  "expected_architectures": [
+    "amd64",
+    "arm64"
+  ],
+  "expected_executable": null,
+  "native_amd64_expected": true,
+  "native_arm64_expected": true,
+  "package": "ghcr.io/omnibioai/omnibioai-sif/snakemake_arm64",
+  "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "runtime_database_required": false,
+  "runtime_gpu_required": false,
+  "runtime_license_required": false,
+  "runtime_network_required": false,
+  "runtime_reference_data_required": false,
+  "scientific_version": "7.32.4",
+  "scientific_version_evidence": "snakemake=7.32.4",
+  "scientific_version_source": "pinned_package_version",
+  "smoke_command": null,
+  "smoke_expected_outputs": [],
+  "smoke_inputs": [],
+  "smoke_success_condition": null,
+  "source_immutable_identity": "snakemake=7.32.4",
+  "source_reference": "snakemake=7.32.4",
+  "source_type": "pinned_package_version",
+  "tool_id": "snakemake_arm64",
+  "validation_contract_schema_version": 1,
+  "validation_contract_sha256": "392a65367c541d334b29ef6957b8750a4fcfde0ab1e8c918919ccd09018ada4c",
+  "version_command": null,
+  "version_expected_value": "7.32.4",
+  "version_parser": null
+}

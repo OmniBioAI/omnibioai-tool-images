@@ -1,0 +1,8 @@
+{
+  "catalog_file": "current-package-preflight.csv",
+  "catalog_sha256": "4733f2e6cf4f4da5dcc9247cfbb66f84faee4b7914cef1838bf25b0ef6006368",
+  "live_read_only_package_check": "601/601 package repositories resolved on 2026-10-03",
+  "schema_version": 1,
+  "selection_rule": "MULTIARCH_READY and package_exists=YES, excluding the ten reference tools",
+  "source_commit": "e1e696feffcb921eac5c8977e95ca05e36ff629b"
+}

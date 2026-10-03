@@ -1,0 +1,90 @@
+{
+  "base_image_architecture_evidence": {
+    "quality": "INFERRED",
+    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+  },
+  "base_image_reference": "ubuntu:22.04",
+  "blocking_reasons": [
+    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+    "no exact tool-associated scientific version or immutable source pin is present"
+  ],
+  "classification": "MULTIARCH_READY",
+  "contract_confidence": "LOW",
+  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "display_name": "whatshap",
+  "dockerfile_path": "dockerfiles/Dockerfile.whatshap",
+  "dockerfile_sha256": "4c016a98626b548801a9b93cd2082603f13ac71d0cee09d88856669dd23e3c0f",
+  "eligibility": {
+    "mapping_status": "EXACT",
+    "package_mapping_confirmed": true,
+    "targeted": true
+  },
+  "evidence": [
+    {
+      "field": "base_image_reference",
+      "line": 1,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.whatshap",
+      "value": "FROM ubuntu:22.04"
+    },
+    {
+      "field": "classification",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "expected_executable",
+      "line": 9,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.whatshap",
+      "value": "CMD [\"whatshap\", \"--version\"]"
+    },
+    {
+      "field": "package",
+      "quality": "DIRECT",
+      "source": "validation-contracts/evidence/current-package-preflight.csv",
+      "value": "ghcr.io/omnibioai/omnibioai-sif/whatshap"
+    },
+    {
+      "field": "version_command",
+      "line": 9,
+      "quality": "DIRECT",
+      "source": "dockerfiles/Dockerfile.whatshap",
+      "value": "CMD [\"whatshap\", \"--version\"]"
+    }
+  ],
+  "expected_architectures": [
+    "amd64",
+    "arm64"
+  ],
+  "expected_executable": "whatshap",
+  "native_amd64_expected": true,
+  "native_arm64_expected": true,
+  "package": "ghcr.io/omnibioai/omnibioai-sif/whatshap",
+  "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "runtime_database_required": false,
+  "runtime_gpu_required": false,
+  "runtime_license_required": false,
+  "runtime_network_required": false,
+  "runtime_reference_data_required": false,
+  "scientific_version": null,
+  "scientific_version_evidence": null,
+  "scientific_version_source": null,
+  "smoke_command": null,
+  "smoke_expected_outputs": [],
+  "smoke_inputs": [],
+  "smoke_success_condition": null,
+  "source_immutable_identity": null,
+  "source_reference": null,
+  "source_type": "unknown_unpinned",
+  "tool_id": "whatshap",
+  "validation_contract_schema_version": 1,
+  "validation_contract_sha256": "011af52e8f1f37585bbdc3564e1eb1bc6c67536a51ffdbca4cf58624b04b20a1",
+  "version_command": [
+    "whatshap",
+    "--version"
+  ],
+  "version_expected_value": null,
+  "version_parser": null
+}
