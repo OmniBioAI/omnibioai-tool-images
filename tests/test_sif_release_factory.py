@@ -188,6 +188,78 @@ def candidate(tool="fastqc", arch="amd64", version="0.12.1", **changes):
     return value
 
 
+def plan_record(tool, arch, version=None, **changes):
+    entry = get_tool(tool)
+    version = version or release.resolve_scientific_version(entry, VERSION_OUTPUTS[tool])
+    version_evidence = release.canonicalize_version_evidence(VERSION_OUTPUTS[tool])
+    value = identity.identity_metadata(candidate(
+        tool=tool, arch=arch, version=version, version_evidence=version_evidence
+    ))
+    record = {
+        "candidate_record_schema_version": release.CANDIDATE_RECORD_SCHEMA_VERSION,
+        "schema_version": "1",
+        "tool_id": tool,
+        "package": entry["ghcr_repository"],
+        "scientific_version": version,
+        "architecture": arch,
+        "source_commit": value["source_commit"],
+        "dockerfile_path": entry["dockerfile"],
+        "dockerfile_sha256": value["dockerfile_sha256"],
+        "base_identity": value["base_image_identity"],
+        "oci_identity": value["oci_source_identity"],
+        "oci_archive_sha256": "5" * 64,
+        "sif_sha256": value["sif_sha256"],
+        "build_identity": value["build_identity_sha256"],
+        "immutable_tag": identity.immutable_tag(value),
+        "identity_inputs": identity.build_identity_record(value),
+        "expected_executable": entry["expected_executable"],
+        "version_result": {
+            "status": "PASS",
+            "scientific_version": version,
+        },
+        "smoke_result": {"status": "PASS"},
+        "native_runner_arch": "X64" if arch == "amd64" else "ARM64",
+        "provenance_reference": f"schema-v1:{value['build_identity_sha256']}",
+        "provenance_status": "PASS",
+        "sbom_status": "SBOM_OPTIONAL_NOT_GENERATED",
+    }
+    record.update(changes)
+    return record
+
+
+def pilot9_plan_records():
+    return [plan_record(tool, arch) for tool in PILOT9_TOOLS for arch in ("amd64", "arm64")]
+
+
+def planning_provenance(tool, arch, version=None):
+    entry = get_tool(tool)
+    version = version or release.resolve_scientific_version(entry, VERSION_OUTPUTS[tool])
+    output = VERSION_OUTPUTS[tool]
+    return {
+        "tool": tool,
+        "source_commit_sha": "a" * 40,
+        "dockerfile": entry["dockerfile"],
+        "dockerfile_sha256": ZERO,
+        "target_architecture": arch,
+        "base_image_identity": "docker.io/library/python:3.11-slim-bookworm@sha256:" + ONE,
+        "rendered_dockerfile_sha256": "4" * 64,
+        "oci_identity": "sha256:" + TWO,
+        "oci_child_digest": "sha256:" + TWO,
+        "oci_archive_sha256": "5" * 64,
+        "sif_sha256": "3" * 64,
+        "package_identity": f"{tool}={version}",
+        "oci_version": {"status": "PASS", "output": output, "meaningful_output": output},
+        "sif_version": {"status": "PASS", "output": output, "meaningful_output": output},
+        "sif_smoke": {"status": "PASS"},
+        "scientific_version": version,
+        "verification_result": "PASS",
+        "runner": {"os": "Linux", "arch": "X64" if arch == "amd64" else "ARM64"},
+        "uname_m": "x86_64" if arch == "amd64" else "aarch64",
+        "execution_mode": "NATIVE",
+        "sbom_status": "SBOM_OPTIONAL_NOT_GENERATED",
+    }
+
+
 def artifact(value, *, tag=None, metadata=True, sif_sha=None):
     return {
         "tag": tag or identity.immutable_tag(value),
@@ -418,6 +490,12 @@ def test_affected_runtime_version_evidence_builds_schema_v1_identity_and_provena
     assert metadata["version_evidence"] == canonical
     assert json.loads(provenance_path.read_text())["sif_version"]["output"] == evidence["output"]
     assert identity.identity_metadata(metadata) == metadata
+    planning_record = release.candidate_record_for_spec(
+        release.release_spec(tool), metadata, provenance
+    )
+    assert planning_record["immutable_tag"] == identity.immutable_tag(metadata)
+    assert planning_record["identity_inputs"] == identity.build_identity_record(metadata)
+    assert evidence["output"] not in json.dumps(planning_record)
     assert identity.evaluate_publication(metadata, {"artifacts": []}).decision is (
         identity.Decision.PUBLISH_NEW
     )
@@ -673,12 +751,20 @@ def test_workflow_contract_is_manifest_driven_least_privilege_and_default_dry_ru
     inputs = trigger["workflow_dispatch"]["inputs"]
     assert inputs["publish"]["default"] is False
     assert inputs["cohort"]["default"] == "pilot9"
-    job = data["jobs"]["build-verify-release-retrieve"]
-    assert job["permissions"] == {"contents": "read", "packages": "write"}
-    assert job["strategy"]["fail-fast"] is False
+    build = data["jobs"]["build-validate-candidate"]
+    aggregate = data["jobs"]["aggregate-release-plan"]
+    publish = data["jobs"]["publish-verify-retrieve"]
+    assert build["permissions"] == aggregate["permissions"] == {"contents": "read"}
+    assert publish["permissions"] == {"contents": "read", "packages": "write"}
+    assert aggregate["needs"] == ["validate-selection", "build-validate-candidate"]
+    assert publish["needs"] == ["validate-selection", "aggregate-release-plan"]
+    assert build["strategy"]["fail-fast"] is False
+    assert publish["strategy"]["fail-fast"] is False
     source = WORKFLOW.read_text()
     assert "scripts/pilot_manifest.py" in source and "--release-factory" in source
     assert "scripts.sif_release release" in source and '--publish "$PUBLISH"' in source
+    assert "scripts.sif_release plan" in source and "release_plan_sha256" in source
+    assert "pilot-candidate-record-" in source and "pilot-release-plan" in source
     assert "github.token" in source
     assert not any(marker in source for marker in ("secrets.PAT", "PERSONAL_ACCESS_TOKEN", "docker push", "oras push"))
     assert source.count("if: ${{ inputs.publish }}") == 3
@@ -709,3 +795,264 @@ def test_legacy_comparison_allows_only_candidate_and_rejects_mutation():
     changed["artifacts"][0]["manifest_digest"] = "sha256:c"
     with pytest.raises(release.ReleaseError, match="deleted or mutated"):
         release.verify_legacy_preserved(before, changed, "sif-v1-x")
+
+
+def test_release_plan_is_byte_deterministic_hash_verified_and_registry_independent():
+    records = pilot9_plan_records()
+    first = release.build_release_plan(
+        records, cohort="pilot9", publish=True, source_commit="a" * 40
+    )
+    second = release.build_release_plan(
+        list(reversed(records)), cohort="pilot9", publish=True, source_commit="a" * 40
+    )
+    assert release.canonical_json_bytes(first) == release.canonical_json_bytes(second)
+    assert first["release_plan_sha256"] == second["release_plan_sha256"]
+    assert first["candidate_count"] == 18
+    assert len(first["package_authorized_refs"]) == 9
+    assert all(len(tags) == 2 for tags in first["package_authorized_refs"].values())
+    assert release.validate_release_plan(first) == first
+    changed = copy.deepcopy(first)
+    changed["release_plan_sha256"] = "0" * 64
+    with pytest.raises(release.ReleaseError, match="hash mismatch"):
+        release.validate_release_plan(changed)
+
+
+def test_candidate_record_is_deterministic_and_excludes_volatile_operational_fields(monkeypatch):
+    monkeypatch.setattr(release, "validate_evidence", lambda unused: None)
+    value = candidate(tool="fastqc", arch="amd64", version="0.12.1")
+    first_provenance = planning_provenance("fastqc", "amd64", "0.12.1")
+    second_provenance = copy.deepcopy(first_provenance)
+    first_provenance["build_timestamp"] = "yesterday"
+    second_provenance["build_timestamp"] = "tomorrow"
+    first = release.candidate_record_for_spec(
+        release.release_spec("fastqc"), value, first_provenance
+    )
+    changed = copy.deepcopy(value)
+    changed["operational_provenance"] = {"github_run_id": "different", "temp_path": "/tmp/x"}
+    second = release.candidate_record_for_spec(
+        release.release_spec("fastqc"), changed, second_provenance
+    )
+    assert release.canonical_json_bytes(first) == release.canonical_json_bytes(second)
+    assert first["identity_inputs"] == identity.build_identity_record(value)
+    assert "timestamp" not in json.dumps(first).lower()
+
+
+def test_aggregate_release_plan_rejects_malformed_candidate_json(tmp_path):
+    record_dir = tmp_path / "candidate"
+    record_dir.mkdir()
+    (record_dir / "candidate-record.json").write_text("{not-json")
+    with pytest.raises(release.ReleaseError, match="malformed JSON"):
+        release.aggregate_release_plan(
+            tmp_path, tmp_path / "plan.json", cohort="pilot9", publish=False,
+            source_commit="a" * 40,
+        )
+
+
+def test_planned_publish_false_is_zero_write_and_plan_hash_mismatch_blocks_first(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(release, "validate_evidence", lambda unused: None)
+    value = candidate(tool="fastqc", arch="amd64", version="0.12.1")
+    candidate_path = tmp_path / "candidate.json"
+    candidate_path.write_text(json.dumps(identity.identity_metadata(value)))
+    sif = tmp_path / "fastqc.sif"
+    sif.write_bytes(b"validated")
+    provenance = planning_provenance("fastqc", "amd64", "0.12.1")
+    records = [plan_record("fastqc", arch, "0.12.1") for arch in ("amd64", "arm64")]
+    plan = release.build_release_plan(
+        records, cohort="single", tool="fastqc", publish=False, source_commit="a" * 40
+    )
+    evaluation = identity.Evaluation(
+        identity.Decision.PUBLISH_NEW, "new", identity.immutable_tag(value),
+        identity.build_identity_sha256(value),
+    )
+    commands = []
+    monkeypatch.setattr(release, "sha256_file", lambda unused: value["sif_sha256"])
+    result = release.release_candidate_for_spec(
+        release.release_spec("fastqc"), candidate_path, sif, tmp_path / "result.json",
+        publish_enabled=False,
+        evaluate_live_fn=lambda unused: ({"artifacts": []}, evaluation),
+        run_fn=lambda argv, **kwargs: commands.append(list(argv)),
+        release_plan=plan,
+        provenance=provenance,
+        expected_plan_sha256=plan["release_plan_sha256"],
+    )
+    assert result["decision"] == "WOULD_PUBLISH_NEW"
+    assert result["write_performed"] is False and commands == []
+    with pytest.raises(release.ReleaseError, match="workflow aggregation output"):
+        release.release_candidate_for_spec(
+            release.release_spec("fastqc"), candidate_path, sif, tmp_path / "blocked.json",
+            publish_enabled=False,
+            evaluate_live_fn=lambda unused: pytest.fail("live evaluation must not run"),
+            release_plan=plan,
+            provenance=provenance,
+            expected_plan_sha256="0" * 64,
+        )
+
+
+@pytest.mark.parametrize(
+    "mutation,match",
+    [
+        (lambda records: records.pop(), "count or membership"),
+        (lambda records: records.append(copy.deepcopy(records[0])), "duplicate candidate"),
+        (lambda records: records.__setitem__(0, plan_record("bedtools", "amd64", "2.30.0")), "unexpected candidate"),
+        (lambda records: records[1].__setitem__("immutable_tag", records[0]["immutable_tag"]), "duplicate immutable"),
+        (lambda records: records[0].__setitem__("package", PACKAGE_ALLOWLIST["samtools"]), "package mapping"),
+        (lambda records: records[0].__setitem__("architecture", "riscv64"), "tool/architecture"),
+        (lambda records: records[0].pop("sif_sha256"), "fields are missing"),
+        (lambda records: records[0].pop("identity_inputs"), "fields are missing"),
+        (lambda records: records[0].pop("provenance_reference"), "fields are missing"),
+    ],
+)
+def test_release_plan_rejects_missing_duplicate_unexpected_or_malformed_candidates(mutation, match):
+    records = pilot9_plan_records()
+    mutation(records)
+    with pytest.raises(release.ReleaseError, match=match):
+        release.build_release_plan(
+            records, cohort="pilot9", publish=False, source_commit="a" * 40
+        )
+
+
+def test_release_plan_rejects_nineteen_unique_candidates():
+    records = pilot9_plan_records()
+    extra = copy.deepcopy(records[0])
+    extra["architecture"] = "riscv64"
+    records.append(extra)
+    with pytest.raises(release.ReleaseError, match="tool/architecture"):
+        release.build_release_plan(
+            records, cohort="pilot9", publish=False, source_commit="a" * 40
+        )
+
+
+def test_release_plan_rejects_conflicting_scientific_versions_across_architectures():
+    records = pilot9_plan_records()
+    index = next(
+        i for i, item in enumerate(records)
+        if item["tool_id"] == "fastqc" and item["architecture"] == "arm64"
+    )
+    evidence = "FastQC v9.9"
+    changed_identity = identity.identity_metadata(candidate(
+        tool="fastqc", arch="arm64", version="9.9", version_evidence=evidence
+    ))
+    changed_identity["operational_provenance"] = {}
+    changed_identity = identity.identity_metadata(changed_identity)
+    changed = copy.deepcopy(records[index])
+    changed.update({
+        "scientific_version": "9.9",
+        "identity_inputs": identity.build_identity_record(changed_identity),
+        "build_identity": changed_identity["build_identity_sha256"],
+        "immutable_tag": identity.immutable_tag(changed_identity),
+        "provenance_reference": f"schema-v1:{changed_identity['build_identity_sha256']}",
+        "version_result": {"status": "PASS", "scientific_version": "9.9"},
+    })
+    records[index] = changed
+    with pytest.raises(release.ReleaseError, match="versions conflict"):
+        release.build_release_plan(
+            records, cohort="pilot9", publish=False, source_commit="a" * 40
+        )
+
+
+@pytest.mark.parametrize("tool", ["multiqc", "prodigal"])
+@pytest.mark.parametrize("current_arch", ["amd64", "arm64"])
+@pytest.mark.parametrize("appearance_order", [("amd64", "arm64"), ("arm64", "amd64")])
+def test_authorized_sibling_architecture_delta_is_order_independent(
+    monkeypatch, tool, current_arch, appearance_order
+):
+    monkeypatch.setattr(release, "validate_evidence", lambda unused: None)
+    records = [plan_record(tool, arch) for arch in ("amd64", "arm64")]
+    plan = release.build_release_plan(
+        records, cohort="single", tool=tool, publish=True, source_commit="a" * 40
+    )
+    version = release.resolve_scientific_version(get_tool(tool), VERSION_OUTPUTS[tool])
+    current = candidate(
+        tool=tool, arch=current_arch, version=version,
+        version_evidence=release.canonicalize_version_evidence(VERSION_OUTPUTS[tool]),
+    )
+    record, authorized = release.verify_candidate_in_plan(
+        release.release_spec(tool), current, planning_provenance(tool, current_arch), plan,
+        plan["release_plan_sha256"],
+    )
+    before = {
+        "repository": PACKAGE_ALLOWLIST[tool],
+        "artifacts": [{"tag": "arm64", "manifest_digest": "sha256:legacy"}],
+    }
+    by_arch = {item["architecture"]: item["immutable_tag"] for item in records}
+    after = {
+        "repository": PACKAGE_ALLOWLIST[tool],
+        "artifacts": [
+            *before["artifacts"],
+            *[
+                {"tag": by_arch[arch], "manifest_digest": f"sha256:{arch}"}
+                for arch in appearance_order
+            ],
+        ],
+    }
+    assert record["immutable_tag"] == by_arch[current_arch]
+    release.verify_legacy_preserved(before, after, record["immutable_tag"], authorized)
+
+
+@pytest.mark.parametrize(
+    "unexpected",
+    [
+        "sif-v1-1.35-amd64-historical000000000000",
+        "sif-v1-1.35-amd64-wrongidentity0000000000",
+        "sif-v1-9.9-amd64-wrongversion00000000000",
+        "sif-v1-1.35-riscv64-unauthorized00000000",
+        "latest",
+        "amd64",
+        "arm64-new",
+        "1.35",
+        "sif-v1-2.6.3-arm64-otherpackage0000000",
+    ],
+)
+def test_registry_delta_rejects_every_ref_outside_exact_package_plan(unexpected):
+    records = [plan_record("multiqc", arch) for arch in ("amd64", "arm64")]
+    authorized = frozenset(item["immutable_tag"] for item in records)
+    current = records[0]["immutable_tag"]
+    before = {"repository": PACKAGE_ALLOWLIST["multiqc"], "artifacts": [
+        {"tag": "arm64", "manifest_digest": "sha256:legacy"}
+    ]}
+    after = copy.deepcopy(before)
+    after["artifacts"].extend(
+        [{"tag": tag, "manifest_digest": "sha256:ok"} for tag in authorized]
+    )
+    after["artifacts"].append({"tag": unexpected, "manifest_digest": "sha256:bad"})
+    with pytest.raises(release.ReleaseError, match="unexpected registry references"):
+        release.verify_legacy_preserved(before, after, current, authorized)
+
+
+def test_registry_delta_rejects_deletion_replacement_and_malformed_authorization():
+    before = {"repository": "r", "artifacts": [
+        {"tag": "arm64", "manifest_digest": "sha256:legacy"}
+    ]}
+    current = "sif-v1-1.0-amd64-" + "a" * 24
+    sibling = "sif-v1-1.0-arm64-" + "b" * 24
+    for after in (
+        {"repository": "r", "artifacts": []},
+        {"repository": "r", "artifacts": [{"tag": "arm64", "manifest_digest": "sha256:changed"}]},
+    ):
+        with pytest.raises(release.ReleaseError, match="deleted or mutated"):
+            release.verify_legacy_preserved(before, after, current, (current, sibling))
+    with pytest.raises(release.ReleaseError, match="malformed"):
+        release.verify_legacy_preserved(before, before, current, (sibling,))
+
+
+def test_candidate_missing_from_plan_and_plan_candidate_mismatch_fail_before_write(monkeypatch):
+    monkeypatch.setattr(release, "validate_evidence", lambda unused: None)
+    records = [plan_record("multiqc", arch) for arch in ("amd64", "arm64")]
+    plan = release.build_release_plan(
+        records, cohort="single", tool="multiqc", publish=True, source_commit="a" * 40
+    )
+    value = candidate(tool="multiqc", arch="amd64", version="1.30")
+    provenance = planning_provenance("multiqc", "amd64", "1.30")
+    changed = copy.deepcopy(plan)
+    changed["candidates"][0]["sif_sha256"] = "9" * 64
+    core = {key: item for key, item in changed.items() if key != "release_plan_sha256"}
+    changed["release_plan_sha256"] = hashlib.sha256(
+        release.canonical_json_bytes(core)
+    ).hexdigest()
+    with pytest.raises(release.ReleaseError):
+        release.verify_candidate_in_plan(
+            release.release_spec("multiqc"), value, provenance, changed,
+            changed["release_plan_sha256"],
+        )

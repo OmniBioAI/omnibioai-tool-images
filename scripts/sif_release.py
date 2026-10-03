@@ -23,12 +23,13 @@ from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
 from scripts.pilot_integrity import validate_evidence
-from scripts.pilot_manifest import get_tool
+from scripts.pilot_manifest import get_tool, load_and_validate, selected_matrix
 from scripts.pilot_probe import fixtures, validate_probe_result
 from scripts.sif_identity import (
     IDENTITY_MEDIA_TYPE,
     SIF_MEDIA_TYPE,
     Decision,
+    build_identity_record,
     canonical_json_bytes,
     evaluate_publication,
     identity_annotations,
@@ -41,6 +42,8 @@ ALLOWED_ARCHITECTURES = ("amd64", "arm64")
 ARTIFACT_TYPE = "application/vnd.omnibioai.sif.v1"
 RUNTIME_COMMIT = "a4f3da56c2e6e9fd85e54ba009f6f3456de3b5b5"
 SBOM_STATUSES = {"SBOM_OPTIONAL_NOT_GENERATED", "SBOM_PASS"}
+CANDIDATE_RECORD_SCHEMA_VERSION = "1"
+RELEASE_PLAN_SCHEMA_VERSION = "1"
 
 
 class ReleaseError(RuntimeError):
@@ -305,6 +308,278 @@ def prepare_candidate(tool_id: str, provenance_path: Path, sif: Path, output: Pa
     return prepare_candidate_for_spec(release_spec(tool_id), provenance_path, sif, output)
 
 
+def candidate_record_for_spec(
+    spec: ReleaseSpec, candidate: Mapping[str, Any], provenance: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Materialize the stable, registry-independent release-planning record."""
+    metadata = identity_metadata(candidate)
+    scientific_version = validate_release_provenance(provenance, spec)
+    comparisons = {
+        "tool_id": spec.tool_id,
+        "scientific_version": scientific_version,
+        "target_architecture": provenance.get("target_architecture"),
+        "source_commit": provenance.get("source_commit_sha"),
+        "dockerfile_path": provenance.get("dockerfile"),
+        "dockerfile_sha256": provenance.get("dockerfile_sha256"),
+        "base_image_identity": provenance.get("base_image_identity"),
+        "oci_source_identity": provenance.get("oci_child_digest"),
+        "sif_sha256": provenance.get("sif_sha256"),
+        "expected_executable": spec.expected_executable,
+        "smoke_status": provenance.get("sif_smoke", {}).get("status"),
+        "provenance_status": provenance.get("verification_result"),
+    }
+    for field, expected in comparisons.items():
+        if metadata.get(field) != expected:
+            raise ReleaseError(f"candidate {field} differs from validated provenance")
+    if metadata["schema_version"] != "1":
+        raise ReleaseError("release planning requires identity schema v1")
+    oci_archive_sha256 = str(provenance.get("oci_archive_sha256", ""))
+    if not re.fullmatch(r"[0-9a-f]{64}", oci_archive_sha256):
+        raise ReleaseError("candidate record requires a valid OCI archive SHA256")
+    version_status = provenance.get("sif_version", {}).get("status")
+    if version_status != "PASS":
+        raise ReleaseError("candidate record requires passing SIF version evidence")
+    runner_arch = provenance.get("runner", {}).get("arch")
+    expected_runner = "X64" if metadata["target_architecture"] == "amd64" else "ARM64"
+    if runner_arch != expected_runner or provenance.get("execution_mode") != "NATIVE":
+        raise ReleaseError("candidate record requires the expected native runner architecture")
+    build_identity = metadata["build_identity_sha256"]
+    record = {
+        "candidate_record_schema_version": CANDIDATE_RECORD_SCHEMA_VERSION,
+        "schema_version": metadata["schema_version"],
+        "tool_id": metadata["tool_id"],
+        "package": spec.repository,
+        "scientific_version": metadata["scientific_version"],
+        "architecture": metadata["target_architecture"],
+        "source_commit": metadata["source_commit"],
+        "dockerfile_path": metadata["dockerfile_path"],
+        "dockerfile_sha256": metadata["dockerfile_sha256"],
+        "base_identity": metadata["base_image_identity"],
+        "oci_identity": metadata["oci_source_identity"],
+        "oci_archive_sha256": oci_archive_sha256,
+        "sif_sha256": metadata["sif_sha256"],
+        "build_identity": build_identity,
+        "immutable_tag": immutable_tag(metadata),
+        "identity_inputs": build_identity_record(metadata),
+        "expected_executable": metadata["expected_executable"],
+        "version_result": {
+            "status": version_status,
+            "scientific_version": scientific_version,
+        },
+        "smoke_result": {"status": metadata["smoke_status"]},
+        "native_runner_arch": runner_arch,
+        "provenance_reference": f"schema-v1:{build_identity}",
+        "provenance_status": metadata["provenance_status"],
+        "sbom_status": provenance["sbom_status"],
+    }
+    return json.loads(canonical_json_bytes(record))
+
+
+def materialize_candidate_record(
+    tool_id: str, candidate_path: Path, provenance_path: Path, output: Path
+) -> dict[str, Any]:
+    record = candidate_record_for_spec(
+        release_spec(tool_id),
+        json.loads(candidate_path.read_text()),
+        json.loads(provenance_path.read_text()),
+    )
+    output.write_bytes(canonical_json_bytes(record) + b"\n")
+    return record
+
+
+def _candidate_record_key(record: Mapping[str, Any]) -> tuple[str, str]:
+    tool = record.get("tool_id")
+    arch = record.get("architecture")
+    if not isinstance(tool, str) or arch not in ALLOWED_ARCHITECTURES:
+        raise ReleaseError("candidate record tool/architecture is malformed")
+    return tool, arch
+
+
+def build_release_plan(
+    records: Sequence[Mapping[str, Any]], *, cohort: str, publish: bool,
+    source_commit: str, tool: str = "all",
+) -> dict[str, Any]:
+    if not isinstance(publish, bool):
+        raise ReleaseError("release plan publish intent must be boolean")
+    if not re.fullmatch(r"[0-9a-f]{40}", source_commit):
+        raise ReleaseError("release plan source commit is malformed")
+    expected_matrix = selected_matrix(load_and_validate(), tool, cohort)
+    expected = {(item["tool_id"], item["arch"]): item for item in expected_matrix}
+    validated: list[dict[str, Any]] = []
+    seen_keys: set[tuple[str, str]] = set()
+    seen_tags: set[str] = set()
+    versions: dict[str, str] = {}
+    for raw in records:
+        if not isinstance(raw, Mapping):
+            raise ReleaseError("candidate record is not an object")
+        record = json.loads(canonical_json_bytes(raw))
+        key = _candidate_record_key(record)
+        if key in seen_keys:
+            raise ReleaseError("duplicate candidate tool/architecture record")
+        if key not in expected:
+            raise ReleaseError("unexpected candidate tool/architecture record")
+        manifest_entry = expected[key]
+        spec = release_spec(key[0])
+        required = {
+            "candidate_record_schema_version", "schema_version", "tool_id", "package",
+            "scientific_version", "architecture", "source_commit", "dockerfile_path",
+            "dockerfile_sha256", "base_identity", "oci_identity", "oci_archive_sha256",
+            "sif_sha256", "build_identity", "immutable_tag", "expected_executable",
+            "identity_inputs",
+            "version_result", "smoke_result", "native_runner_arch", "provenance_reference",
+            "provenance_status", "sbom_status",
+        }
+        if set(record) != required:
+            raise ReleaseError("candidate record fields are missing or unexpected")
+        if record["candidate_record_schema_version"] != CANDIDATE_RECORD_SCHEMA_VERSION:
+            raise ReleaseError("candidate record schema is unsupported")
+        if record["schema_version"] != "1":
+            raise ReleaseError("candidate identity schema is unsupported")
+        if record["source_commit"] != source_commit:
+            raise ReleaseError("candidate source commit differs from release plan")
+        if record["package"] != spec.repository or record["package"] != manifest_entry["ghcr_repository"]:
+            raise ReleaseError("candidate package mapping differs from manifest")
+        if record["dockerfile_path"] != spec.dockerfile or record["expected_executable"] != spec.expected_executable:
+            raise ReleaseError("candidate scientific contract differs from manifest")
+        for field in ("dockerfile_sha256", "oci_archive_sha256", "sif_sha256", "build_identity"):
+            if not re.fullmatch(r"[0-9a-f]{64}", str(record[field])):
+                raise ReleaseError(f"candidate {field} is malformed")
+        if record["immutable_tag"] in seen_tags:
+            raise ReleaseError("duplicate immutable tag in release plan")
+        try:
+            identity_inputs = record["identity_inputs"]
+            planned_identity = identity_metadata({
+                **identity_inputs,
+                "sif_sha256": record["sif_sha256"],
+                "expected_executable": record["expected_executable"],
+                "version_evidence": record["scientific_version"],
+                "smoke_status": "PASS",
+                "provenance_status": "PASS",
+                "operational_provenance": {},
+            })
+        except (TypeError, ValueError) as error:
+            raise ReleaseError("candidate identity is malformed") from error
+        if (planned_identity["build_identity_sha256"] != record["build_identity"]
+                or immutable_tag(planned_identity) != record["immutable_tag"]):
+            raise ReleaseError("candidate identity/tag differs from canonical schema-v1 identity")
+        identity_fields = {
+            "tool_id": "tool_id", "scientific_version": "scientific_version",
+            "target_architecture": "architecture", "source_commit": "source_commit",
+            "dockerfile_path": "dockerfile_path", "dockerfile_sha256": "dockerfile_sha256",
+            "base_image_identity": "base_identity", "oci_source_identity": "oci_identity",
+            "sif_sha256": "sif_sha256", "expected_executable": "expected_executable",
+            "provenance_status": "provenance_status",
+        }
+        if any(planned_identity[left] != record[right] for left, right in identity_fields.items()):
+            raise ReleaseError("candidate record differs from embedded canonical identity")
+        planned_build_inputs = planned_identity["build_inputs"]
+        if (planned_build_inputs.get("package_identity", "").split("=", 1)[0]
+                != spec.package_identity_name
+                or not re.fullmatch(
+                    r"[0-9a-f]{64}",
+                    str(planned_build_inputs.get("rendered_dockerfile_sha256", "")),
+                )
+                or planned_build_inputs.get("tool_runtime_commit") != RUNTIME_COMMIT):
+            raise ReleaseError("candidate build inputs differ from manifest release contract")
+        if record["immutable_tag"] in spec.moving_aliases | {record["scientific_version"]}:
+            raise ReleaseError("candidate immutable tag is a moving or version-only alias")
+        if record["provenance_status"] != "PASS" or record["provenance_reference"] != f"schema-v1:{record['build_identity']}":
+            raise ReleaseError("candidate mandatory provenance is missing or malformed")
+        if record["version_result"] != {
+            "status": "PASS", "scientific_version": record["scientific_version"]
+        }:
+            raise ReleaseError("candidate version result is missing or inconsistent")
+        if record["smoke_result"] != {"status": "PASS"}:
+            raise ReleaseError("candidate smoke result is missing or failed")
+        expected_runner = "X64" if key[1] == "amd64" else "ARM64"
+        if record["native_runner_arch"] != expected_runner or record["sbom_status"] not in SBOM_STATUSES:
+            raise ReleaseError("candidate runner/SBOM evidence is missing or malformed")
+        previous_version = versions.setdefault(key[0], record["scientific_version"])
+        if previous_version != record["scientific_version"]:
+            raise ReleaseError("candidate scientific versions conflict across architectures")
+        seen_keys.add(key)
+        seen_tags.add(record["immutable_tag"])
+        validated.append(record)
+    if seen_keys != set(expected):
+        raise ReleaseError("release plan candidate count or membership mismatch")
+    validated.sort(key=lambda item: (item["package"], item["tool_id"], item["architecture"]))
+    package_refs: dict[str, list[str]] = {}
+    for record in validated:
+        package_refs.setdefault(record["package"], []).append(record["immutable_tag"])
+    package_refs = {package: sorted(tags) for package, tags in sorted(package_refs.items())}
+    core = {
+        "release_plan_schema_version": RELEASE_PLAN_SCHEMA_VERSION,
+        "source_commit": source_commit,
+        "cohort": cohort,
+        "selection_tool": tool,
+        "publish_intent": publish,
+        "candidate_count": len(validated),
+        "candidates": validated,
+        "package_authorized_refs": package_refs,
+    }
+    plan_hash = hashlib.sha256(canonical_json_bytes(core)).hexdigest()
+    return {**core, "release_plan_sha256": plan_hash}
+
+
+def aggregate_release_plan(
+    candidates_root: Path, output: Path, *, cohort: str, publish: bool,
+    source_commit: str, tool: str = "all",
+) -> dict[str, Any]:
+    paths = sorted(candidates_root.rglob("candidate-record.json"))
+    records = []
+    for path in paths:
+        try:
+            records.append(json.loads(path.read_text()))
+        except json.JSONDecodeError as error:
+            raise ReleaseError(f"candidate record is malformed JSON: {path}") from error
+    plan = build_release_plan(
+        records, cohort=cohort, publish=publish, source_commit=source_commit, tool=tool
+    )
+    output.write_bytes(canonical_json_bytes(plan) + b"\n")
+    return plan
+
+
+def validate_release_plan(plan: Mapping[str, Any], expected_sha256: str | None = None) -> dict[str, Any]:
+    if not isinstance(plan, Mapping):
+        raise ReleaseError("release plan must be an object")
+    normalized = json.loads(canonical_json_bytes(plan))
+    supplied = normalized.pop("release_plan_sha256", None)
+    computed = hashlib.sha256(canonical_json_bytes(normalized)).hexdigest()
+    if not isinstance(supplied, str) or supplied != computed:
+        raise ReleaseError("release plan hash mismatch")
+    if expected_sha256 is not None and supplied != expected_sha256:
+        raise ReleaseError("release plan hash differs from workflow aggregation output")
+    if normalized.get("release_plan_schema_version") != RELEASE_PLAN_SCHEMA_VERSION:
+        raise ReleaseError("release plan schema is unsupported")
+    rebuilt = build_release_plan(
+        normalized.get("candidates", []),
+        cohort=normalized.get("cohort", ""),
+        publish=normalized.get("publish_intent"),
+        source_commit=normalized.get("source_commit", ""),
+        tool=normalized.get("selection_tool", "all"),
+    )
+    if rebuilt != {**normalized, "release_plan_sha256": supplied}:
+        raise ReleaseError("release plan content is not canonical")
+    return rebuilt
+
+
+def verify_candidate_in_plan(
+    spec: ReleaseSpec, candidate: Mapping[str, Any], provenance: Mapping[str, Any],
+    plan: Mapping[str, Any], expected_plan_sha256: str | None = None,
+) -> tuple[dict[str, Any], frozenset[str]]:
+    validated_plan = validate_release_plan(plan, expected_plan_sha256)
+    record = candidate_record_for_spec(spec, candidate, provenance)
+    matches = [item for item in validated_plan["candidates"] if (
+        item["tool_id"], item["architecture"]
+    ) == (record["tool_id"], record["architecture"])]
+    if matches != [record]:
+        raise ReleaseError("candidate identity/content differs from validated release plan")
+    authorized = validated_plan["package_authorized_refs"].get(spec.repository)
+    if not isinstance(authorized, list) or record["immutable_tag"] not in authorized:
+        raise ReleaseError("candidate package authorization is missing from release plan")
+    return record, frozenset(authorized)
+
+
 def _not_found(completed: subprocess.CompletedProcess) -> bool:
     error = (completed.stderr or "").lower()
     return any(marker in error for marker in ("not found", "404", "manifest_unknown", "name_unknown"))
@@ -411,6 +686,9 @@ def release_candidate_for_spec(
     contain_fn: Callable[[Path, Path], Path] = require_contained_staging_file,
     immutable_tag_fn: Callable[[Mapping[str, Any]], str] = immutable_tag,
     staging_prefix: str = "omnibioai-sif-release-",
+    release_plan: Mapping[str, Any] | None = None,
+    provenance: Mapping[str, Any] | None = None,
+    expected_plan_sha256: str | None = None,
 ) -> dict[str, Any]:
     candidate = json.loads(candidate_path.read_text())
     metadata = identity_metadata(candidate)
@@ -418,7 +696,17 @@ def release_candidate_for_spec(
         raise ReleaseError("publication escaped manifest tool/architecture containment")
     if spec.repository != get_tool(spec.tool_id)["ghcr_repository"]:
         raise ReleaseError("publication repository differs from the canonical manifest mapping")
-    tag = immutable_tag_fn(metadata)
+    if release_plan is not None or provenance is not None or expected_plan_sha256 is not None:
+        if release_plan is None or provenance is None:
+            raise ReleaseError("release plan and provenance must be supplied together")
+        planned, _authorized_refs = verify_candidate_in_plan(
+            spec, metadata, provenance, release_plan, expected_plan_sha256
+        )
+        tag = planned["immutable_tag"]
+        if immutable_tag_fn(metadata) != tag:
+            raise ReleaseError("computed immutable tag differs from validated release plan")
+    else:
+        tag = immutable_tag_fn(metadata)
     moving_aliases = spec.moving_aliases | {metadata["scientific_version"]}
     if tag in moving_aliases or not tag.startswith("sif-v1-"):
         raise ReleaseError("refusing moving, version-only, or non-immutable tag")
@@ -488,15 +776,21 @@ def release_candidate_for_spec(
 
 
 def release_candidate(
-    tool_id: str, candidate_path: Path, sif: Path, output: Path, *, publish_enabled: bool = False
+    tool_id: str, candidate_path: Path, sif: Path, output: Path, *, publish_enabled: bool = False,
+    release_plan_path: Path | None = None, provenance_path: Path | None = None,
+    expected_plan_sha256: str | None = None,
 ) -> dict[str, Any]:
     return release_candidate_for_spec(
-        release_spec(tool_id), candidate_path, sif, output, publish_enabled=publish_enabled
+        release_spec(tool_id), candidate_path, sif, output, publish_enabled=publish_enabled,
+        release_plan=(json.loads(release_plan_path.read_text()) if release_plan_path else None),
+        provenance=(json.loads(provenance_path.read_text()) if provenance_path else None),
+        expected_plan_sha256=expected_plan_sha256,
     )
 
 
 def verify_legacy_preserved(
-    baseline: Mapping[str, Any], current: Mapping[str, Any], candidate_tag: str
+    baseline: Mapping[str, Any], current: Mapping[str, Any], candidate_tag: str,
+    authorized_immutable_refs: Sequence[str] | None = None,
 ) -> None:
     if baseline.get("repository") != current.get("repository"):
         raise ReleaseError("registry repository changed during legacy comparison")
@@ -504,7 +798,12 @@ def verify_legacy_preserved(
     after = {entry["tag"]: entry.get("manifest_digest") for entry in current.get("artifacts", [])}
     if any(tag not in after or after[tag] != digest for tag, digest in before.items()):
         raise ReleaseError("pre-existing registry reference was deleted or mutated")
-    unexpected = set(after) - set(before) - {candidate_tag}
+    authorized = set(authorized_immutable_refs or (candidate_tag,))
+    if candidate_tag not in authorized or any(
+        not isinstance(tag, str) or not tag.startswith("sif-v1-") for tag in authorized
+    ):
+        raise ReleaseError("authorized immutable reference set is malformed")
+    unexpected = set(after) - set(before) - authorized
     if unexpected:
         raise ReleaseError("unexpected registry references appeared during publication")
 
@@ -520,11 +819,25 @@ def retrieve_and_verify_for_spec(
     inspect_reference_fn: Callable[[str, str], dict[str, Any] | None] = inspect_reference,
     evaluate_live_fn: Callable[[Mapping[str, Any]], tuple[dict[str, Any], Any]] | None = None,
     run_fn: Callable[..., subprocess.CompletedProcess] = run,
+    release_plan: Mapping[str, Any] | None = None,
+    provenance: Mapping[str, Any] | None = None,
+    expected_plan_sha256: str | None = None,
 ) -> dict[str, Any]:
     candidate = identity_metadata(json.loads(candidate_path.read_text()))
     if candidate["tool_id"] != spec.tool_id:
         raise ReleaseError("retrieval candidate differs from release specification")
-    tag = immutable_tag(candidate)
+    authorized_refs = frozenset((immutable_tag(candidate),))
+    if release_plan is not None or provenance is not None or expected_plan_sha256 is not None:
+        if release_plan is None or provenance is None:
+            raise ReleaseError("release plan and provenance must be supplied together")
+        planned, authorized_refs = verify_candidate_in_plan(
+            spec, candidate, provenance, release_plan, expected_plan_sha256
+        )
+        tag = planned["immutable_tag"]
+        if immutable_tag(candidate) != tag:
+            raise ReleaseError("computed immutable tag differs from validated release plan")
+    else:
+        tag = immutable_tag(candidate)
     remote = inspect_reference_fn(spec.repository, tag)
     if remote is None:
         raise ReleaseError("published immutable reference is absent")
@@ -547,7 +860,9 @@ def retrieve_and_verify_for_spec(
     if decision.decision is not Decision.SKIP_EXACT_MATCH:
         raise ReleaseError(f"post-publication idempotency failed: {decision.decision.value}")
     if baseline_path is not None:
-        verify_legacy_preserved(json.loads(baseline_path.read_text()), state, tag)
+        verify_legacy_preserved(
+            json.loads(baseline_path.read_text()), state, tag, authorized_refs
+        )
     for legacy_tag, expected_sha in (required_legacy_tags or {}).items():
         legacy = next((entry for entry in state.get("artifacts", []) if entry.get("tag") == legacy_tag), None)
         if legacy is None or legacy.get("sif_sha256") != expected_sha:
@@ -568,10 +883,14 @@ def retrieve_and_verify_for_spec(
 
 def retrieve_and_verify(
     tool_id: str, candidate_path: Path, destination: Path, output: Path,
-    *, baseline_path: Path | None = None,
+    *, baseline_path: Path | None = None, release_plan_path: Path | None = None,
+    provenance_path: Path | None = None, expected_plan_sha256: str | None = None,
 ) -> dict[str, Any]:
     return retrieve_and_verify_for_spec(
-        release_spec(tool_id), candidate_path, destination, output, baseline_path=baseline_path
+        release_spec(tool_id), candidate_path, destination, output, baseline_path=baseline_path,
+        release_plan=(json.loads(release_plan_path.read_text()) if release_plan_path else None),
+        provenance=(json.loads(provenance_path.read_text()) if provenance_path else None),
+        expected_plan_sha256=expected_plan_sha256,
     )
 
 
@@ -643,6 +962,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     prepare.add_argument("--provenance", required=True, type=Path)
     prepare.add_argument("--sif", required=True, type=Path)
     prepare.add_argument("--output", required=True, type=Path)
+    record = sub.add_parser("record")
+    record.add_argument("--tool", required=True)
+    record.add_argument("--candidate", required=True, type=Path)
+    record.add_argument("--provenance", required=True, type=Path)
+    record.add_argument("--output", required=True, type=Path)
+    plan = sub.add_parser("plan")
+    plan.add_argument("--candidates", required=True, type=Path)
+    plan.add_argument("--cohort", required=True, choices=("all", "pilot9", "single"))
+    plan.add_argument("--tool", default="all")
+    plan.add_argument("--publish", required=True, type=_bool)
+    plan.add_argument("--source-commit", required=True)
+    plan.add_argument("--output", required=True, type=Path)
+    plan.add_argument("--github-output", type=Path)
     baseline = sub.add_parser("baseline")
     baseline.add_argument("--tool", required=True)
     baseline.add_argument("--output", required=True, type=Path)
@@ -652,12 +984,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     release.add_argument("--sif", required=True, type=Path)
     release.add_argument("--output", required=True, type=Path)
     release.add_argument("--publish", type=_bool, default=False)
+    release.add_argument("--plan", required=True, type=Path)
+    release.add_argument("--plan-sha256", required=True)
+    release.add_argument("--provenance", required=True, type=Path)
     retrieve = sub.add_parser("retrieve")
     retrieve.add_argument("--tool", required=True)
     retrieve.add_argument("--candidate", required=True, type=Path)
     retrieve.add_argument("--destination", required=True, type=Path)
     retrieve.add_argument("--output", required=True, type=Path)
     retrieve.add_argument("--baseline", type=Path)
+    retrieve.add_argument("--plan", required=True, type=Path)
+    retrieve.add_argument("--plan-sha256", required=True)
+    retrieve.add_argument("--provenance", required=True, type=Path)
     runtime = sub.add_parser("runtime")
     runtime.add_argument("--tool", required=True)
     runtime.add_argument("--candidate", required=True, type=Path)
@@ -669,16 +1007,38 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "prepare":
             value = prepare_candidate(args.tool, args.provenance, args.sif, args.output)
             print(json.dumps({"candidate": value, "immutable_tag": immutable_tag(value)}, sort_keys=True))
+        elif args.command == "record":
+            value = materialize_candidate_record(
+                args.tool, args.candidate, args.provenance, args.output
+            )
+            print(json.dumps(value, sort_keys=True))
+        elif args.command == "plan":
+            value = aggregate_release_plan(
+                args.candidates, args.output, cohort=args.cohort, publish=args.publish,
+                source_commit=args.source_commit, tool=args.tool,
+            )
+            if args.github_output:
+                with args.github_output.open("a", encoding="utf-8") as stream:
+                    stream.write(f"release_plan_sha256={value['release_plan_sha256']}\n")
+            print(json.dumps({
+                "candidate_count": value["candidate_count"],
+                "release_plan_sha256": value["release_plan_sha256"],
+            }, sort_keys=True))
         elif args.command == "baseline":
             capture_baseline(args.tool, args.output)
         elif args.command == "release":
             release_candidate(
-                args.tool, args.candidate, args.sif, args.output, publish_enabled=args.publish
+                args.tool, args.candidate, args.sif, args.output,
+                publish_enabled=args.publish, release_plan_path=args.plan,
+                provenance_path=args.provenance,
+                expected_plan_sha256=args.plan_sha256,
             )
         elif args.command == "retrieve":
             retrieve_and_verify(
                 args.tool, args.candidate, args.destination, args.output,
                 baseline_path=args.baseline,
+                release_plan_path=args.plan, provenance_path=args.provenance,
+                expected_plan_sha256=args.plan_sha256,
             )
         else:
             verify_retrieved_runtime(

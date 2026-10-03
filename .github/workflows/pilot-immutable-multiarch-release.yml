@@ -54,13 +54,12 @@ jobs:
             --tool "$TOOL" \
             --github-output "$GITHUB_OUTPUT"
 
-  build-verify-release-retrieve:
+  build-validate-candidate:
     needs: validate-selection
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 100
     permissions:
       contents: read
-      packages: write
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -145,6 +144,145 @@ jobs:
             --sif "release-output/${PILOT_TOOL}_${PILOT_ARCH}.sif" \
             --output release-output/candidate.json
 
+      - name: Materialize deterministic registry-independent candidate record
+        run: |
+          set -euo pipefail
+          python3 -m scripts.sif_release record \
+            --tool "$PILOT_TOOL" \
+            --candidate release-output/candidate.json \
+            --provenance release-output/provenance.json \
+            --output release-output/candidate-record.json
+
+      - name: Upload candidate record for release-plan aggregation
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-candidate-record-${{ matrix.tool_id }}-${{ matrix.arch }}
+          path: release-output/candidate-record.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload validated candidate payload for post-barrier publication
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-candidate-payload-${{ matrix.tool_id }}-${{ matrix.arch }}
+          path: release-output
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate-release-plan:
+    needs: [validate-selection, build-validate-candidate]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      release-plan-sha256: ${{ steps.plan.outputs.release_plan_sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download every candidate record after the complete build barrier
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pilot-candidate-record-*
+          path: candidate-records
+
+      - id: plan
+        name: Validate exact candidate membership and build deterministic release plan
+        env:
+          PUBLISH: ${{ inputs.publish }}
+          COHORT: ${{ inputs.cohort }}
+          TOOL: ${{ inputs.tool }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-plan
+          python3 -m scripts.sif_release plan \
+            --candidates candidate-records \
+            --cohort "$COHORT" \
+            --tool "$TOOL" \
+            --publish "$PUBLISH" \
+            --source-commit "${{ github.sha }}" \
+            --output release-plan/release-plan.json \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Upload validated release plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: pilot-release-plan
+          path: release-plan/release-plan.json
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-verify-retrieve:
+    needs: [validate-selection, aggregate-release-plan]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include: ${{ fromJSON(needs.validate-selection.outputs.matrix) }}
+    env:
+      PILOT_TOOL: ${{ matrix.tool_id }}
+      PILOT_ARCH: ${{ matrix.arch }}
+      PILOT_PLATFORM: ${{ matrix.platform }}
+      PILOT_DOCKERFILE: ${{ matrix.dockerfile }}
+      PILOT_SOURCE_COMMIT: ${{ github.sha }}
+      PILOT_RUNNER: ${{ matrix.runner }}
+      PILOT_GHCR_REPOSITORY: ${{ matrix.ghcr_repository }}
+      PILOT_BASE_IMAGE: ${{ matrix.base_image }}
+      PUBLISH: ${{ inputs.publish }}
+      RELEASE_PLAN_SHA256: ${{ needs.aggregate-release-plan.outputs.release-plan-sha256 }}
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download this entry's validated payload
+        uses: actions/download-artifact@v4
+        with:
+          name: pilot-candidate-payload-${{ matrix.tool_id }}-${{ matrix.arch }}
+          path: release-output
+
+      - name: Download validated cohort release plan
+        uses: actions/download-artifact@v4
+        with:
+          name: pilot-release-plan
+          path: release-plan
+
+      - name: Install native Apptainer and checksum-pinned ORAS
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository -y ppa:apptainer/ppa
+          sudo apt-get update
+          sudo apt-get install -y apptainer file
+          oras_version=1.3.0
+          case "$PILOT_ARCH" in
+            amd64)
+              oras_arch=amd64
+              oras_sha256=6cdc692f929100feb08aa8de584d02f7bcc30ec7d88bc2adc2054d782db57c64
+              ;;
+            arm64)
+              oras_arch=arm64
+              oras_sha256=7649738b48fde10542bcc8b0e9b460ba83936c75fb5be01ee6d4443764a14352
+              ;;
+            *) exit 1 ;;
+          esac
+          archive="oras_${oras_version}_linux_${oras_arch}.tar.gz"
+          curl --fail --location --silent --show-error \
+            "https://github.com/oras-project/oras/releases/download/v${oras_version}/${archive}" \
+            --output "/tmp/${archive}"
+          printf '%s  %s\n' "$oras_sha256" "/tmp/${archive}" | sha256sum --check --strict
+          tar -xzf "/tmp/${archive}" -C /tmp oras
+          sudo install -m 0755 /tmp/oras /usr/local/bin/oras
+          apptainer --version
+          oras version
+
       - name: Capture read-only pre-publication registry baseline
         run: |
           set -euo pipefail
@@ -158,12 +296,15 @@ jobs:
           GHCR_TOKEN: ${{ github.token }}
         run: printf '%s' "$GHCR_TOKEN" | oras login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
 
-      - name: Evaluate identity and publish only when publish=true
+      - name: Evaluate planned identity and publish only when publish=true
         run: |
           set -euo pipefail
           python3 -m scripts.sif_release release \
             --tool "$PILOT_TOOL" \
             --candidate release-output/candidate.json \
+            --provenance release-output/provenance.json \
+            --plan release-plan/release-plan.json \
+            --plan-sha256 "$RELEASE_PLAN_SHA256" \
             --sif "release-output/${PILOT_TOOL}_${PILOT_ARCH}.sif" \
             --publish "$PUBLISH" \
             --output release-output/publication-decision.json
@@ -175,6 +316,9 @@ jobs:
           python3 -m scripts.sif_release retrieve \
             --tool "$PILOT_TOOL" \
             --candidate release-output/candidate.json \
+            --provenance release-output/provenance.json \
+            --plan release-plan/release-plan.json \
+            --plan-sha256 "$RELEASE_PLAN_SHA256" \
             --destination "release-output/retrieved-${PILOT_TOOL}-${PILOT_ARCH}.sif" \
             --baseline release-output/registry-baseline.json \
             --output release-output/retrieval.json
@@ -201,7 +345,7 @@ jobs:
 
   summarize:
     if: ${{ always() }}
-    needs: [validate-selection, build-verify-release-retrieve]
+    needs: [validate-selection, build-validate-candidate, aggregate-release-plan, publish-verify-retrieve]
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -209,10 +353,15 @@ jobs:
       - name: Require manifest validation and every independent matrix entry to pass
         env:
           VALIDATION_RESULT: ${{ needs.validate-selection.result }}
-          MATRIX_RESULT: ${{ needs.build-verify-release-retrieve.result }}
+          BUILD_RESULT: ${{ needs.build-validate-candidate.result }}
+          PLAN_RESULT: ${{ needs.aggregate-release-plan.result }}
+          PUBLISH_RESULT: ${{ needs.publish-verify-retrieve.result }}
           PUBLISH: ${{ inputs.publish }}
         run: |
           set -euo pipefail
-          printf 'publish=%s manifest=%s matrix=%s\n' "$PUBLISH" "$VALIDATION_RESULT" "$MATRIX_RESULT"
+          printf 'publish=%s manifest=%s build=%s plan=%s publication=%s\n' \
+            "$PUBLISH" "$VALIDATION_RESULT" "$BUILD_RESULT" "$PLAN_RESULT" "$PUBLISH_RESULT"
           test "$VALIDATION_RESULT" = success
-          test "$MATRIX_RESULT" = success
+          test "$BUILD_RESULT" = success
+          test "$PLAN_RESULT" = success
+          test "$PUBLISH_RESULT" = success
