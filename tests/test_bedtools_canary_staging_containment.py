@@ -215,7 +215,9 @@ def test_disable_path_validation_flag_is_present_on_bedtools_push(tmp_path, monk
 
 # 11: flag is not injected into unrelated ORAS commands
 def test_disable_path_validation_flag_is_not_used_elsewhere():
-    source = Path(bedtools_canary.__file__).read_text()
+    # The controlled push now lives in the shared engine used by the frozen
+    # Bedtools wrapper and the manifest-driven factory.
+    source = Path(bedtools_canary.engine.__file__).read_text()
     occurrences = source.count("--disable-path-validation")
     assert occurrences == 1, "the flag must appear exactly once, on the controlled push only"
     # The one occurrence must be inside the oras push command list, not

@@ -334,6 +334,8 @@ def test_runner_preserves_probe_and_actual_runner_evidence_without_builds(monkey
             (output / "oci-image.tar").write_bytes(b"synthetic archive")
         elif argv[:3] == ["docker", "image", "inspect"]:
             stdout = record["oci_identity"]
+        elif argv[:2] == ["docker", "run"] and "dpkg-query" in argv:
+            stdout = "0.12.1-1"
         elif argv[:2] == ["docker", "run"] or argv[:3] == ["sudo", "apptainer", "exec"]:
             phase = "oci" if argv[0] == "docker" else "sif"
             gates = {k: record[f"{phase}_{k}"] for k in ("architecture", "executable", "version", "smoke")}

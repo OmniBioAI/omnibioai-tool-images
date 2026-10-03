@@ -14,6 +14,14 @@ MANIFEST = ROOT / ".github/pilot/manifest.json"
 EVIDENCE = ROOT / ".github/pilot/audit-evidence.json"
 ARCHES = ("linux/amd64", "linux/arm64")
 RUNNERS = {"amd64": "ubuntu-24.04", "arm64": "ubuntu-24.04-arm"}
+PILOT9_TOOLS = (
+    "fastqc", "samtools", "bcftools", "bwa", "minimap2",
+    "multiqc", "muscle", "prodigal", "vcftools",
+)
+PACKAGE_ALLOWLIST = {
+    tool_id: f"ghcr.io/omnibioai/omnibioai-sif/{tool_id}"
+    for tool_id in (*PILOT9_TOOLS, "bedtools")
+}
 SOURCE_SHA256 = {
     "20260930-omnibioai-multiarch-ready-missing-from-ghcr.txt": "58aa666517d2ccf40b9bd4c234f6eb0526ce0c3cdacb217bf26d1683d859fde6",
     "20260930-omnibioai-multiarch-ready-present-in-ghcr.txt": "8df6d392571183304a9c494d9db86170ce4fa3bce6aec0287b3a74c4f6a969ff",
@@ -23,6 +31,7 @@ REQUIRED = {
     "tool_id", "dockerfile", "version_command", "version_pattern",
     "smoke_command", "smoke_pattern", "expected_executable", "architectures",
     "executable_type", "runtime_executables", "license", "selection_reason",
+    "scientific_version_pattern", "ghcr_repository", "base_image", "package_identity",
 }
 
 
@@ -74,8 +83,24 @@ def validate(data: dict) -> dict:
             if tool.get(flag) is not False:
                 raise ValueError(f"disallowed/undeclared {flag}: {tool_id}")
         for field in REQUIRED - {"architectures", "runtime_executables"}:
+            if field == "package_identity":
+                continue
             if not isinstance(tool[field], str) or not tool[field].strip():
                 raise ValueError(f"empty/malformed {field}: {tool_id}")
+        repository = tool["ghcr_repository"]
+        if repository != PACKAGE_ALLOWLIST.get(tool_id):
+            raise ValueError(f"GHCR package is not the exact canonical pilot mapping: {tool_id}")
+        if tool["base_image"] != "docker.io/library/python:3.11-slim-bookworm":
+            raise ValueError(f"base image is not the reviewed pilot base: {tool_id}")
+        scientific_pattern = re.compile(tool["scientific_version_pattern"])
+        if "version" not in scientific_pattern.groupindex:
+            raise ValueError(f"scientific version pattern needs a named version group: {tool_id}")
+        package_identity = tool["package_identity"]
+        if (not isinstance(package_identity, dict)
+                or package_identity.get("kind") not in ("dpkg", "runtime_version")
+                or package_identity.get("name") != tool_id
+                or set(package_identity) != {"kind", "name"}):
+            raise ValueError(f"invalid package identity contract: {tool_id}")
         if tool["expected_executable"] != tool_id:
             raise ValueError(f"tool/executable identity mismatch: {tool_id}")
         if tool["executable_type"] not in ("native_binary", "interpreted"):
@@ -110,7 +135,8 @@ def matrix(data: dict) -> list[dict]:
     validate(data)
     entries = [
         {"tool_id": tool["tool_id"], "platform": arch, "arch": arch.split("/")[1],
-         "runner": RUNNERS[arch.split("/")[1]], "dockerfile": tool["dockerfile"]}
+         "runner": RUNNERS[arch.split("/")[1]], "dockerfile": tool["dockerfile"],
+         "ghcr_repository": tool["ghcr_repository"], "base_image": tool["base_image"]}
         for tool in data["tools"] for arch in ARCHES
     ]
     if len(entries) != 20 or len({(item["tool_id"], item["platform"]) for item in entries}) != 20:
@@ -118,8 +144,24 @@ def matrix(data: dict) -> list[dict]:
     return entries
 
 
-def selected_matrix(data: dict, tool_id: str | None = None) -> list[dict]:
+def selected_matrix(
+    data: dict, tool_id: str | None = None, cohort: str | None = None
+) -> list[dict]:
     entries = matrix(data)
+    if cohort == "pilot9":
+        if tool_id not in (None, "", "all"):
+            raise ValueError("pilot9 cohort cannot be combined with a tool selector")
+        selected = [item for item in entries if item["tool_id"] in PILOT9_TOOLS]
+        pairs = {(item["tool_id"], item["platform"]) for item in selected}
+        expected = {(tool, arch) for tool in PILOT9_TOOLS for arch in ARCHES}
+        if len(selected) != 18 or pairs != expected or any(item["tool_id"] == "bedtools" for item in selected):
+            raise ValueError("pilot9 cohort must contain exactly nine canonical non-Bedtools tools")
+        return selected
+    if cohort == "single":
+        if tool_id in (None, "", "all"):
+            raise ValueError("single cohort requires one canonical tool ID")
+    elif cohort not in (None, "all"):
+        raise ValueError(f"unknown cohort: {cohort}")
     if tool_id in (None, "", "all"):
         return entries
     selected = [item for item in entries if item["tool_id"] == tool_id]
@@ -149,11 +191,19 @@ def main() -> int:
     parser.add_argument("--matrix", action="store_true")
     parser.add_argument("--publish", choices=("false", "true"), default="false")
     parser.add_argument("--tool", default="all")
+    parser.add_argument("--cohort", choices=("all", "pilot9", "single"), default="all")
+    parser.add_argument("--release-factory", action="store_true")
     parser.add_argument("--github-output")
     args = parser.parse_args()
     try:
-        require_nonpublishing(args.publish == "true")
-        payload = json.dumps(selected_matrix(load_and_validate(), args.tool), separators=(",", ":"))
+        data = load_and_validate()
+        selected = selected_matrix(data, args.tool, args.cohort)
+        if args.release_factory:
+            if args.publish == "true" and any(item["tool_id"] == "bedtools" for item in selected):
+                raise ValueError("release factory refuses to publish the frozen Bedtools reference")
+        else:
+            require_nonpublishing(args.publish == "true")
+        payload = json.dumps(selected, separators=(",", ":"))
     except (OSError, json.JSONDecodeError, ValueError) as exc:
         print(f"pilot validation failed: {exc}", file=sys.stderr)
         return 1

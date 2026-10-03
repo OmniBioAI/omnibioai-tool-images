@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from scripts.pilot_integrity import archive_identity, validate_evidence, validate_runner_evidence
 from scripts.pilot_manifest import get_tool
 from scripts.pilot_probe import fixtures, validate_probe_result
+from scripts.sif_release import resolve_scientific_version
 
 
 def command(argv: list[str], *, capture: bool = False) -> subprocess.CompletedProcess:
@@ -142,9 +143,13 @@ def main() -> int:
         gates["sif_smoke"] = sif_result["smoke"]
         gates["sif_sha256"] = hashlib.sha256(sif.read_bytes()).hexdigest()
         gates["verification_result"] = "PASS"
-        package_name = os.environ.get("PILOT_PACKAGE_NAME", "")
-        package_identity = ""
-        if package_name:
+        oci_scientific_version = resolve_scientific_version(tool, oci["version"]["meaningful_output"])
+        sif_scientific_version = resolve_scientific_version(tool, sif_result["version"]["meaningful_output"])
+        if oci_scientific_version != sif_scientific_version:
+            raise ValueError("OCI and SIF scientific version evidence differs")
+        package_contract = tool["package_identity"]
+        package_name = package_contract["name"]
+        if package_contract["kind"] == "dpkg":
             package_version = command(
                 ["docker", "run", "--rm", "--platform", platform_name, image,
                  "dpkg-query", "-W", "-f=${Version}", package_name], capture=True
@@ -152,11 +157,17 @@ def main() -> int:
             if not package_version:
                 raise ValueError("package manager returned empty package version")
             package_identity = f"{package_name}={package_version}"
+        elif package_contract["kind"] == "runtime_version":
+            package_identity = f"{package_name}={oci_scientific_version}"
+        else:
+            raise ValueError("unsupported package identity contract")
         record = {
             "tool": tool_id, "source_commit_sha": commit, "dockerfile": dockerfile,
             "dockerfile_sha256": dockerfile_sha, "target_architecture": arch,
             "oci_identity": identity["oci_identity"], "oci_archive_sha256": identity["oci_archive_sha256"],
+            "oci_child_digest": identity["oci_identity"],
             "oci_local_image_id": image_id, "tool_version_output": oci["version"]["output"],
+            "scientific_version": oci_scientific_version,
             **actual_runner, "runner_label": runner, "executable_type": tool["executable_type"],
             "build_timestamp": datetime.now(timezone.utc).isoformat(),
             "verification_timestamp": datetime.now(timezone.utc).isoformat(),
