@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 import json
 import subprocess
 import sys
@@ -188,6 +187,13 @@ def test_incorrect_supplied_build_identity_fails_closed():
 
 def test_unknown_candidate_field_fails_closed():
     assert evaluate(candidate(untracked_build_knob="changed")).decision is identity.Decision.ERROR
+
+
+@pytest.mark.parametrize("control", ["\n", "\r", "\t", "\x00", "\x1b"])
+def test_schema_v1_identity_still_rejects_raw_control_characters(control):
+    result = evaluate(candidate(version_evidence=f"bedtools v2.30.0{control}unsafe"))
+    assert result.decision is identity.Decision.ERROR
+    assert "control characters" in result.reason
 
 
 @pytest.mark.parametrize(

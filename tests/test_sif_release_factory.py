@@ -19,6 +19,7 @@ from scripts.pilot_manifest import (
     ARCHES,
     PACKAGE_ALLOWLIST,
     PILOT9_TOOLS,
+    get_tool,
     load_and_validate,
     matrix,
     selected_matrix,
@@ -44,6 +45,118 @@ VERSION_OUTPUTS = {
     "muscle": "muscle 5.2.linux64 x86_64",
     "prodigal": "Prodigal V2.6.3",
     "vcftools": "VCFtools (0.1.16)",
+}
+
+def samtools_runtime_evidence(machine):
+    raw = (
+        "samtools 1.16.1\nUsing htslib 1.16\nCopyright (C) 2022 Genome Research Ltd.\n\n"
+        "Samtools compilation details:\n"
+        "    Features:       build=configure curses=yes \n"
+        "    CC:             gcc\n"
+        "    CPPFLAGS:       -frelease  -Wdate-time -D_FORTIFY_SOURCE=2\n"
+        "    CFLAGS:         -g -O2 -ffile-prefix-map=\\xabBUILDPATH\\xbb=. "
+        "-fstack-protector-strong -Wformat -Werror=format-security\n"
+        "    LDFLAGS:        -Wl,-z,relro -Wl,-z,now\n"
+        "    HTSDIR:         \n"
+        "    LIBS:           \n"
+        "    CURSES_LIB:     -lcurses\n\n"
+        "HTSlib compilation details:\n"
+        "    Features:       build=configure libcurl=yes S3=yes GCS=yes libdeflate=yes "
+        "lzma=yes bzip2=yes plugins=yes plugin-path=/usr/local/lib/htslib:"
+        f"/usr/local/libexec/htslib:/usr/lib/{machine}-linux-gnu/htslib: htscodecs=1.3.0\n"
+        "    CC:             gcc\n"
+        "    CPPFLAGS:       -I. -DSAMTOOLS=1 -Wdate-time -D_FORTIFY_SOURCE=2\n"
+        "    CFLAGS:         -g -O2  -fstack-protector-strong -Wformat "
+        "-Werror=format-security -ffat-lto-objects -ffat-lto-objects\n"
+        "    LDFLAGS:        -Wl,-z,relro -Wl,-z,now -Wl,-flto "
+        "-fvisibility=hidden -ffat-lto-objects -fvisibility=hidden -rdynamic\n\n"
+        "HTSlib URL scheme handlers present:\n"
+        "    built-in:\t preload, data, file\n"
+        "    S3 Multipart Upload:\t s3w, s3w+https, s3w+http\n"
+        "    Amazon S3:\t s3+https, s3+http, s3\n"
+        "    libcurl:\t imaps, pop3, gophers, http, smb, gopher, sftp, ftps, imap, "
+        "rtmpte, smtp, smtps, rtsp, rtmpe, scp, ftp, telnet, mqtt, rtmp, ldap, "
+        "https, ldaps, rtmps, rtmpt, pop3s, rtmpts, tftp, smbs, dict\n"
+        "    Google Cloud Storage:\t gs+http, gs+https, gs\n"
+        "    crypt4gh-needed:\t crypt4gh\n"
+        "    mem:\t mem"
+    )
+    return {
+        "output": raw,
+        "meaningful_output": raw.replace("\\xab", "").replace("\\xbb", ""),
+    }
+
+
+# Captured from run 37101905263.  These retain the observed multiline stream,
+# stderr/stdout shape, architecture variation, and Samtools byte diagnostics.
+RUNTIME_VERSION_EVIDENCE = {
+    ("samtools", "amd64"): samtools_runtime_evidence("x86_64"),
+    ("samtools", "arm64"): samtools_runtime_evidence("aarch64"),
+    ("bcftools", "amd64"): {
+        "output": "bcftools 1.16\nUsing htslib 1.16\nCopyright (C) 2022 Genome Research Ltd.\n"
+        "License Expat: The MIT/Expat license\nThis is free software: you are free to change "
+        "and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.",
+        "meaningful_output": "bcftools 1.16\nUsing htslib 1.16\n"
+        "Copyright (C) 2022 Genome Research Ltd.\nLicense Expat: The MIT/Expat license\n"
+        "This is free software: you are free to change and redistribute it.\n"
+        "There is NO WARRANTY, to the extent permitted by law.",
+    },
+    ("bcftools", "arm64"): {
+        "output": "bcftools 1.16\nUsing htslib 1.16\nCopyright (C) 2022 Genome Research Ltd.\n"
+        "License Expat: The MIT/Expat license\nThis is free software: you are free to change "
+        "and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.",
+        "meaningful_output": "bcftools 1.16\nUsing htslib 1.16\n"
+        "Copyright (C) 2022 Genome Research Ltd.\nLicense Expat: The MIT/Expat license\n"
+        "This is free software: you are free to change and redistribute it.\n"
+        "There is NO WARRANTY, to the extent permitted by law.",
+    },
+    ("bwa", "amd64"): {
+        "output": "[bwa_index] Pack FASTA... 0.00 sec\n"
+        "[bwa_index] Construct BWT for the packed sequence...\n"
+        "[bwa_index] 0.00 seconds elapse.\n[bwa_index] Update BWT... 0.00 sec\n"
+        "[bwa_index] Pack forward-only FASTA... 0.00 sec\n"
+        "[bwa_index] Construct SA from BWT and Occ... 0.00 sec\n"
+        "[main] Version: 0.7.17-r1188\n[main] CMD: bwa index reference.fa\n"
+        "[main] Real time: 0.004 sec; CPU: 0.010 sec",
+        "meaningful_output": "[bwa_index] Pack FASTA... 0.00 sec\n"
+        "[bwa_index] Construct BWT for the packed sequence...\n"
+        "[bwa_index] 0.00 seconds elapse.\n[bwa_index] Update BWT... 0.00 sec\n"
+        "[bwa_index] Pack forward-only FASTA... 0.00 sec\n"
+        "[bwa_index] Construct SA from BWT and Occ... 0.00 sec\n"
+        "[main] Version: 0.7.17-r1188\n[main] CMD: bwa index reference.fa\n"
+        "[main] Real time: 0.004 sec; CPU: 0.010 sec",
+    },
+    ("bwa", "arm64"): {
+        "output": "[bwa_index] Pack FASTA... 0.00 sec\n"
+        "[bwa_index] Construct BWT for the packed sequence...\n"
+        "[bwa_index] 0.00 seconds elapse.\n[bwa_index] Update BWT... 0.00 sec\n"
+        "[bwa_index] Pack forward-only FASTA... 0.00 sec\n"
+        "[bwa_index] Construct SA from BWT and Occ... 0.00 sec\n"
+        "[main] Version: 0.7.17-r1188\n[main] CMD: bwa index reference.fa\n"
+        "[main] Real time: 0.004 sec; CPU: 0.012 sec",
+        "meaningful_output": "[bwa_index] Pack FASTA... 0.00 sec\n"
+        "[bwa_index] Construct BWT for the packed sequence...\n"
+        "[bwa_index] 0.00 seconds elapse.\n[bwa_index] Update BWT... 0.00 sec\n"
+        "[bwa_index] Pack forward-only FASTA... 0.00 sec\n"
+        "[bwa_index] Construct SA from BWT and Occ... 0.00 sec\n"
+        "[main] Version: 0.7.17-r1188\n[main] CMD: bwa index reference.fa\n"
+        "[main] Real time: 0.004 sec; CPU: 0.012 sec",
+    },
+    ("muscle", "amd64"): {
+        "output": "muscle 5.2.linux64 [-]\nBuilt Oct  3 2026 06:11:14",
+        "meaningful_output": "muscle 5.2.linux64 [-]\nBuilt Oct  3 2026 06:11:14",
+    },
+    ("muscle", "arm64"): {
+        "output": "muscle 5.2.linux64 [-]\nBuilt Oct  3 2026 06:11:31",
+        "meaningful_output": "muscle 5.2.linux64 [-]\nBuilt Oct  3 2026 06:11:31",
+    },
+}
+
+SMOKE_OUTPUTS = {
+    "samtools": "1",
+    "bcftools": "chr1 10 . A G 60 PASS . GT 0/1",
+    "bwa": "bwa-ok",
+    "muscle": "muscle-ok",
 }
 
 
@@ -100,6 +213,73 @@ def minimal_release_provenance(tool="fastqc"):
         "sif_version": {"output": VERSION_OUTPUTS[tool], "meaningful_output": VERSION_OUTPUTS[tool]},
         "scientific_version": version,
         "sbom_status": "SBOM_OPTIONAL_NOT_GENERATED",
+    }
+
+
+def runtime_release_provenance(tool, arch, evidence, sif_sha256):
+    entry = next(item for item in load_and_validate()["tools"] if item["tool_id"] == tool)
+    machine = "x86-64" if arch == "amd64" else "ARM aarch64"
+    runner_arch = "X64" if arch == "amd64" else "ARM64"
+    uname_m = "x86_64" if arch == "amd64" else "aarch64"
+    executable = {
+        "status": "PASS",
+        "name": entry["expected_executable"],
+        "executable_type": "native_binary",
+        "path": f"/usr/bin/{entry['expected_executable']}",
+        "resolved_path": f"/usr/bin/{entry['expected_executable']}",
+        "file": f"/usr/bin/{entry['expected_executable']}: ELF 64-bit {machine} executable",
+        "invocable": True,
+        "interpreters": {},
+    }
+    version_gate = {
+        "status": "PASS",
+        "command": entry["version_command"],
+        "returncode": 0,
+        "output": evidence["output"],
+        "meaningful_output": evidence["meaningful_output"],
+    }
+    smoke_gate = {
+        "status": "PASS",
+        "command": entry["smoke_command"],
+        "returncode": 0,
+        "output": SMOKE_OUTPUTS[tool],
+        "meaningful_output": SMOKE_OUTPUTS[tool],
+    }
+    architecture = {"status": "PASS", "target": arch, "uname": uname_m}
+    scientific_version = release.resolve_scientific_version(entry, evidence["meaningful_output"])
+    package_name = entry["package_identity"]["name"]
+    return {
+        "tool": tool,
+        "source_commit_sha": "a" * 40,
+        "dockerfile": entry["dockerfile"],
+        "dockerfile_sha256": ZERO,
+        "target_architecture": arch,
+        "oci_identity": "sha256:" + TWO,
+        "oci_child_digest": "sha256:" + TWO,
+        "oci_archive_sha256": "5" * 64,
+        "sif_sha256": sif_sha256,
+        "tool_version_output": evidence["output"],
+        "scientific_version": scientific_version,
+        "uname_m": uname_m,
+        "execution_mode": "NATIVE",
+        "runner": {"os": "Linux", "arch": runner_arch},
+        "executable_type": "native_binary",
+        "build_timestamp": "2026-10-03T06:00:00+00:00",
+        "verification_timestamp": "2026-10-03T06:01:00+00:00",
+        "verification_result": "PASS",
+        "base_image_identity": "docker.io/library/python:3.11-slim-bookworm@sha256:" + ONE,
+        "rendered_dockerfile_sha256": "4" * 64,
+        "package_identity": f"{package_name}={scientific_version}",
+        "sbom_status": "SBOM_OPTIONAL_NOT_GENERATED",
+        "sif_inspect": {"status": "PASS", "metadata": {"data": "present"}},
+        "oci_architecture": architecture,
+        "oci_executable": executable,
+        "oci_version": version_gate,
+        "oci_smoke": smoke_gate,
+        "sif_architecture": architecture,
+        "sif_executable": executable,
+        "sif_version": version_gate,
+        "sif_smoke": smoke_gate,
     }
 
 
@@ -183,6 +363,102 @@ def test_missing_or_ambiguous_scientific_version_fails_closed():
         release.resolve_scientific_version(entry, "")
     with pytest.raises(release.ReleaseError, match="unambiguously"):
         release.resolve_scientific_version(entry, "FastQC v1.0\nFastQC v2.0")
+
+
+def test_version_evidence_canonicalization_is_deterministic_idempotent_and_whitespace_stable():
+    variants = ("Samtools 1.16.1\nUsing htslib 1.16", "Samtools 1.16.1\r\nUsing\thtslib 1.16")
+    canonical = [release.canonicalize_version_evidence(value) for value in variants]
+    assert canonical == ["Samtools 1.16.1 Using htslib 1.16"] * 2
+    assert release.canonicalize_version_evidence(variants[0]) == canonical[0]
+    assert release.canonicalize_version_evidence(canonical[0]) == canonical[0]
+    assert release.canonicalize_version_evidence("Samtools 1.X") != (
+        release.canonicalize_version_evidence("Samtools 1.Y")
+    )
+
+
+@pytest.mark.parametrize(
+    "unsafe",
+    ["ok\x00bad", "ok\x01bad", "ok\x0bbad", "ok\x0cbad", "ok\x1bbad",
+     "ok\x7fbad", "ok\x85bad", "ok\ufffdbad", "ok\\xffbad", "ok\ud800bad"],
+)
+def test_version_evidence_canonicalization_rejects_unsafe_controls_and_decoding_artifacts(unsafe):
+    with pytest.raises(release.ReleaseError, match="control|decoding artifact"):
+        release.canonicalize_version_evidence(unsafe)
+
+
+@pytest.mark.parametrize(("tool", "arch"), RUNTIME_VERSION_EVIDENCE)
+def test_affected_runtime_version_evidence_builds_schema_v1_identity_and_provenance(
+    tool, arch, tmp_path
+):
+    evidence = RUNTIME_VERSION_EVIDENCE[(tool, arch)]
+    entry = next(item for item in load_and_validate()["tools"] if item["tool_id"] == tool)
+    gate = {
+        "status": "PASS",
+        "command": entry["version_command"],
+        "returncode": 0,
+        **evidence,
+    }
+    pilot_probe.validate_command_evidence(gate, entry, "version")
+    before = release.resolve_scientific_version(entry, evidence["meaningful_output"])
+    canonical = release.canonicalize_version_evidence(evidence["meaningful_output"])
+    after = release.resolve_scientific_version(entry, canonical)
+    assert before == after
+    assert canonical
+    assert not any(ord(character) < 32 or ord(character) == 127 for character in canonical)
+
+    sif = tmp_path / f"{tool}-{arch}.sif"
+    sif.write_bytes(b"validated-sif")
+    provenance = runtime_release_provenance(tool, arch, evidence, release.sha256_file(sif))
+    provenance_path = tmp_path / f"{tool}-{arch}-provenance.json"
+    provenance_path.write_text(json.dumps(provenance))
+    output = tmp_path / f"{tool}-{arch}-candidate.json"
+    metadata = release.prepare_candidate(tool, provenance_path, sif, output)
+    assert metadata["schema_version"] == identity.SCHEMA_VERSION == "1"
+    assert metadata["scientific_version"] == before
+    assert metadata["version_evidence"] == canonical
+    assert json.loads(provenance_path.read_text())["sif_version"]["output"] == evidence["output"]
+    assert identity.identity_metadata(metadata) == metadata
+    assert identity.evaluate_publication(metadata, {"artifacts": []}).decision is (
+        identity.Decision.PUBLISH_NEW
+    )
+
+
+@pytest.mark.parametrize("tool", ["samtools", "bcftools", "bwa", "muscle"])
+def test_affected_fixture_identity_remains_architecture_specific(tool, tmp_path):
+    identities = []
+    for arch in ("amd64", "arm64"):
+        sif = tmp_path / f"{tool}-{arch}.sif"
+        sif.write_bytes(f"{tool}-{arch}".encode())
+        provenance = runtime_release_provenance(
+            tool, arch, RUNTIME_VERSION_EVIDENCE[(tool, arch)], release.sha256_file(sif)
+        )
+        provenance_path = tmp_path / f"{tool}-{arch}.json"
+        provenance_path.write_text(json.dumps(provenance))
+        metadata = release.prepare_candidate(
+            tool, provenance_path, sif, tmp_path / f"candidate-{tool}-{arch}.json"
+        )
+        identities.append(metadata["build_identity_sha256"])
+    assert identities[0] != identities[1]
+
+
+@pytest.mark.parametrize(
+    "tool", ["fastqc", "bedtools", "minimap2", "multiqc", "prodigal", "vcftools"]
+)
+def test_unaffected_single_line_evidence_and_identity_input_are_unchanged(tool):
+    value = VERSION_OUTPUTS[tool]
+    assert release.canonicalize_version_evidence(value) == value
+    original = candidate(tool=tool, version=release.resolve_scientific_version(get_tool(tool), value))
+    canonical = copy.deepcopy(original)
+    canonical["version_evidence"] = release.canonicalize_version_evidence(value)
+    assert identity.identity_metadata(original) == identity.identity_metadata(canonical)
+
+
+def test_bedtools_reference_build_identity_is_unchanged_by_canonicalization():
+    value = candidate(tool="bedtools", version="2.30.0")
+    assert release.canonicalize_version_evidence(value["version_evidence"]) == "bedtools v2.30.0"
+    assert identity.build_identity_sha256(value) == (
+        "5bfd3c83d10a2e68224f24ec2747545299b6c3b45bdac9b892ab21df201342fc"
+    )
 
 
 def test_identity_is_deterministic_architecture_bound_and_ignores_operational_fields():

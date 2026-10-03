@@ -17,6 +17,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
@@ -95,6 +96,35 @@ def resolve_scientific_version(entry: Mapping[str, Any], version_output: str) ->
     if not re.fullmatch(r"[0-9][0-9A-Za-z.+_~-]*", version) or "/" in version:
         raise ReleaseError("resolved scientific version is not canonical")
     return version
+
+
+_ESCAPED_BYTE = re.compile(r"\\x[0-9a-fA-F]{2}")
+_STRUCTURAL_WHITESPACE = re.compile(r"[ \t\r\n]+")
+
+
+def canonicalize_version_evidence(version_output: str) -> str:
+    """Canonicalize already-validated textual version evidence for schema v1.
+
+    ASCII space, tab, LF, and CR/CRLF are the only accepted structural
+    whitespace and collapse to one ASCII space.  Other Unicode control/format
+    code points, surrogate/private/unassigned code points, the replacement
+    character, and visible ``\\xNN`` decoding artifacts fail closed.  Printable
+    version text is otherwise preserved, making the operation deterministic and
+    idempotent without weakening the identity schema's control-character gate.
+    """
+    if not isinstance(version_output, str) or not version_output.strip():
+        raise ReleaseError("version evidence is missing or empty")
+    if "\ufffd" in version_output or _ESCAPED_BYTE.search(version_output):
+        raise ReleaseError("version evidence contains a decoding artifact")
+    for character in version_output:
+        if character in " \t\r\n":
+            continue
+        if unicodedata.category(character).startswith("C"):
+            raise ReleaseError("version evidence contains a prohibited control character")
+    canonical = _STRUCTURAL_WHITESPACE.sub(" ", version_output).strip(" ")
+    if not canonical:
+        raise ReleaseError("canonical version evidence is empty")
+    return canonical
 
 
 # Ordered most-specific-first; the first matching classification wins.
@@ -244,7 +274,11 @@ def prepare_candidate_for_spec(
         "oci_source_identity": provenance["oci_child_digest"],
         "sif_sha256": provenance["sif_sha256"],
         "expected_executable": spec.expected_executable,
-        "version_evidence": provenance["sif_version"]["output"],
+        # Keep raw output in provenance for diagnostics.  Identity receives only
+        # the already-validated, valid-text stream in a stable schema-v1 form.
+        "version_evidence": canonicalize_version_evidence(
+            provenance["sif_version"]["meaningful_output"]
+        ),
         "smoke_status": provenance["sif_smoke"]["status"],
         "provenance_status": provenance["verification_result"],
         "build_inputs": {
