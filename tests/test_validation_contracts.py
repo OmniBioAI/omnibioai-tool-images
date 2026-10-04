@@ -53,6 +53,38 @@ def test_canonical_serialization_and_hash_are_deterministic(repo: Path) -> None:
     assert contract_hash(first) == contract_hash(second)
 
 
+def test_reviewed_canary_override_is_used_only_for_matching_dockerfile(repo: Path) -> None:
+    baseline = generate_contract(catalog_row(), repo)
+    baseline["contract_status"] = "CONTRACT_READY"
+    baseline["blocking_reasons"] = []
+    baseline["smoke_command"] = ["example", "--smoke"]
+    baseline["smoke_success_condition"] = "exit 0"
+    baseline["source_type"] = "upstream_archive_sha256"
+    baseline["source_immutable_identity"] = "sha256:" + "a" * 64
+    baseline["pinning"] = {
+        "pinning_canary_schema_version": 1,
+        "static_contract_status": "STATIC_CONTRACT_READY",
+    }
+    baseline["validation_contract_sha256"] = contract_hash(baseline)
+    path = repo / "validation-contracts" / "schema-v1"
+    path.mkdir(parents=True)
+    (path / "example.json").write_text(
+        json.dumps(baseline, sort_keys=True), encoding="utf-8"
+    )
+
+    reviewed = generate_contract(catalog_row(), repo)
+    assert reviewed["contract_status"] == "CONTRACT_READY"
+    assert reviewed["pinning"]["static_contract_status"] == "STATIC_CONTRACT_READY"
+
+    (repo / "dockerfiles" / "Dockerfile.example").write_text(
+        "FROM ubuntu:24.04\nRUN pip install example==9.9.9\n",
+        encoding="utf-8",
+    )
+    stale = generate_contract(catalog_row(), repo)
+    assert stale["contract_status"] == "CONTRACT_BLOCKED_MULTIPLE_REASONS"
+    assert "pinning" not in stale
+
+
 def test_generated_contract_is_fail_closed_without_smoke(repo: Path) -> None:
     contract = generate_contract(catalog_row(), repo)
     assert contract["expected_executable"] == "example"

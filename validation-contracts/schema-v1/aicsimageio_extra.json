@@ -149,12 +149,14 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "aicsimageio_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "c07480d0c08a1946b3db71126f4b1bc86af22e68ffbb1b050322b6bd5d6cc07a",
+  "validation_contract_sha256": "392c12d169b104cfe37f6a07275e7b5fbca6ed6e23b84cf9b0b2cb61eb1d2d21",
   "version_command": [
     "python",
     "-c",
     "import aicsimageio; print(aicsimageio.get_module_version())"
   ],
   "version_expected_value": "4.14.0",
+  "version_observation_parser": "(?m)^([^\\r\\n]+)$",
+  "version_output_source": "stdout",
   "version_parser": "regex:(?m)^(4\\.14\\.0)\\s*$"
 }

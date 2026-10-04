@@ -52,6 +52,12 @@
       "value": "MULTIARCH_READY"
     },
     {
+      "field": "distribution_license",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/DReichLab/AdmixTools/blob/v8.0.2/README#L97-L104",
+      "value": "pinned release copyright notice permits non-commercial copying with notice retained; intended OmniBioAI distribution scope and any additional permission are not established"
+    },
+    {
       "field": "executable_ambiguity",
       "quality": "DIRECT_UPSTREAM_EVIDENCE",
       "source": "https://github.com/DReichLab/AdmixTools",
@@ -84,6 +90,13 @@
       "arm64": "NATIVE_PACKAGE_ARTIFACT"
     },
     "distribution_license_review": "REQUIRED_NONCOMMERCIAL_LICENSE",
+    "distribution_license_review_evidence": {
+      "copyright_notice_retention_required": true,
+      "intended_distribution_scope": "UNKNOWN",
+      "permission_for_intended_distribution": "NOT_ESTABLISHED",
+      "source": "https://github.com/DReichLab/AdmixTools/blob/v8.0.2/README#L97-L104",
+      "source_release": "v8.0.2"
+    },
     "evaluated_candidate_version": null,
     "historical_intended_version": "UNKNOWN",
     "native_build_validation_status": "NOT_RUN",
@@ -124,6 +137,7 @@
     "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
     "package_mapping_confirmed_read_only": true,
     "remaining_deficiency_flags": [
+      "DISTRIBUTION_LICENSE_REVIEW_REQUIRED",
       "SMOKE_CONTRACT_MISSING"
     ],
     "smoke_network_requirement": "UNKNOWN"
@@ -145,7 +159,7 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "admixtools",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "e1b39a2629d029a921b550f2e3eb96d250de96c0d9df3b2b0097f6da56e311ca",
+  "validation_contract_sha256": "7e904c83d44c40f68c65f1c8146ae2286cc278bc74641113cb33fc600f8b5c07",
   "version_command": [
     "qp3Pop",
     "-v"

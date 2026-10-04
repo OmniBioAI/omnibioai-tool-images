@@ -144,11 +144,13 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "3ddna_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "393ab6dca7b73c3441ebdbcae79275c84a24edb9924d2783c939f3050eef037e",
+  "validation_contract_sha256": "118d91c766df34effef5cfd70d5f88e263157e6d5f23d225a7ed380fe5e453e8",
   "version_command": [
     "3d-dna",
     "--help"
   ],
   "version_expected_value": "190716",
+  "version_observation_parser": "(?m)^version: ([^\\r\\n]+)$",
+  "version_output_source": "either",
   "version_parser": "regex:(?m)^version: (190716)$"
 }
