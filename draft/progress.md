@@ -18,6 +18,8 @@
 - Post-integration generation: 601 targets, 5 ready, 596 blocked; output validator PASS.
 - Post-integration focused tests: 75/75 passed.
 - Integration commit: `24933eb` (`Integrate reviewed canary contracts into generation`); not pushed.
+- Native-validation review: the existing workflow requires a controlled GitHub Actions run; no dispatch was made. The five ready tools are not release-verified yet.
+- `alevin_fry` remains blocked: upstream usage requires RAD plus permit-list inputs, and no repository-owned valid fixture is available; no synthetic fixture was invented.
 - No Docker/Buildx/Apptainer/Singularity builds were run.
 - No workflow dispatches, registry writes, publications, or GHCR mutations were run.
 - Existing local symlink/generated artifacts remain preserved and untouched.
