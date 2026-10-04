@@ -1,0 +1,3 @@
+[submodule "omnibioai-tool-runtime"]
+	path = omnibioai-tool-runtime
+	url = https://github.com/OmniBioAI/omnibioai-tool-runtime.git
