@@ -24,8 +24,8 @@ from scripts.validation_smoke import validate_smoke_outputs, validate_version_ev
 
 TOOLS = ("3ddna_extra", "abricate", "accelerate", "agat_extra", "aicsimageio_extra", "airr_extra", "alevin_fry")
 RUNNERS = {"amd64": "ubuntu-24.04", "arm64": "ubuntu-24.04-arm"}
-GATES = ("runner", "oci_identity", "oci_architecture", "oci_executable", "oci_version", "oci_smoke",
-         "sif_structure", "sif_architecture", "sif_executable", "sif_version", "sif_smoke", "oci_sif_binding", "identity", "provenance")
+GATES = ("runner", "oci_identity", "oci_architecture", "oci_executable", "oci_package", "oci_version", "oci_smoke",
+         "sif_structure", "sif_architecture", "sif_executable", "sif_package", "sif_version", "sif_smoke", "oci_sif_binding", "identity", "provenance")
 
 
 class ValidationError(ValueError):
@@ -52,6 +52,30 @@ def fixture_hashes(contract: dict, repo: Path) -> dict:
     return result
 
 
+def package_pin(contract: dict, arch: str) -> dict:
+    pins = contract["pinning"]["package_artifacts"]
+    declaration = pins.get(arch, pins.get("noarch", ""))
+    match = re.fullmatch(r"([a-zA-Z0-9_.-]+\.(?:conda|tar\.bz2));(sha256|md5):([0-9a-f]+)", declaration)
+    if not match or len(match[3]) != {"sha256": 64, "md5": 32}[match[2]]:
+        raise ValidationError("missing immutable package artifact pin")
+    filename, algorithm, checksum = match.groups()
+    name, version = contract["pinning"]["package_name"], contract["scientific_version"]
+    stem = filename.removesuffix(".conda").removesuffix(".tar.bz2")
+    prefix = f"{name}-{version}-"
+    if not stem.startswith(prefix) or not stem[len(prefix):]:
+        raise ValidationError("package pin name/version mismatch")
+    return {"name": name, "version": version, "build": stem[len(prefix):], "fn": filename,
+            "subdir": "noarch" if arch not in pins else {"amd64": "linux-64", "arm64": "linux-aarch64"}[arch],
+            algorithm: checksum}
+
+
+def verify_package(metadata: dict, contract: dict, arch: str) -> dict:
+    expected = package_pin(contract, arch)
+    if not isinstance(metadata, dict) or any(metadata.get(key) != value for key, value in expected.items()):
+        raise ValidationError("installed package differs from pinned name/version/build/subdir/checksum")
+    return expected
+
+
 def load_contract(repo: Path, tool: str) -> dict:
     if tool not in TOOLS:
         raise ValidationError("tool outside exact approved canary")
@@ -72,6 +96,8 @@ def load_contract(repo: Path, tool: str) -> dict:
             raise ValidationError("commands must be nonempty argument arrays")
     if value.get("version_output_source") not in ("stdout", "stderr", "either") or not value.get("version_observation_parser"):
         raise ValidationError("missing version stream contract")
+    for arch in RUNNERS:
+        package_pin(value, arch)
     fixture_hashes(value, repo)
     return value
 
@@ -280,6 +306,8 @@ def validate_entry(record: dict, entry: dict, plan: dict, contract: dict, repo: 
     inspect_sif(record["sif_inspect"], binding_labels(contract, plan, entry, identity["base_image_identity"]), entry["arch"])
     for phase in ("oci", "sif"):
         evidence = record[phase]
+        if verify_package(evidence["package_metadata"], contract, entry["arch"]) != identity["build_inputs"]["package_artifact"]:
+            raise ValidationError("installed package identity differs from candidate")
         if evidence["runtime_architecture"] != {"amd64": "x86_64", "arm64": "aarch64"}[entry["arch"]]:
             raise ValidationError("phase runtime architecture mismatch")
         if validate_executable({"stdout": evidence["executable"]["output"]}, entry["arch"]) != evidence["executable"]:
@@ -387,13 +415,17 @@ def execute(plan: dict, repo: Path, digest: str, tool: str, arch: str, output: P
             if machine != {"amd64": "x86_64", "arm64": "aarch64"}[arch]:
                 raise ValidationError("artifact runtime architecture mismatch")
             executable = validate_executable(invoke(["/bin/sh", "-c", EXECUTABLE_PROBE, "probe", contract["expected_executable"]]), arch)
+            pin = package_pin(contract, arch)
+            metadata_path = f"/opt/conda/conda-meta/{pin['name']}-{pin['version']}-{pin['build']}.json"
+            package_metadata = json.loads(invoke(["/bin/cat", metadata_path])["stdout"])
+            verify_package(package_metadata, contract, arch)
             version_raw = invoke(contract["version_command"])
             version = validate_version_evidence(contract, repo, stdout=version_raw["stdout"], stderr=version_raw["stderr"], returncode=version_raw["returncode"])
             smoke_raw = invoke(contract["smoke_command"])
             smoke = smoke_result(contract, repo, work, smoke_raw)
-            record[phase] = {"runtime_architecture": machine, "executable": executable, "version": version, "version_raw": version_raw,
+            record[phase] = {"runtime_architecture": machine, "executable": executable, "package_metadata": package_metadata, "version": version, "version_raw": version_raw,
                              "smoke": smoke, "smoke_raw": smoke_raw}
-            for gate in ("architecture", "executable", "version", "smoke"):
+            for gate in ("architecture", "executable", "package", "version", "smoke"):
                 record["gates"][f"{phase}_{gate}"] = "PASS"
         if sha256_file(archive) != oci["oci_archive_sha256"] or record["oci"]["version"]["observed_version"] != record["sif"]["version"]["observed_version"]:
             raise ValidationError("OCI/SIF binding mismatch")
@@ -406,7 +438,7 @@ def execute(plan: dict, repo: Path, digest: str, tool: str, arch: str, output: P
                      "base_image_identity": base_identity, "oci_source_identity": oci["oci_identity"], "sif_sha256": record["sif_sha256"],
                      "expected_executable": contract["expected_executable"], "version_evidence": record["oci"]["version"]["observed_version"],
                      "smoke_status": "PASS", "provenance_status": "PASS", "build_inputs": {"validation_contract_sha256": entry["contract_sha256"],
-                     "fixture_sha256": entry["fixture_sha256"], "source_immutable_identity": contract["source_immutable_identity"]}}
+                     "fixture_sha256": entry["fixture_sha256"], "source_immutable_identity": contract["source_immutable_identity"], "package_artifact": package_pin(contract, arch)}}
         record["candidate"] = identity_metadata(candidate)
         record["gates"]["identity"] = "PASS"
         record["gates"]["provenance"] = "PASS"
@@ -435,6 +467,7 @@ def main(argv=None) -> int:
     parser.add_argument("--authorize-native-execution", action="store_true")
     parser.add_argument("--github-output", type=Path)
     args = parser.parse_args(argv)
+    records = None
     try:
         if args.command == "plan":
             plan = make_plan(args.repo, args.source_commit or "")
@@ -457,6 +490,11 @@ def main(argv=None) -> int:
                 write_json(args.output, reconcile(plan, args.repo, args.plan_sha256, records, roots))
         return 0
     except (ValueError, OSError, TypeError, KeyError) as error:
+        if args.command == "reconcile" and args.output:
+            write_json(args.output, {"status": "FAIL", "expected_entries": 14,
+                                     "observed_records": len(records) if records is not None else None,
+                                     "error": f"{type(error).__name__}: {error}", "release_complete": False,
+                                     "publication_authorized": False})
         print(f"FAIL: {error}")
         return 1
 

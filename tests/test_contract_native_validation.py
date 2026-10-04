@@ -111,6 +111,8 @@ class FakeCommands:
                 text = "x86_64\n" if self.arch == "amd64" else "aarch64\n"
             elif command[:2] == ["/bin/sh", "-c"]:
                 text = "executable=/opt/conda/bin/tool\ninterpreter=/opt/conda/bin/python\nmachine=" + ("62 0\n" if self.arch == "amd64" else "183 0\n")
+            elif command[0] == "/bin/cat":
+                text = json.dumps(native.package_pin(self.contract, self.arch))
             elif command == self.contract["version_command"]:
                 text = BANNERS[self.tool]
             elif command == self.contract["smoke_command"]:
@@ -323,3 +325,29 @@ def test_process_logs_and_timeout_are_durable(tmp_path, monkeypatch, state):
     record = json.loads((tmp_path / "commands/001.json").read_text())
     assert record["timed_out"] == (state == "timeout")
     assert bool(killed) == (state == "timeout")
+
+
+@pytest.mark.parametrize("tool", native.TOOLS)
+@pytest.mark.parametrize("arch", native.RUNNERS)
+@pytest.mark.parametrize("field", ["name", "version", "build", "fn", "subdir", "checksum"])
+def test_installed_package_pin_fail_closed(tool, arch, field):
+    contract = native.load_contract(REPO, tool)
+    pin = native.package_pin(contract, arch)
+    assert native.verify_package(pin, contract, arch) == pin
+    key = field if field != "checksum" else ("sha256" if "sha256" in pin else "md5")
+    pin[key] = "wrong"
+    with pytest.raises(native.ValidationError):
+        native.verify_package(pin, contract, arch)
+
+
+def test_reconciliation_failure_summary_is_durable(plan, tmp_path):
+    path = tmp_path / "plan.json"
+    native.write_json(path, plan)
+    directory = tmp_path / "records"
+    directory.mkdir()
+    output = tmp_path / "summary.json"
+    assert native.main(["reconcile", "--repo", str(REPO), "--plan", str(path), "--plan-sha256", plan["plan_sha256"],
+                        "--records", str(directory), "--output", str(output)]) == 1
+    result = json.loads(output.read_text())
+    assert result["status"] == "FAIL" and result["observed_records"] == 0
+    assert result["release_complete"] is False and result["publication_authorized"] is False
