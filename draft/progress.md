@@ -197,3 +197,9 @@
 - Committed exact 41-file scope as `1f5db1500aeeccdd6b730edb48ce0fe2f034fc52`, pushed non-force branch, and independently verified remote SHA plus workflow/runner/test blobs 3/3. PR #11: https://github.com/OmniBioAI/omnibioai-tool-images/pull/11. Remote CI run `37229412691` passed.
 - Before native dispatch, added a success-only Actions artifact handoff retaining the validated SIF and its bound entry record. The former evidence-only retention excluded SIF payloads; without a handoff, future publication would lose the exact validated bytes when runners terminate. No registry write or release step was added.
 - Revalidated 69 adapter tests, actionlint and Ruff. Latest change must pass remote CI before merge. No native workflow dispatch, build or publication yet; original worktree preserved.
+
+### Remote merge and pinned-package execution gate — 2026-10-04
+
+- PR #11 latest head `fac440b4d7b2c97a1c9234ff1b7d162e03390a4d` passed remote CI `37229585080`, then merged normally as `affc86625734bc7825439faef94e69b669b52c76`. New workflow is registered active on GitHub (workflow ID `374835660`). Before first dispatch, run listing is empty.
+- Completed the execution source-identity gate: read actual installed Conda metadata independently in OCI and SIF; require exact pinned package name, scientific version, build, artifact filename, subdir and SHA256/MD5. Bind normalized package-artifact identity into existing schema-v1 build inputs. Missing/mismatched metadata blocks; no version, package pin or schema change was made.
+- Added 84 package-pin negative regressions plus durable reconciliation-failure summary coverage. New adapter suite **154 tests**; full repository **8,392 PASS / 13 SKIP / 0 FAIL**. Ruff/actionlint/diff checks PASS. This patch needs fresh remote CI before the first native dispatch. No actual build/publication has occurred.
