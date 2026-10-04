@@ -228,6 +228,27 @@ def test_argv_boundaries_and_network(tmp_path):
         assert any(value.endswith(":ro") for value in argv)
 
 
+@pytest.mark.parametrize("phase", ["oci", "sif"])
+@pytest.mark.parametrize("arch", ["amd64", "arm64"])
+def test_micromamba_cache_is_ephemeral_without_relaxing_isolation(phase, arch, tmp_path, monkeypatch):
+    # A host setting must not leak into --cleanenv SIF execution or Docker.
+    monkeypatch.setenv("XDG_CACHE_HOME", "/unsafe/host-cache")
+    command = ["uname", "-m"]
+    argv = native.runtime_argv(phase, "artifact", arch, tmp_path / "work", tmp_path / "fixtures", command)
+    assert argv.count("--env") == 1
+    assert argv[argv.index("--env") + 1] == "XDG_CACHE_HOME=/tmp/omnibioai-validation-cache"
+    assert "/unsafe/host-cache" not in " ".join(argv)
+    assert argv[argv.index("--network") + 1] == "none"
+    assert f"{tmp_path / 'fixtures'}:/work/validation-contracts/fixtures:ro" in argv
+    assert argv[-6:] == ["run", "--no-capture-output", "--prefix", "/opt/conda", *command]
+    if phase == "oci":
+        assert "--read-only" in argv
+        assert argv[argv.index("--tmpfs") + 1] == "/tmp:rw"
+    else:
+        assert "--cleanenv" in argv and "--containall" in argv
+        assert "--writable" not in argv and "--writable-tmpfs" not in argv
+
+
 @pytest.fixture
 def repo_copy(tmp_path):
     root = tmp_path / "repo"

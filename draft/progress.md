@@ -210,3 +210,22 @@
 - Run reached terminal FAILURE before plan generation or any build. Checkout credential removal failed with `fatal: No url found for submodule path 'omnibioai-tool-runtime' in .gitmodules`, Git exit 128. Selection job `111517949752`; native matrix skipped, zero actual native entries/OCI/SIF builds. Reconciliation checkout failed for the same cause. Zero GHCR writes/publications.
 - Deterministically reproduced the exact `git submodule foreach --recursive true` failure locally. Existing gitlink is already pinned to `a4f3da56c2e6e9fd85e54ba009f6f3456de3b5b5`; the frozen workflow independently identifies its repository as OmniBioAI/omnibioai-tool-runtime. Added only the missing `.gitmodules` path/URL registration; gitlink SHA and frozen factory are unchanged. The same command now exits zero, without fetching or executing submodule code.
 - Added static checkout registration regression. Full suite **8,393 PASS / 13 SKIP / 0 FAIL**, Ruff/actionlint/diff checks PASS. This source-metadata repair must pass fresh remote CI before a fresh-source validation run; failed run history is not rewritten or rerun. Evidence retained at `~/omnibioai-native-validation-evidence/run-37230154387.json`.
+
+### Fresh-source native validation — 2026-10-04
+
+- PR #13 exact head `6cf5af6698abe16d22c70431ee80620f90f3316d` passed remote CI `37230480205` and merged as `df4db5ffaa5022354bf68d737569213d98671370`.
+- Native-only run [37230822914](https://github.com/OmniBioAI/omnibioai-tool-images/actions/runs/37230822914) is running at that exact source. Checkout and plan generation passed; all fourteen native matrix entries are present. Initial amd64/arm64 jobs are installing tooling; no native PASS claimed yet.
+- Scope remains seven static-ready tools; 594 contracts blocked. Zero publications/GHCR writes. All fourteen entries plus reconciliation must pass before publication eligibility.
+
+### Native run 37230822914 terminal result — status audit
+
+- Run completed FAILURE. Selection/checkout passed; all fourteen native matrix jobs reached terminal FAILURE, and reconciliation correctly failed closed. Zero successful native entries.
+- Downloaded all run artifacts outside the repositories to `~/omnibioai-native-validation-evidence/run-37230822914/`. Every entry failed command 007: the first OCI runtime architecture probe through micromamba.
+- Shared exact cause in all fourteen stderr files: micromamba attempts to create `/root/.cache/mamba/proc` under the intentionally read-only container filesystem, then exits with a filesystem error. This is a validation-runtime cache configuration blocker, not evidence that scientific smoke or version gates passed or failed.
+- No publication/GHCR write path exists in this workflow. Publication remains blocked; frozen factory unchanged. Next engineering step is a narrowly scoped writable ephemeral cache configuration, preserving read-only rootfs and network isolation, followed by regression testing before any fresh-source validation.
+
+### Ephemeral micromamba cache repair — 2026-10-04
+
+- Confirmed upstream micromamba 1.5.8 `run.cpp` uses `user_cache_dir()/proc`; `environment.cpp` reads `XDG_CACHE_HOME` before falling back to the home cache. Runtime invocations now explicitly set `XDG_CACHE_HOME=/tmp/omnibioai-validation-cache` in Docker and Apptainer.
+- Docker retains read-only rootfs, network none, writable isolated /tmp tmpfs and read-only fixtures. Apptainer retains cleanenv, containall, network none and no writable image/overlay; explicit container environment avoids leaking host cache settings. No Dockerfile, scientific contract, package pin or frozen factory file changed.
+- Four new OCI/SIF × amd64/arm64 argument regressions assert exact temporary cache, host-cache exclusion, environment activation and retained isolation. Adapter **159 PASS**; full repository **8,397 PASS / 13 SKIP / 0 FAIL**. Ruff/actionlint PASS; native execution remains unproven until fresh-source run passes.

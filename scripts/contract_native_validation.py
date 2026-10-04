@@ -240,13 +240,16 @@ def smoke_result(contract: dict, repo: Path, work: Path, result: dict) -> dict:
 
 
 def runtime_argv(phase: str, artifact: str, arch: str, work: Path, fixtures: Path, argv: list[str]) -> list[str]:
+    # micromamba run writes process bookkeeping below XDG_CACHE_HOME/mamba/proc.
+    # Keep it in isolated writable /tmp, never the image's read-only /root cache.
+    cache_environment = "XDG_CACHE_HOME=/tmp/omnibioai-validation-cache"
     if phase == "oci":
         prefix = ["docker", "run", "--rm", "--platform", f"linux/{arch}", "--network", "none", "--read-only",
-                  "--tmpfs", "/tmp:rw", "--user", "0:0", "--volume", f"{work}:/work:rw",
+                  "--tmpfs", "/tmp:rw", "--env", cache_environment, "--user", "0:0", "--volume", f"{work}:/work:rw",
                   "--volume", f"{fixtures}:/work/validation-contracts/fixtures:ro", "--workdir", "/work",
                   "--entrypoint", "micromamba", artifact]
     elif phase == "sif":
-        prefix = ["sudo", "apptainer", "exec", "--cleanenv", "--containall", "--net", "--network", "none",
+        prefix = ["sudo", "apptainer", "exec", "--cleanenv", "--containall", "--env", cache_environment, "--net", "--network", "none",
                   "--bind", f"{work}:/work:rw", "--bind", f"{fixtures}:/work/validation-contracts/fixtures:ro",
                   "--pwd", "/work", artifact, "micromamba"]
     else:
