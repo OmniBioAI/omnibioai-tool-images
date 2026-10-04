@@ -17,6 +17,7 @@
 - Integration implementation: the generator now consumes only reviewed canary contracts whose `pinning_canary_schema_version` is 1 and whose Dockerfile SHA matches current source; stale overrides fail closed.
 - Post-integration generation: 601 targets, 5 ready, 596 blocked; output validator PASS.
 - Post-integration focused tests: 75/75 passed.
+- Integration commit: `24933eb` (`Integrate reviewed canary contracts into generation`); not pushed.
 - No Docker/Buildx/Apptainer/Singularity builds were run.
 - No workflow dispatches, registry writes, publications, or GHCR mutations were run.
 - Existing local symlink/generated artifacts remain preserved and untouched.
