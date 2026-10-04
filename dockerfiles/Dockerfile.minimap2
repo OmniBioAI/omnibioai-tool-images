@@ -1,6 +1,6 @@
 FROM python:3.11-slim-bookworm
 
-RUN apt-get update && apt-get install -y minimap2 file && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends minimap2 file && rm -rf /var/lib/apt/lists/*
 
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
 
