@@ -1,17 +1,15 @@
 {
   "base_image_architecture_evidence": {
-    "quality": "INFERRED",
-    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+    "quality": "DIRECT_UPSTREAM_EVIDENCE",
+    "statement": "read-only manifest inspection found linux/amd64 and linux/arm64 for mambaorg/micromamba:1.5.8; package architecture evidence is recorded below"
   },
   "base_image_reference": "mambaorg/micromamba:1.5.8",
   "blocking_reasons": [
-    "no canonical scientific executable is explicitly invoked by the Dockerfile",
-    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-    "no exact tool-associated scientific version or immutable source pin is present",
-    "no explicit tool-specific version command is present"
+    "no reproducible baseline was selected because the current stable package has no linux-aarch64 artifact",
+    "Dockerfile remains historically unpinned"
   ],
   "classification": "MULTIARCH_READY",
-  "contract_confidence": "LOW",
+  "contract_confidence": "MEDIUM",
   "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
   "display_name": "alevinqc_extra",
   "dockerfile_path": "dockerfiles/Dockerfile.alevinqc_extra",
@@ -23,11 +21,29 @@
   },
   "evidence": [
     {
+      "field": "architecture",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/bioconductor-alevinqc",
+      "value": "package metadata includes noarch; base manifest provides linux/amd64 and linux/arm64"
+    },
+    {
+      "field": "architecture_availability",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/bioconductor-alevinqc",
+      "value": "{\"amd64\": \"NATIVE_PACKAGE_ARTIFACT\", \"arm64\": \"NO_PACKAGE_ARTIFACT\"}"
+    },
+    {
       "field": "base_image_reference",
       "line": 1,
       "quality": "DIRECT",
       "source": "dockerfiles/Dockerfile.alevinqc_extra",
       "value": "FROM mambaorg/micromamba:1.5.8"
+    },
+    {
+      "field": "baseline_version",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/bioconductor-alevinqc",
+      "value": "candidate rejected: current stable package has a linux-64 artifact but no linux-aarch64 or noarch artifact"
     },
     {
       "field": "classification",
@@ -36,21 +52,87 @@
       "value": "MULTIARCH_READY"
     },
     {
+      "field": "executable_version",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://raw.githubusercontent.com/bioconda/bioconda-recipes/master/recipes/bioconductor-alevinqc/meta.yaml",
+      "value": "recipe validates the installed R package with library(alevinQC)"
+    },
+    {
       "field": "package",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "ghcr.io/omnibioai/omnibioai-sif/alevinqc_extra"
+    },
+    {
+      "field": "smoke",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://bioconductor.org/packages/release/bioc/manuals/alevinQC/man/alevinQC.pdf",
+      "value": "manual example calls readAlevinQC on bundled extdata/alevin_example_v0.14"
+    },
+    {
+      "field": "source_identity",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://bioconductor.org/packages/3.22/bioc/src/contrib/alevinQC_1.26.0.tar.gz",
+      "value": "md5:32c51a6cc456a519e7ed8914b3b9fd23"
     }
   ],
   "expected_architectures": [
     "amd64",
     "arm64"
   ],
-  "expected_executable": null,
+  "expected_executable": "Rscript",
   "native_amd64_expected": true,
-  "native_arm64_expected": true,
+  "native_arm64_expected": false,
   "package": "ghcr.io/omnibioai/omnibioai-sif/alevinqc_extra",
+  "pinning": {
+    "architecture_availability": {
+      "amd64": "NATIVE_PACKAGE_ARTIFACT",
+      "arm64": "NO_PACKAGE_ARTIFACT"
+    },
+    "evaluated_candidate_version": "1.26.0",
+    "historical_intended_version": "UNKNOWN",
+    "native_build_validation_status": "NOT_RUN",
+    "new_reproducible_baseline_version": null,
+    "package_artifacts": {
+      "amd64": "bioconductor-alevinqc-1.26.0-r45ha27e39d_0.conda;sha256:ef7854ebd8dea12090a0913b1628af4632d1f62e47584af9821298dc23e91b5d"
+    },
+    "package_name": "bioconductor-alevinqc",
+    "pinning_canary_schema_version": 1,
+    "release_status": "NOT_PUBLISHED",
+    "source_identity": "md5:32c51a6cc456a519e7ed8914b3b9fd23",
+    "source_identity_type": "UPSTREAM_ARCHIVE_MD5_CANDIDATE_ONLY",
+    "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+    "version_selection_basis": "candidate rejected: current stable package has a linux-64 artifact but no linux-aarch64 or noarch artifact"
+  },
   "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "remediation": {
+    "canary_schema_version": 1,
+    "initial_blockers": [
+      "no canonical scientific executable is explicitly invoked by the Dockerfile",
+      "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+      "no exact tool-associated scientific version or immutable source pin is present",
+      "no explicit tool-specific version command is present"
+    ],
+    "initial_deficiency_flags": [
+      "EXECUTABLE_MISSING",
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "VERSION_COMMAND_MISSING",
+      "VERSION_PARSER_MISSING",
+      "SMOKE_COMMAND_MISSING",
+      "SMOKE_INPUT_MISSING",
+      "SMOKE_SUCCESS_CONDITION_MISSING",
+      "ARCHITECTURE_EVIDENCE_INFERRED_ONLY"
+    ],
+    "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+    "package_mapping_confirmed_read_only": true,
+    "remaining_deficiency_flags": [
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "ARCHITECTURE_EVIDENCE_MISSING"
+    ],
+    "smoke_network_requirement": "NETWORK_FREE"
+  },
   "runtime_database_required": false,
   "runtime_gpu_required": false,
   "runtime_license_required": false,
@@ -59,17 +141,27 @@
   "scientific_version": null,
   "scientific_version_evidence": null,
   "scientific_version_source": null,
-  "smoke_command": null,
+  "smoke_command": [
+    "Rscript",
+    "-e",
+    "library(alevinQC); x=readAlevinQC(system.file('extdata/alevin_example_v0.14',package='alevinQC')); stopifnot(is.list(x))"
+  ],
   "smoke_expected_outputs": [],
-  "smoke_inputs": [],
-  "smoke_success_condition": null,
+  "smoke_inputs": [
+    "installed alevinQC extdata/alevin_example_v0.14 fixture"
+  ],
+  "smoke_success_condition": "exit 0 after parsing the package's bundled alevin example into a list",
   "source_immutable_identity": null,
   "source_reference": null,
   "source_type": "unknown_unpinned",
   "tool_id": "alevinqc_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "68bbcf3d2b0172d2e04c17456783177010bbe60f71796a710cf8ea1660b2cb26",
-  "version_command": null,
+  "validation_contract_sha256": "5e1b2b08a28ae2e104dd7da771c68c4a85933e70123e72fd4c408fa3ad7f2bb2",
+  "version_command": [
+    "Rscript",
+    "-e",
+    "cat(as.character(packageVersion('alevinQC')), '\\n')"
+  ],
   "version_expected_value": null,
-  "version_parser": null
+  "version_parser": "regex:(?m)^([0-9]+(?:\\.[0-9]+)+)\\s*$"
 }

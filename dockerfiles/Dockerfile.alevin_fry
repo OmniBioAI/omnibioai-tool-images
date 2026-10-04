@@ -1,2 +1,8 @@
 FROM mambaorg/micromamba:1.5.8
-RUN micromamba install -y -n base -c bioconda -c conda-forge     alevin-fry && micromamba clean --all --yes
+RUN case "$(uname -m)" in \
+      x86_64) package_build=hd612981_0 ;; \
+      aarch64) package_build=h6789a04_0 ;; \
+      *) echo "unsupported architecture: $(uname -m)" >&2; exit 1 ;; \
+    esac \
+    && micromamba install -y -n base -c bioconda -c conda-forge "alevin-fry=0.18.3=${package_build}" \
+    && micromamba clean --all --yes

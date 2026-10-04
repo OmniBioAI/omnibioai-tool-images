@@ -1,17 +1,15 @@
 {
   "base_image_architecture_evidence": {
-    "quality": "INFERRED",
-    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+    "quality": "DIRECT_UPSTREAM_EVIDENCE",
+    "statement": "read-only manifest inspection found linux/amd64 and linux/arm64 for mambaorg/micromamba:1.5.8; package architecture evidence is recorded below"
   },
   "base_image_reference": "mambaorg/micromamba:1.5.8",
   "blocking_reasons": [
-    "no canonical scientific executable is explicitly invoked by the Dockerfile",
-    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-    "no exact tool-associated scientific version or immutable source pin is present",
-    "no explicit tool-specific version command is present"
+    "no reproducible baseline was selected because native arm64 dependency availability is not established",
+    "Dockerfile remains historically unpinned"
   ],
   "classification": "MULTIARCH_READY",
-  "contract_confidence": "LOW",
+  "contract_confidence": "MEDIUM",
   "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
   "display_name": "airr_extra",
   "dockerfile_path": "dockerfiles/Dockerfile.airr_extra",
@@ -23,11 +21,29 @@
   },
   "evidence": [
     {
+      "field": "architecture",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/r-airr",
+      "value": "package is noarch; base manifest provides linux/amd64 and linux/arm64"
+    },
+    {
+      "field": "architecture_availability",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/r-airr",
+      "value": "{\"amd64\": \"NOARCH_PACKAGE_REQUIRES_R_3_5_1\", \"arm64\": \"NOT_ESTABLISHED\"}"
+    },
+    {
       "field": "base_image_reference",
       "line": 1,
       "quality": "DIRECT",
       "source": "dockerfiles/Dockerfile.airr_extra",
       "value": "FROM mambaorg/micromamba:1.5.8"
+    },
+    {
+      "field": "baseline_version",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/r-airr",
+      "value": "candidate rejected: latest Bioconda package requires R 3.5.1 and no native arm64 dependency solution is established"
     },
     {
       "field": "classification",
@@ -36,21 +52,87 @@
       "value": "MULTIARCH_READY"
     },
     {
+      "field": "fixture",
+      "quality": "DIRECT_REPOSITORY_EVIDENCE",
+      "source": "validation-contracts/fixtures/airr-tiny.tsv",
+      "value": "sha256:eb5db7e7769fb36302430c2dba99f3e0cf4db730c6bbe313784a87d77c3387f2"
+    },
+    {
       "field": "package",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "ghcr.io/omnibioai/omnibioai-sif/airr_extra"
+    },
+    {
+      "field": "package_runtime",
+      "quality": "DIRECT_REPOSITORY_EVIDENCE",
+      "source": "dockerfiles/Dockerfile.airr_extra",
+      "value": "Dockerfile installs r-airr into a Micromamba environment"
+    },
+    {
+      "field": "source_identity",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://cran.r-project.org/src/contrib/Archive/airr/airr_1.2.0.tar.gz",
+      "value": "sha256:306cd7084b1ef0617af62e5815df538f2dcd6d6aaabb593df6f579e8ab5c5cef"
     }
   ],
   "expected_architectures": [
     "amd64",
     "arm64"
   ],
-  "expected_executable": null,
+  "expected_executable": "Rscript",
   "native_amd64_expected": true,
-  "native_arm64_expected": true,
+  "native_arm64_expected": false,
   "package": "ghcr.io/omnibioai/omnibioai-sif/airr_extra",
+  "pinning": {
+    "architecture_availability": {
+      "amd64": "NOARCH_PACKAGE_REQUIRES_R_3_5_1",
+      "arm64": "NOT_ESTABLISHED"
+    },
+    "evaluated_candidate_version": "1.2.0",
+    "historical_intended_version": "UNKNOWN",
+    "native_build_validation_status": "NOT_RUN",
+    "new_reproducible_baseline_version": null,
+    "package_artifacts": {
+      "noarch": "r-airr-1.2.0-r351h6115d3f_1.tar.bz2;md5:a76851608b2354e9bb3dd457aa21a425"
+    },
+    "package_name": "r-airr",
+    "pinning_canary_schema_version": 1,
+    "release_status": "NOT_PUBLISHED",
+    "source_identity": "sha256:306cd7084b1ef0617af62e5815df538f2dcd6d6aaabb593df6f579e8ab5c5cef",
+    "source_identity_type": "UPSTREAM_ARCHIVE_SHA256",
+    "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+    "version_selection_basis": "candidate rejected: latest Bioconda package requires R 3.5.1 and no native arm64 dependency solution is established"
+  },
   "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "remediation": {
+    "canary_schema_version": 1,
+    "initial_blockers": [
+      "no canonical scientific executable is explicitly invoked by the Dockerfile",
+      "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+      "no exact tool-associated scientific version or immutable source pin is present",
+      "no explicit tool-specific version command is present"
+    ],
+    "initial_deficiency_flags": [
+      "EXECUTABLE_MISSING",
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "VERSION_COMMAND_MISSING",
+      "VERSION_PARSER_MISSING",
+      "SMOKE_COMMAND_MISSING",
+      "SMOKE_INPUT_MISSING",
+      "SMOKE_SUCCESS_CONDITION_MISSING",
+      "ARCHITECTURE_EVIDENCE_INFERRED_ONLY"
+    ],
+    "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+    "package_mapping_confirmed_read_only": true,
+    "remaining_deficiency_flags": [
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "ARCHITECTURE_EVIDENCE_MISSING"
+    ],
+    "smoke_network_requirement": "NETWORK_FREE"
+  },
   "runtime_database_required": false,
   "runtime_gpu_required": false,
   "runtime_license_required": false,
@@ -59,17 +141,27 @@
   "scientific_version": null,
   "scientific_version_evidence": null,
   "scientific_version_source": null,
-  "smoke_command": null,
+  "smoke_command": [
+    "Rscript",
+    "-e",
+    "library(airr); x=read_rearrangement('validation-contracts/fixtures/airr-tiny.tsv'); stopifnot(nrow(x)==1, x$sequence_id[[1]]=='omnibioai_airr_1')"
+  ],
   "smoke_expected_outputs": [],
-  "smoke_inputs": [],
-  "smoke_success_condition": null,
+  "smoke_inputs": [
+    "validation-contracts/fixtures/airr-tiny.tsv"
+  ],
+  "smoke_success_condition": "exit 0 after parsing exactly one schema-valid AIRR rearrangement with the expected sequence_id",
   "source_immutable_identity": null,
   "source_reference": null,
   "source_type": "unknown_unpinned",
   "tool_id": "airr_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "5abc65b762022682cb69809a00f942c3a226977cb8733c589dd50d4db22c9c3f",
-  "version_command": null,
+  "validation_contract_sha256": "afd201499e17c9305cc49259e5d11244050cccc81cb03974f626a8d01c68100d",
+  "version_command": [
+    "Rscript",
+    "-e",
+    "cat(as.character(packageVersion('airr')), '\\n')"
+  ],
   "version_expected_value": null,
-  "version_parser": null
+  "version_parser": "regex:(?m)^([0-9]+(?:\\.[0-9]+)+)\\s*$"
 }

@@ -7,108 +7,47 @@
   "blocked_architecture_count": 0,
   "blocked_executable_count": 0,
   "blocked_license_count": 0,
-  "blocked_multiple_reasons_count": 601,
+  "blocked_multiple_reasons_count": 595,
   "blocked_package_mapping_count": 0,
   "blocked_runtime_dependency_count": 0,
-  "blocked_smoke_count": 0,
+  "blocked_smoke_count": 1,
   "blocked_source_identity_count": 0,
   "blocked_tools": [
     {
       "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
-      ],
-      "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
-      "tool_id": "3ddna_extra"
-    },
-    {
-      "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
-      ],
-      "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
-      "tool_id": "abricate"
-    },
-    {
-      "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
-      ],
-      "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
-      "tool_id": "accelerate"
-    },
-    {
-      "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
+        "no repository-owned bounded EIGENSTRAT fixture establishes a scientifically meaningful qp3Pop execution",
+        "the upstream academic/non-commercial license requires distribution-scope review before release eligibility"
       ],
       "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
       "tool_id": "admixtools"
     },
     {
       "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
+        "no reproducible baseline was selected because native arm64 dependency availability is not established",
+        "Dockerfile remains historically unpinned"
       ],
       "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
       "tool_id": "afterqc_extra"
     },
     {
       "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
-      ],
-      "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
-      "tool_id": "agat_extra"
-    },
-    {
-      "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
-      ],
-      "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
-      "tool_id": "aicsimageio_extra"
-    },
-    {
-      "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
+        "no reproducible baseline was selected because native arm64 dependency availability is not established",
+        "Dockerfile remains historically unpinned"
       ],
       "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
       "tool_id": "airr_extra"
     },
     {
       "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
+        "scientifically meaningful execution requires a valid RAD and permit-list fixture that is not available in repository evidence"
       ],
-      "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+      "contract_status": "CONTRACT_BLOCKED_SMOKE",
       "tool_id": "alevin_fry"
     },
     {
       "blocking_reasons": [
-        "no canonical scientific executable is explicitly invoked by the Dockerfile",
-        "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-        "no exact tool-associated scientific version or immutable source pin is present",
-        "no explicit tool-specific version command is present"
+        "no reproducible baseline was selected because the current stable package has no linux-aarch64 artifact",
+        "Dockerfile remains historically unpinned"
       ],
       "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
       "tool_id": "alevinqc_extra"
@@ -5983,11 +5922,17 @@
     }
   ],
   "blocked_version_count": 0,
-  "contract_ready_count": 0,
+  "contract_ready_count": 5,
   "contract_target_count": 601,
   "multiarch_ready_count": 860,
   "package_intersection_count": 611,
-  "ready_tools": [],
+  "ready_tools": [
+    "3ddna_extra",
+    "abricate",
+    "accelerate",
+    "agat_extra",
+    "aicsimageio_extra"
+  ],
   "reference_tools_excluded": 10,
   "schema_version": 1,
   "source_catalog_sha256": "4733f2e6cf4f4da5dcc9247cfbb66f84faee4b7914cef1838bf25b0ef6006368",

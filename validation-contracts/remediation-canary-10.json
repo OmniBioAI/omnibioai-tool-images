@@ -1,0 +1,259 @@
+{
+  "canary_schema_version": 1,
+  "selection_rule": "first 10 CONTRACT_BLOCKED_MULTIPLE_REASONS contracts by stable casefolded canonical tool_id ordering",
+  "source_commit": "90259bb5dc51903753b71b70f82103217ad37c9f",
+  "tools": [
+    {
+      "tool_id": "3ddna_extra",
+      "expected_executable": "3d-dna",
+      "version_command": ["3d-dna", "--help"],
+      "version_parser": "regex:(?m)^version: ([0-9]+)$",
+      "version_expected_value": null,
+      "smoke_command": ["3d-dna", "--help"],
+      "smoke_inputs": [],
+      "smoke_expected_outputs": ["USAGE", "3D de novo assembly"],
+      "smoke_success_condition": "exit 0 and both expected help markers are present",
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned 3d-dna, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest"
+      ],
+      "evidence": [
+        {"field":"executable_version_smoke","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://raw.githubusercontent.com/bioconda/bioconda-recipes/master/recipes/3d-dna/meta.yaml","value":"Bioconda recipe tests 3d-dna --help; upstream script emits an internal version and usage"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/bioconda/3d-dna","value":"package is noarch; base manifest provides linux/amd64 and linux/arm64"}
+      ]
+    },
+    {
+      "tool_id": "abricate",
+      "expected_executable": "abricate",
+      "version_command": ["abricate", "--version"],
+      "version_parser": "regex:(?m)^abricate\\s+([0-9]+(?:\\.[0-9]+)+)\\s*$",
+      "version_expected_value": null,
+      "smoke_command": ["abricate", "--check"],
+      "smoke_inputs": [],
+      "smoke_expected_outputs": ["OK"],
+      "smoke_success_condition": "exit 0 after validating required local executables",
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": true,
+      "runtime_reference_data_required": true,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned abricate, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest"
+      ],
+      "evidence": [
+        {"field":"executable_version_smoke","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://raw.githubusercontent.com/bioconda/bioconda-recipes/master/recipes/abricate/meta.yaml","value":"recipe tests abricate --version, --help, --list, and --check"},
+        {"field":"runtime_requirements","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://github.com/tseemann/abricate/blob/master/bin/abricate","value":"tool validates local BLAST executables and uses a local sequence database"}
+      ]
+    },
+    {
+      "tool_id": "accelerate",
+      "expected_executable": "accelerate",
+      "version_command": ["accelerate", "env"],
+      "version_parser": "regex:(?m)^- `Accelerate` version: ([^\\s]+)\\s*$",
+      "version_expected_value": null,
+      "smoke_command": ["python", "-c", "from accelerate import Accelerator; a=Accelerator(cpu=True); assert a.device.type == 'cpu'"],
+      "smoke_inputs": [],
+      "smoke_expected_outputs": [],
+      "smoke_success_condition": "exit 0 after constructing a CPU Accelerator and verifying its device",
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned accelerate, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest"
+      ],
+      "evidence": [
+        {"field":"executable","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://raw.githubusercontent.com/conda-forge/accelerate-feedstock/main/recipe/recipe.yaml","value":"recipe defines accelerate console entry point and tests accelerate --help"},
+        {"field":"version_smoke","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://huggingface.co/docs/accelerate/package_reference/cli","value":"accelerate env reports Accelerate version; Python API exposes Accelerator"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/conda-forge/accelerate","value":"package is noarch; base manifest provides linux/amd64 and linux/arm64"}
+      ]
+    },
+    {
+      "tool_id": "admixtools",
+      "expected_executable": null,
+      "version_command": null,
+      "version_parser": null,
+      "version_expected_value": null,
+      "smoke_command": null,
+      "smoke_inputs": [],
+      "smoke_expected_outputs": [],
+      "smoke_success_condition": null,
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "ADMIXTOOLS installs multiple scientific executables and repository evidence does not select one canonical validation target",
+        "Dockerfile installs unpinned admixtools, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest",
+        "no authoritative tool-level version command/parser is established for the installed package",
+        "no bounded scientifically meaningful smoke fixture is present in repository evidence"
+      ],
+      "evidence": [
+        {"field":"executable_ambiguity","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://github.com/DReichLab/AdmixTools","value":"distribution documents multiple programs including convertf, qp3Pop, qpDstat, qpAdm, qpWave, and qpGraph"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/bioconda/admixtools","value":"package metadata exposes linux-64 and linux-aarch64"}
+      ]
+    },
+    {
+      "tool_id": "afterqc_extra",
+      "expected_executable": "after.py",
+      "version_command": ["after.py", "--version"],
+      "version_parser": "regex:(?m)^.*?([0-9]+(?:\\.[0-9]+)+)\\s*$",
+      "version_expected_value": null,
+      "smoke_command": ["after.py", "--qc_only", "-1", "fixtures/tiny.fastq"],
+      "smoke_inputs": ["fixtures/tiny.fastq: deterministic Illumina-1.8 single-end FASTQ"],
+      "smoke_expected_outputs": ["QC directory", "non-empty HTML quality-control report"],
+      "smoke_success_condition": "exit 0 and a non-empty QC HTML report is created",
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned afterqc, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest",
+        "the identified tiny FASTQ fixture is not yet repository-owned"
+      ],
+      "evidence": [
+        {"field":"executable_version_smoke","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://github.com/OpenGene/AfterQC","value":"README documents after.py, --version, --qc_only, single-end FASTQ input, and QC report output"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/bioconda/afterqc","value":"package metadata includes noarch; base manifest provides linux/amd64 and linux/arm64"}
+      ]
+    },
+    {
+      "tool_id": "agat_extra",
+      "expected_executable": "agat_convert_sp_gxf2gxf.pl",
+      "version_command": null,
+      "version_parser": null,
+      "version_expected_value": null,
+      "smoke_command": ["agat_convert_sp_gxf2gxf.pl", "--gff", "fixtures/tiny.gff3", "--output", "smoke.gff3"],
+      "smoke_inputs": ["fixtures/tiny.gff3: deterministic gene/mRNA/exon GFF3"],
+      "smoke_expected_outputs": ["smoke.gff3"],
+      "smoke_success_condition": "exit 0 and output is a non-empty GFF3 containing the input gene hierarchy",
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned agat, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest",
+        "no authoritative tool-level version command/parser is established",
+        "the identified tiny GFF3 fixture is not yet repository-owned"
+      ],
+      "evidence": [
+        {"field":"executable_smoke","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://github.com/NBISweden/AGAT","value":"README identifies agat_convert_sp_gxf2gxf.pl as the standardization command and documents GFF conversion"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/bioconda/agat","value":"package is noarch; base manifest provides linux/amd64 and linux/arm64"}
+      ]
+    },
+    {
+      "tool_id": "aicsimageio_extra",
+      "expected_executable": "python",
+      "version_command": ["python", "-c", "import aicsimageio; print(aicsimageio.get_module_version())"],
+      "version_parser": "regex:(?m)^([0-9]+(?:\\.[0-9]+)+(?:[-+._A-Za-z0-9]*)?)\\s*$",
+      "version_expected_value": null,
+      "smoke_command": ["python", "-c", "import numpy as np; from aicsimageio import AICSImage; i=AICSImage(np.zeros((2,3),dtype=np.uint8)); assert i.get_image_data('YX').shape == (2,3)"],
+      "smoke_inputs": ["in-memory deterministic 2x3 uint8 array"],
+      "smoke_expected_outputs": [],
+      "smoke_success_condition": "exit 0 after AICSImage reads the array and returns the expected YX shape",
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned aicsimageio, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest"
+      ],
+      "evidence": [
+        {"field":"version_smoke","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://allencellmodeling.github.io/aicsimageio/aicsimageio.html","value":"API documents get_module_version, AICSImage, and array-like input"},
+        {"field":"executable","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://raw.githubusercontent.com/conda-forge/aicsimageio-feedstock/main/recipe/meta.yaml","value":"package recipe validates the Python import and defines no dedicated console entry point"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/conda-forge/aicsimageio","value":"package is noarch; base manifest provides linux/amd64 and linux/arm64"}
+      ]
+    },
+    {
+      "tool_id": "airr_extra",
+      "expected_executable": "Rscript",
+      "version_command": ["Rscript", "-e", "cat(as.character(packageVersion('airr')), '\\n')"],
+      "version_parser": "regex:(?m)^([0-9]+(?:\\.[0-9]+)+)\\s*$",
+      "version_expected_value": null,
+      "smoke_command": ["Rscript", "-e", "library(airr); stopifnot(packageVersion('airr') > '0.0.0')"],
+      "smoke_inputs": [],
+      "smoke_expected_outputs": [],
+      "smoke_success_condition": "exit 0 after loading the installed AIRR R package",
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned r-airr, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest",
+        "package-load smoke is structural and no repository-owned AIRR rearrangement fixture establishes meaningful parsing"
+      ],
+      "evidence": [
+        {"field":"package_runtime","quality":"DIRECT_REPOSITORY_EVIDENCE","source":"dockerfiles/Dockerfile.airr_extra","value":"Dockerfile installs r-airr into a Micromamba environment"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/bioconda/r-airr","value":"package is noarch; base manifest provides linux/amd64 and linux/arm64"}
+      ]
+    },
+    {
+      "tool_id": "alevin_fry",
+      "expected_executable": "alevin-fry",
+      "version_command": ["alevin-fry", "--version"],
+      "version_parser": "regex:(?m)^alevin-fry\\s+([0-9]+(?:\\.[0-9]+)+(?:[-+._A-Za-z0-9]*)?)\\s*$",
+      "version_expected_value": null,
+      "smoke_command": null,
+      "smoke_inputs": [],
+      "smoke_expected_outputs": [],
+      "smoke_success_condition": null,
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned alevin-fry, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest",
+        "scientifically meaningful execution requires a valid RAD/permit-list fixture not present in the repository"
+      ],
+      "evidence": [
+        {"field":"executable_version","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://github.com/COMBINE-lab/alevin-fry/blob/master/src/main.rs","value":"Rust CLI is named alevin-fry and derives --version from Cargo package version"},
+        {"field":"smoke_requirement","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://github.com/COMBINE-lab/alevin-fry","value":"scientific subcommands consume RAD mapping and permit-list inputs"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/bioconda/alevin-fry","value":"package metadata exposes linux-64 and linux-aarch64"}
+      ]
+    },
+    {
+      "tool_id": "alevinqc_extra",
+      "expected_executable": "Rscript",
+      "version_command": ["Rscript", "-e", "cat(as.character(packageVersion('alevinQC')), '\\n')"],
+      "version_parser": "regex:(?m)^([0-9]+(?:\\.[0-9]+)+)\\s*$",
+      "version_expected_value": null,
+      "smoke_command": ["Rscript", "-e", "library(alevinQC); x=readAlevinQC(system.file('extdata/alevin_example_v0.14',package='alevinQC')); stopifnot(is.list(x))"],
+      "smoke_inputs": ["installed alevinQC extdata/alevin_example_v0.14 fixture"],
+      "smoke_expected_outputs": [],
+      "smoke_success_condition": "exit 0 after parsing the package's bundled alevin example into a list",
+      "runtime_network_required": false,
+      "runtime_gpu_required": false,
+      "runtime_database_required": false,
+      "runtime_reference_data_required": false,
+      "runtime_license_required": false,
+      "blocking_reasons": [
+        "Dockerfile installs unpinned bioconductor-alevinqc, so the intended scientific version is not deterministic",
+        "Dockerfile has no immutable package build, source tag, commit, archive checksum, or artifact digest"
+      ],
+      "evidence": [
+        {"field":"executable_version","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://raw.githubusercontent.com/bioconda/bioconda-recipes/master/recipes/bioconductor-alevinqc/meta.yaml","value":"recipe validates the installed R package with library(alevinQC)"},
+        {"field":"smoke","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://bioconductor.org/packages/release/bioc/manuals/alevinQC/man/alevinQC.pdf","value":"manual example calls readAlevinQC on bundled extdata/alevin_example_v0.14"},
+        {"field":"architecture","quality":"DIRECT_UPSTREAM_EVIDENCE","source":"https://api.anaconda.org/package/bioconda/bioconductor-alevinqc","value":"package metadata includes noarch; base manifest provides linux/amd64 and linux/arm64"}
+      ]
+    }
+  ]
+}

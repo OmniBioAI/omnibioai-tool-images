@@ -1,2 +1,2 @@
 FROM mambaorg/micromamba:1.5.8
-RUN micromamba install -y -n base -c bioconda -c conda-forge     aicsimageio && micromamba clean --all --yes
+RUN micromamba install -y -n base -c bioconda -c conda-forge     aicsimageio=4.14.0=pyhd8ed1ab_0 && micromamba clean --all --yes

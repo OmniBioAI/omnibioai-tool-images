@@ -1,27 +1,28 @@
 {
   "base_image_architecture_evidence": {
-    "quality": "INFERRED",
-    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+    "quality": "DIRECT_UPSTREAM_EVIDENCE",
+    "statement": "read-only manifest inspection found linux/amd64 and linux/arm64 for mambaorg/micromamba:1.5.8; package architecture evidence is recorded below"
   },
   "base_image_reference": "mambaorg/micromamba:1.5.8",
-  "blocking_reasons": [
-    "no canonical scientific executable is explicitly invoked by the Dockerfile",
-    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-    "no exact tool-associated scientific version or immutable source pin is present",
-    "no explicit tool-specific version command is present"
-  ],
+  "blocking_reasons": [],
   "classification": "MULTIARCH_READY",
-  "contract_confidence": "LOW",
-  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "contract_confidence": "HIGH",
+  "contract_status": "CONTRACT_READY",
   "display_name": "abricate",
   "dockerfile_path": "dockerfiles/Dockerfile.abricate",
-  "dockerfile_sha256": "a910555ffdd3d869eacdce5c5b14d615f5dbe0faababe2e69f920bd682ef6860",
+  "dockerfile_sha256": "33505dffb6491b1ccea9757cc9401775c23a6b68935e2fe625f74cf4675c2661",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
     "targeted": true
   },
   "evidence": [
+    {
+      "field": "architecture_availability",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/abricate",
+      "value": "{\"amd64\": \"NOARCH_PACKAGE_ARTIFACT\", \"arm64\": \"NOARCH_PACKAGE_ARTIFACT\"}"
+    },
     {
       "field": "base_image_reference",
       "line": 1,
@@ -30,46 +31,122 @@
       "value": "FROM mambaorg/micromamba:1.5.8"
     },
     {
+      "field": "baseline_version",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/abricate",
+      "value": "latest stable Bioconda main-channel release with a noarch package artifact"
+    },
+    {
       "field": "classification",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "MULTIARCH_READY"
     },
     {
+      "field": "executable_version_smoke",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://raw.githubusercontent.com/bioconda/bioconda-recipes/master/recipes/abricate/meta.yaml",
+      "value": "recipe tests abricate --version, --help, --list, and --check"
+    },
+    {
       "field": "package",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "ghcr.io/omnibioai/omnibioai-sif/abricate"
+    },
+    {
+      "field": "runtime_requirements",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/tseemann/abricate/blob/master/bin/abricate",
+      "value": "tool validates local BLAST executables and uses a local sequence database"
+    },
+    {
+      "field": "source_identity",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/tseemann/abricate/archive/v1.4.0.tar.gz",
+      "value": "sha256:cbafe0efbdb7a0ac3d3bcd3cb2ca4a0152474d20b68c5f98da5a4c7cc25676eb"
     }
   ],
   "expected_architectures": [
     "amd64",
     "arm64"
   ],
-  "expected_executable": null,
+  "expected_executable": "abricate",
   "native_amd64_expected": true,
   "native_arm64_expected": true,
   "package": "ghcr.io/omnibioai/omnibioai-sif/abricate",
+  "pinning": {
+    "architecture_availability": {
+      "amd64": "NOARCH_PACKAGE_ARTIFACT",
+      "arm64": "NOARCH_PACKAGE_ARTIFACT"
+    },
+    "evaluated_candidate_version": null,
+    "historical_intended_version": "UNKNOWN",
+    "native_build_validation_status": "NOT_RUN",
+    "new_reproducible_baseline_version": "1.4.0",
+    "package_artifacts": {
+      "noarch": "abricate-1.4.0-h05cac1d_0.conda;sha256:757c2b5c9a3ae432da29cb8987691da67082a5482a3ddbe6ca49cfd957217302"
+    },
+    "package_name": "abricate",
+    "pinning_canary_schema_version": 1,
+    "release_status": "NOT_PUBLISHED",
+    "source_identity": "sha256:cbafe0efbdb7a0ac3d3bcd3cb2ca4a0152474d20b68c5f98da5a4c7cc25676eb",
+    "source_identity_type": "UPSTREAM_ARCHIVE_SHA256",
+    "static_contract_status": "STATIC_CONTRACT_READY",
+    "version_selection_basis": "latest stable Bioconda main-channel release with a noarch package artifact"
+  },
   "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
-  "runtime_database_required": false,
+  "remediation": {
+    "canary_schema_version": 1,
+    "initial_blockers": [
+      "no canonical scientific executable is explicitly invoked by the Dockerfile",
+      "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+      "no exact tool-associated scientific version or immutable source pin is present",
+      "no explicit tool-specific version command is present"
+    ],
+    "initial_deficiency_flags": [
+      "EXECUTABLE_MISSING",
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "VERSION_COMMAND_MISSING",
+      "VERSION_PARSER_MISSING",
+      "SMOKE_COMMAND_MISSING",
+      "SMOKE_INPUT_MISSING",
+      "SMOKE_SUCCESS_CONDITION_MISSING",
+      "ARCHITECTURE_EVIDENCE_INFERRED_ONLY"
+    ],
+    "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+    "package_mapping_confirmed_read_only": true,
+    "remaining_deficiency_flags": [],
+    "smoke_network_requirement": "NETWORK_FREE"
+  },
+  "runtime_database_required": true,
   "runtime_gpu_required": false,
   "runtime_license_required": false,
   "runtime_network_required": false,
-  "runtime_reference_data_required": false,
-  "scientific_version": null,
-  "scientific_version_evidence": null,
-  "scientific_version_source": null,
-  "smoke_command": null,
-  "smoke_expected_outputs": [],
+  "runtime_reference_data_required": true,
+  "scientific_version": "1.4.0",
+  "scientific_version_evidence": "abricate=1.4.0",
+  "scientific_version_source": "new_reproducible_baseline_package_version",
+  "smoke_command": [
+    "abricate",
+    "--check"
+  ],
+  "smoke_expected_outputs": [
+    "OK"
+  ],
   "smoke_inputs": [],
-  "smoke_success_condition": null,
-  "source_immutable_identity": null,
-  "source_reference": null,
-  "source_type": "unknown_unpinned",
+  "smoke_success_condition": "exit 0 after validating required local executables",
+  "source_immutable_identity": "sha256:cbafe0efbdb7a0ac3d3bcd3cb2ca4a0152474d20b68c5f98da5a4c7cc25676eb",
+  "source_reference": "https://github.com/tseemann/abricate/archive/v1.4.0.tar.gz",
+  "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "abricate",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "f701c45521a4977e0f71dd42ec64beefad50bdfa9df909c789c9a370c2c4f342",
-  "version_command": null,
-  "version_expected_value": null,
-  "version_parser": null
+  "validation_contract_sha256": "5b95e0bc31e7cfdf102836c73de8a86035371320a13df140e0d922f374931df6",
+  "version_command": [
+    "abricate",
+    "--version"
+  ],
+  "version_expected_value": "1.4.0",
+  "version_parser": "regex:(?m)^abricate\\s+(1\\.4\\.0)\\s*$"
 }

@@ -1,17 +1,15 @@
 {
   "base_image_architecture_evidence": {
-    "quality": "INFERRED",
-    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+    "quality": "DIRECT_UPSTREAM_EVIDENCE",
+    "statement": "read-only manifest inspection found linux/amd64 and linux/arm64 for mambaorg/micromamba:1.5.8; package architecture evidence is recorded below"
   },
   "base_image_reference": "mambaorg/micromamba:1.5.8",
   "blocking_reasons": [
-    "no canonical scientific executable is explicitly invoked by the Dockerfile",
-    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-    "no exact tool-associated scientific version or immutable source pin is present",
-    "no explicit tool-specific version command is present"
+    "no reproducible baseline was selected because native arm64 dependency availability is not established",
+    "Dockerfile remains historically unpinned"
   ],
   "classification": "MULTIARCH_READY",
-  "contract_confidence": "LOW",
+  "contract_confidence": "MEDIUM",
   "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
   "display_name": "afterqc_extra",
   "dockerfile_path": "dockerfiles/Dockerfile.afterqc_extra",
@@ -23,11 +21,29 @@
   },
   "evidence": [
     {
+      "field": "architecture",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/afterqc",
+      "value": "package metadata includes noarch; base manifest provides linux/amd64 and linux/arm64"
+    },
+    {
+      "field": "architecture_availability",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/afterqc",
+      "value": "{\"amd64\": \"NOARCH_PACKAGE_REQUIRES_PYTHON_2_7\", \"arm64\": \"NOT_ESTABLISHED\"}"
+    },
+    {
       "field": "base_image_reference",
       "line": 1,
       "quality": "DIRECT",
       "source": "dockerfiles/Dockerfile.afterqc_extra",
       "value": "FROM mambaorg/micromamba:1.5.8"
+    },
+    {
+      "field": "baseline_version",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/afterqc",
+      "value": "candidate rejected: latest stable package requires Python 2.7 and no native arm64 dependency solution is established"
     },
     {
       "field": "classification",
@@ -36,21 +52,87 @@
       "value": "MULTIARCH_READY"
     },
     {
+      "field": "executable_version_smoke",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/OpenGene/AfterQC",
+      "value": "README documents after.py, --version, --qc_only, single-end FASTQ input, and QC report output"
+    },
+    {
+      "field": "fixture",
+      "quality": "DIRECT_REPOSITORY_EVIDENCE",
+      "source": "validation-contracts/fixtures/afterqc-tiny.fastq",
+      "value": "sha256:61dc307781e8a784960e1305609a8060ad59f13f93f65609c3a1970bbcbae5c8"
+    },
+    {
       "field": "package",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "ghcr.io/omnibioai/omnibioai-sif/afterqc_extra"
+    },
+    {
+      "field": "source_identity",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/OpenGene/AfterQC/archive/v0.9.7.tar.gz",
+      "value": "sha256:cd4b33f1874bf7588fecdd44a57ca85788022c689922e8186b8dc137c5631bc2"
     }
   ],
   "expected_architectures": [
     "amd64",
     "arm64"
   ],
-  "expected_executable": null,
+  "expected_executable": "after.py",
   "native_amd64_expected": true,
-  "native_arm64_expected": true,
+  "native_arm64_expected": false,
   "package": "ghcr.io/omnibioai/omnibioai-sif/afterqc_extra",
+  "pinning": {
+    "architecture_availability": {
+      "amd64": "NOARCH_PACKAGE_REQUIRES_PYTHON_2_7",
+      "arm64": "NOT_ESTABLISHED"
+    },
+    "evaluated_candidate_version": "0.9.7",
+    "historical_intended_version": "UNKNOWN",
+    "native_build_validation_status": "NOT_RUN",
+    "new_reproducible_baseline_version": null,
+    "package_artifacts": {
+      "noarch": "afterqc-0.9.7-hdfd78af_4.tar.bz2;md5:e1097f9eae2bf177048e8816034cc4d0"
+    },
+    "package_name": "afterqc",
+    "pinning_canary_schema_version": 1,
+    "release_status": "NOT_PUBLISHED",
+    "source_identity": "sha256:cd4b33f1874bf7588fecdd44a57ca85788022c689922e8186b8dc137c5631bc2",
+    "source_identity_type": "UPSTREAM_ARCHIVE_SHA256",
+    "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+    "version_selection_basis": "candidate rejected: latest stable package requires Python 2.7 and no native arm64 dependency solution is established"
+  },
   "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "remediation": {
+    "canary_schema_version": 1,
+    "initial_blockers": [
+      "no canonical scientific executable is explicitly invoked by the Dockerfile",
+      "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+      "no exact tool-associated scientific version or immutable source pin is present",
+      "no explicit tool-specific version command is present"
+    ],
+    "initial_deficiency_flags": [
+      "EXECUTABLE_MISSING",
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "VERSION_COMMAND_MISSING",
+      "VERSION_PARSER_MISSING",
+      "SMOKE_COMMAND_MISSING",
+      "SMOKE_INPUT_MISSING",
+      "SMOKE_SUCCESS_CONDITION_MISSING",
+      "ARCHITECTURE_EVIDENCE_INFERRED_ONLY"
+    ],
+    "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+    "package_mapping_confirmed_read_only": true,
+    "remaining_deficiency_flags": [
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "ARCHITECTURE_EVIDENCE_MISSING"
+    ],
+    "smoke_network_requirement": "NETWORK_FREE"
+  },
   "runtime_database_required": false,
   "runtime_gpu_required": false,
   "runtime_license_required": false,
@@ -59,17 +141,30 @@
   "scientific_version": null,
   "scientific_version_evidence": null,
   "scientific_version_source": null,
-  "smoke_command": null,
-  "smoke_expected_outputs": [],
-  "smoke_inputs": [],
-  "smoke_success_condition": null,
+  "smoke_command": [
+    "after.py",
+    "--qc_only",
+    "-1",
+    "validation-contracts/fixtures/afterqc-tiny.fastq"
+  ],
+  "smoke_expected_outputs": [
+    "QC directory",
+    "non-empty HTML quality-control report"
+  ],
+  "smoke_inputs": [
+    "validation-contracts/fixtures/afterqc-tiny.fastq"
+  ],
+  "smoke_success_condition": "exit 0 and a non-empty QC HTML report is created",
   "source_immutable_identity": null,
   "source_reference": null,
   "source_type": "unknown_unpinned",
   "tool_id": "afterqc_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "77b1428f2384557aefb30ff7f8957bf2926d2a9c3e4dd9659504a601e2ebd9b4",
-  "version_command": null,
+  "validation_contract_sha256": "45854a7d2256c367657f9fbcb91b693118d474fedca9eb8faf194abe4abc269f",
+  "version_command": [
+    "after.py",
+    "--version"
+  ],
   "version_expected_value": null,
-  "version_parser": null
+  "version_parser": "regex:(?m)^.*?([0-9]+(?:\\.[0-9]+)+)\\s*$"
 }

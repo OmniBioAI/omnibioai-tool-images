@@ -1,27 +1,37 @@
 {
   "base_image_architecture_evidence": {
-    "quality": "INFERRED",
-    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+    "quality": "DIRECT_UPSTREAM_EVIDENCE",
+    "statement": "read-only manifest inspection found linux/amd64 and linux/arm64 for mambaorg/micromamba:latest; package architecture evidence is recorded below"
   },
   "base_image_reference": "mambaorg/micromamba:latest",
   "blocking_reasons": [
-    "no canonical scientific executable is explicitly invoked by the Dockerfile",
-    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-    "no exact tool-associated scientific version or immutable source pin is present",
-    "no explicit tool-specific version command is present"
+    "no repository-owned bounded EIGENSTRAT fixture establishes a scientifically meaningful qp3Pop execution",
+    "the upstream academic/non-commercial license requires distribution-scope review before release eligibility"
   ],
   "classification": "MULTIARCH_READY",
-  "contract_confidence": "LOW",
+  "contract_confidence": "MEDIUM",
   "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
   "display_name": "admixtools",
   "dockerfile_path": "dockerfiles/Dockerfile.admixtools",
-  "dockerfile_sha256": "3b64b30f9d72f93cbc7c9e08cb505b3589fb7ae270c8ff923ec880fd0a225024",
+  "dockerfile_sha256": "87d2633a583bf4df46e6ac2a2d3da65fef10f05818090680bd00c3318f83db33",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
     "targeted": true
   },
   "evidence": [
+    {
+      "field": "architecture",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/admixtools",
+      "value": "package metadata exposes linux-64 and linux-aarch64"
+    },
+    {
+      "field": "architecture_availability",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/admixtools",
+      "value": "{\"amd64\": \"NATIVE_PACKAGE_ARTIFACT\", \"arm64\": \"NATIVE_PACKAGE_ARTIFACT\"}"
+    },
     {
       "field": "base_image_reference",
       "line": 1,
@@ -30,46 +40,116 @@
       "value": "FROM mambaorg/micromamba:latest"
     },
     {
+      "field": "baseline_version",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/admixtools",
+      "value": "latest stable Bioconda main-channel release with distinct native linux-64 and linux-aarch64 artifacts"
+    },
+    {
       "field": "classification",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "MULTIARCH_READY"
     },
     {
+      "field": "executable_ambiguity",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/DReichLab/AdmixTools",
+      "value": "distribution documents multiple programs including convertf, qp3Pop, qpDstat, qpAdm, qpWave, and qpGraph"
+    },
+    {
       "field": "package",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "ghcr.io/omnibioai/omnibioai-sif/admixtools"
+    },
+    {
+      "field": "source_identity",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/DReichLab/AdmixTools/archive/refs/tags/v8.0.2.tar.gz",
+      "value": "sha256:fea3eaabc5c47aa85dbc4346b6be0c377249064ccba087c246cbc7bec4b18777"
     }
   ],
   "expected_architectures": [
     "amd64",
     "arm64"
   ],
-  "expected_executable": null,
+  "expected_executable": "qp3Pop",
   "native_amd64_expected": true,
   "native_arm64_expected": true,
   "package": "ghcr.io/omnibioai/omnibioai-sif/admixtools",
+  "pinning": {
+    "architecture_availability": {
+      "amd64": "NATIVE_PACKAGE_ARTIFACT",
+      "arm64": "NATIVE_PACKAGE_ARTIFACT"
+    },
+    "distribution_license_review": "REQUIRED_NONCOMMERCIAL_LICENSE",
+    "evaluated_candidate_version": null,
+    "historical_intended_version": "UNKNOWN",
+    "native_build_validation_status": "NOT_RUN",
+    "new_reproducible_baseline_version": "8.0.2",
+    "package_artifacts": {
+      "amd64": "admixtools-8.0.2-h75d7a4a_0.tar.bz2;sha256:3f022fcdb86349d24978a6fcf8531f65301c55c07b928a6908ad192bb0c8c325",
+      "arm64": "admixtools-8.0.2-he9d944c_0.tar.bz2;sha256:c5f24053ec1b1b31b3ad77bdeeacc147a7bc24da368f029441adf558cb9b0e2a"
+    },
+    "package_name": "admixtools",
+    "pinning_canary_schema_version": 1,
+    "release_status": "NOT_PUBLISHED",
+    "runtime_reported_version": "701",
+    "source_identity": "sha256:fea3eaabc5c47aa85dbc4346b6be0c377249064ccba087c246cbc7bec4b18777",
+    "source_identity_type": "UPSTREAM_ARCHIVE_SHA256",
+    "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+    "version_selection_basis": "latest stable Bioconda main-channel release with distinct native linux-64 and linux-aarch64 artifacts"
+  },
   "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "remediation": {
+    "canary_schema_version": 1,
+    "initial_blockers": [
+      "no canonical scientific executable is explicitly invoked by the Dockerfile",
+      "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+      "no exact tool-associated scientific version or immutable source pin is present",
+      "no explicit tool-specific version command is present"
+    ],
+    "initial_deficiency_flags": [
+      "EXECUTABLE_MISSING",
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "VERSION_COMMAND_MISSING",
+      "VERSION_PARSER_MISSING",
+      "SMOKE_COMMAND_MISSING",
+      "SMOKE_INPUT_MISSING",
+      "SMOKE_SUCCESS_CONDITION_MISSING",
+      "ARCHITECTURE_EVIDENCE_INFERRED_ONLY"
+    ],
+    "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+    "package_mapping_confirmed_read_only": true,
+    "remaining_deficiency_flags": [
+      "SMOKE_CONTRACT_MISSING"
+    ],
+    "smoke_network_requirement": "UNKNOWN"
+  },
   "runtime_database_required": false,
   "runtime_gpu_required": false,
   "runtime_license_required": false,
   "runtime_network_required": false,
   "runtime_reference_data_required": false,
-  "scientific_version": null,
-  "scientific_version_evidence": null,
-  "scientific_version_source": null,
+  "scientific_version": "8.0.2",
+  "scientific_version_evidence": "admixtools=8.0.2",
+  "scientific_version_source": "new_reproducible_baseline_package_version",
   "smoke_command": null,
   "smoke_expected_outputs": [],
   "smoke_inputs": [],
   "smoke_success_condition": null,
-  "source_immutable_identity": null,
-  "source_reference": null,
-  "source_type": "unknown_unpinned",
+  "source_immutable_identity": "sha256:fea3eaabc5c47aa85dbc4346b6be0c377249064ccba087c246cbc7bec4b18777",
+  "source_reference": "https://github.com/DReichLab/AdmixTools/archive/refs/tags/v8.0.2.tar.gz",
+  "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "admixtools",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "ae71912ea7aa9f5d21554b993b46dc42cabf2de6f429b1e9c2bd7daa959245dd",
-  "version_command": null,
-  "version_expected_value": null,
-  "version_parser": null
+  "validation_contract_sha256": "e1b39a2629d029a921b550f2e3eb96d250de96c0d9df3b2b0097f6da56e311ca",
+  "version_command": [
+    "qp3Pop",
+    "-v"
+  ],
+  "version_expected_value": "701",
+  "version_parser": "regex:(?m)^version: (701)$"
 }

@@ -1,3 +1,8 @@
-FROM mambaorg/micromamba:latest
-RUN micromamba install -y -n base -c bioconda -c conda-forge admixtools \
+FROM mambaorg/micromamba:1.5.8
+RUN case "$(uname -m)" in \
+      x86_64) package_build=h75d7a4a_0 ;; \
+      aarch64) package_build=he9d944c_0 ;; \
+      *) echo "unsupported architecture: $(uname -m)" >&2; exit 1 ;; \
+    esac \
+    && micromamba install -y -n base -c bioconda -c conda-forge "admixtools=8.0.2=${package_build}" \
     && micromamba clean --all --yes

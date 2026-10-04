@@ -1,27 +1,36 @@
 {
   "base_image_architecture_evidence": {
-    "quality": "INFERRED",
-    "statement": "repository audit classifies this Dockerfile MULTIARCH_READY; runtime architecture remains a build-phase gate"
+    "quality": "DIRECT_UPSTREAM_EVIDENCE",
+    "statement": "read-only manifest inspection found linux/amd64 and linux/arm64 for mambaorg/micromamba:1.5.8; package architecture evidence is recorded below"
   },
   "base_image_reference": "mambaorg/micromamba:1.5.8",
   "blocking_reasons": [
-    "no canonical scientific executable is explicitly invoked by the Dockerfile",
-    "no deterministic scientifically meaningful smoke contract is present in repository evidence",
-    "no exact tool-associated scientific version or immutable source pin is present",
-    "no explicit tool-specific version command is present"
+    "scientifically meaningful execution requires a valid RAD and permit-list fixture that is not available in repository evidence"
   ],
   "classification": "MULTIARCH_READY",
-  "contract_confidence": "LOW",
-  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "contract_confidence": "MEDIUM",
+  "contract_status": "CONTRACT_BLOCKED_SMOKE",
   "display_name": "alevin_fry",
   "dockerfile_path": "dockerfiles/Dockerfile.alevin_fry",
-  "dockerfile_sha256": "e2291f53fd36a31d5abaa16f2bb6f37c8869819fb6f14d93e2bd3143f2da63b5",
+  "dockerfile_sha256": "b31f4429c6c1212f5c593d32f7d205b3559d393a103645afceb33b627fe55c33",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
     "targeted": true
   },
   "evidence": [
+    {
+      "field": "architecture",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/alevin-fry",
+      "value": "package metadata exposes linux-64 and linux-aarch64"
+    },
+    {
+      "field": "architecture_availability",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/alevin-fry",
+      "value": "{\"amd64\": \"NATIVE_PACKAGE_ARTIFACT\", \"arm64\": \"NATIVE_PACKAGE_ARTIFACT\"}"
+    },
     {
       "field": "base_image_reference",
       "line": 1,
@@ -30,46 +39,120 @@
       "value": "FROM mambaorg/micromamba:1.5.8"
     },
     {
+      "field": "baseline_version",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/bioconda/alevin-fry",
+      "value": "latest stable Bioconda main-channel release with distinct native linux-64 and linux-aarch64 artifacts"
+    },
+    {
       "field": "classification",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "MULTIARCH_READY"
     },
     {
+      "field": "executable_version",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/COMBINE-lab/alevin-fry/blob/master/src/main.rs",
+      "value": "Rust CLI is named alevin-fry and derives --version from Cargo package version"
+    },
+    {
       "field": "package",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "ghcr.io/omnibioai/omnibioai-sif/alevin_fry"
+    },
+    {
+      "field": "smoke_requirement",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/COMBINE-lab/alevin-fry",
+      "value": "scientific subcommands consume RAD mapping and permit-list inputs"
+    },
+    {
+      "field": "source_identity",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/COMBINE-lab/alevin-fry/releases/download/v0.18.3/source.tar.gz",
+      "value": "sha256:9452d87d9f621d2bf16230cfaf9b2b789407e1a98015361e49ec631f5e46631b"
     }
   ],
   "expected_architectures": [
     "amd64",
     "arm64"
   ],
-  "expected_executable": null,
+  "expected_executable": "alevin-fry",
   "native_amd64_expected": true,
   "native_arm64_expected": true,
   "package": "ghcr.io/omnibioai/omnibioai-sif/alevin_fry",
+  "pinning": {
+    "architecture_availability": {
+      "amd64": "NATIVE_PACKAGE_ARTIFACT",
+      "arm64": "NATIVE_PACKAGE_ARTIFACT"
+    },
+    "evaluated_candidate_version": null,
+    "historical_intended_version": "UNKNOWN",
+    "native_build_validation_status": "NOT_RUN",
+    "new_reproducible_baseline_version": "0.18.3",
+    "package_artifacts": {
+      "amd64": "alevin-fry-0.18.3-hd612981_0.conda;sha256:f99d828aecd7b90480e48869f1d9f392c9880fa69579ae31f51439d3d203c5d2",
+      "arm64": "alevin-fry-0.18.3-h6789a04_0.conda;sha256:680024b2efcee32468a8287c2e60ca234cdefbafbd515a71bf513a627990e5b2"
+    },
+    "package_name": "alevin-fry",
+    "pinning_canary_schema_version": 1,
+    "release_status": "NOT_PUBLISHED",
+    "source_identity": "sha256:9452d87d9f621d2bf16230cfaf9b2b789407e1a98015361e49ec631f5e46631b",
+    "source_identity_type": "UPSTREAM_ARCHIVE_SHA256",
+    "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+    "version_selection_basis": "latest stable Bioconda main-channel release with distinct native linux-64 and linux-aarch64 artifacts"
+  },
   "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
+  "remediation": {
+    "canary_schema_version": 1,
+    "initial_blockers": [
+      "no canonical scientific executable is explicitly invoked by the Dockerfile",
+      "no deterministic scientifically meaningful smoke contract is present in repository evidence",
+      "no exact tool-associated scientific version or immutable source pin is present",
+      "no explicit tool-specific version command is present"
+    ],
+    "initial_deficiency_flags": [
+      "EXECUTABLE_MISSING",
+      "SCIENTIFIC_VERSION_MISSING",
+      "SOURCE_IDENTITY_MISSING",
+      "VERSION_COMMAND_MISSING",
+      "VERSION_PARSER_MISSING",
+      "SMOKE_COMMAND_MISSING",
+      "SMOKE_INPUT_MISSING",
+      "SMOKE_SUCCESS_CONDITION_MISSING",
+      "ARCHITECTURE_EVIDENCE_INFERRED_ONLY"
+    ],
+    "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+    "package_mapping_confirmed_read_only": true,
+    "remaining_deficiency_flags": [
+      "SMOKE_CONTRACT_MISSING"
+    ],
+    "smoke_network_requirement": "UNKNOWN"
+  },
   "runtime_database_required": false,
   "runtime_gpu_required": false,
   "runtime_license_required": false,
   "runtime_network_required": false,
   "runtime_reference_data_required": false,
-  "scientific_version": null,
-  "scientific_version_evidence": null,
-  "scientific_version_source": null,
+  "scientific_version": "0.18.3",
+  "scientific_version_evidence": "alevin-fry=0.18.3",
+  "scientific_version_source": "new_reproducible_baseline_package_version",
   "smoke_command": null,
   "smoke_expected_outputs": [],
   "smoke_inputs": [],
   "smoke_success_condition": null,
-  "source_immutable_identity": null,
-  "source_reference": null,
-  "source_type": "unknown_unpinned",
+  "source_immutable_identity": "sha256:9452d87d9f621d2bf16230cfaf9b2b789407e1a98015361e49ec631f5e46631b",
+  "source_reference": "https://github.com/COMBINE-lab/alevin-fry/releases/download/v0.18.3/source.tar.gz",
+  "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "alevin_fry",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "bf95f2e2f33ad55c72bf60bd7281e31b660df9fce5c610f2751d29191663349d",
-  "version_command": null,
-  "version_expected_value": null,
-  "version_parser": null
+  "validation_contract_sha256": "8158a93000832f1eff8c791952a749e37672acee9e9a675c3844359c2e45d7fd",
+  "version_command": [
+    "alevin-fry",
+    "--version"
+  ],
+  "version_expected_value": "0.18.3",
+  "version_parser": "regex:(?m)^alevin-fry\\s+(0\\.18\\.3)\\s*$"
 }

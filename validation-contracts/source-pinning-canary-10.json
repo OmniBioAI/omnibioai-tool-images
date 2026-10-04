@@ -1,0 +1,204 @@
+{
+  "historical_intended_version": "UNKNOWN for all ten tools",
+  "pinning_canary_schema_version": 1,
+  "selection_rule": "same deterministic ten-tool remediation canary; no substitutions",
+  "source_commit": "90259bb5dc51903753b71b70f82103217ad37c9f",
+  "tools": [
+    {
+      "architecture_availability": {
+        "amd64": "NOARCH_PACKAGE_ARTIFACT",
+        "arm64": "NOARCH_PACKAGE_ARTIFACT"
+      },
+      "evaluated_candidate_version": null,
+      "new_reproducible_baseline_version": "201008",
+      "package_artifacts": {
+        "noarch": "3d-dna-201008-hdfd78af_0.tar.bz2;md5:64c37aad4d6f3a3c7e1671754b1f79e8"
+      },
+      "package_name": "3d-dna",
+      "remaining_blockers": [],
+      "source_identity": "sha256:a027963f0b4fc59a24bac38e2ab71e6bcd25f4ad3182f8bdfe1beb37dabaef4b",
+      "source_reference": "https://github.com/aidenlab/3d-dna/archive/refs/tags/201008.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_READY",
+      "tool_id": "3ddna_extra",
+      "version_selection_basis": "latest stable Bioconda main-channel release with a noarch package artifact"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NOARCH_PACKAGE_ARTIFACT",
+        "arm64": "NOARCH_PACKAGE_ARTIFACT"
+      },
+      "evaluated_candidate_version": null,
+      "new_reproducible_baseline_version": "1.4.0",
+      "package_artifacts": {
+        "noarch": "abricate-1.4.0-h05cac1d_0.conda;sha256:757c2b5c9a3ae432da29cb8987691da67082a5482a3ddbe6ca49cfd957217302"
+      },
+      "package_name": "abricate",
+      "remaining_blockers": [],
+      "source_identity": "sha256:cbafe0efbdb7a0ac3d3bcd3cb2ca4a0152474d20b68c5f98da5a4c7cc25676eb",
+      "source_reference": "https://github.com/tseemann/abricate/archive/v1.4.0.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_READY",
+      "tool_id": "abricate",
+      "version_selection_basis": "latest stable Bioconda main-channel release with a noarch package artifact"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NOARCH_PACKAGE_ARTIFACT",
+        "arm64": "NOARCH_PACKAGE_ARTIFACT"
+      },
+      "evaluated_candidate_version": null,
+      "new_reproducible_baseline_version": "1.15.0",
+      "package_artifacts": {
+        "noarch": "accelerate-1.15.0-pyh5ded981_0.conda;sha256:19f9b3a42380d18529e0a472a1802ebcd3d96a8b782ed8274d5f2a21d2ff9a8b"
+      },
+      "package_name": "accelerate",
+      "remaining_blockers": [],
+      "source_identity": "sha256:5654f8c5eaa0d4fa68b33e287a97765da6849bf6d51dcac874e73fbbddfb6134",
+      "source_reference": "https://pypi.org/packages/source/a/accelerate/accelerate-1.15.0.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_READY",
+      "tool_id": "accelerate",
+      "version_selection_basis": "latest stable conda-forge main-channel release with a noarch Python package artifact"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NATIVE_PACKAGE_ARTIFACT",
+        "arm64": "NATIVE_PACKAGE_ARTIFACT"
+      },
+      "evaluated_candidate_version": null,
+      "new_reproducible_baseline_version": "8.0.2",
+      "package_artifacts": {
+        "amd64": "admixtools-8.0.2-h75d7a4a_0.tar.bz2;sha256:3f022fcdb86349d24978a6fcf8531f65301c55c07b928a6908ad192bb0c8c325",
+        "arm64": "admixtools-8.0.2-he9d944c_0.tar.bz2;sha256:c5f24053ec1b1b31b3ad77bdeeacc147a7bc24da368f029441adf558cb9b0e2a"
+      },
+      "package_name": "admixtools",
+      "remaining_blockers": [
+        "no repository-owned bounded EIGENSTRAT fixture establishes a scientifically meaningful qp3Pop execution",
+        "the upstream academic/non-commercial license requires distribution-scope review before release eligibility"
+      ],
+      "source_identity": "sha256:fea3eaabc5c47aa85dbc4346b6be0c377249064ccba087c246cbc7bec4b18777",
+      "source_reference": "https://github.com/DReichLab/AdmixTools/archive/refs/tags/v8.0.2.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+      "tool_id": "admixtools",
+      "version_selection_basis": "latest stable Bioconda main-channel release with distinct native linux-64 and linux-aarch64 artifacts"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NOARCH_PACKAGE_REQUIRES_PYTHON_2_7",
+        "arm64": "NOT_ESTABLISHED"
+      },
+      "evaluated_candidate_version": "0.9.7",
+      "new_reproducible_baseline_version": null,
+      "package_artifacts": {
+        "noarch": "afterqc-0.9.7-hdfd78af_4.tar.bz2;md5:e1097f9eae2bf177048e8816034cc4d0"
+      },
+      "package_name": "afterqc",
+      "remaining_blockers": [
+        "no reproducible baseline was selected because native arm64 dependency availability is not established",
+        "Dockerfile remains historically unpinned"
+      ],
+      "source_identity": "sha256:cd4b33f1874bf7588fecdd44a57ca85788022c689922e8186b8dc137c5631bc2",
+      "source_reference": "https://github.com/OpenGene/AfterQC/archive/v0.9.7.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+      "tool_id": "afterqc_extra",
+      "version_selection_basis": "candidate rejected: latest stable package requires Python 2.7 and no native arm64 dependency solution is established"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NOARCH_PACKAGE_ARTIFACT",
+        "arm64": "NOARCH_PACKAGE_ARTIFACT"
+      },
+      "evaluated_candidate_version": null,
+      "new_reproducible_baseline_version": "1.7.0",
+      "package_artifacts": {
+        "noarch": "agat-1.7.0-pl5321hdfd78af_0.conda;sha256:f1f0bcc0152d5e45202c3ddb56968a537cb4ea091acd1c07998ddbf4f4e8b210"
+      },
+      "package_name": "agat",
+      "remaining_blockers": [],
+      "source_identity": "sha256:199ff4ad500827e7631e94f5fc1f40ea310dc048a0bdb82a3aaad06fbcd1f7a9",
+      "source_reference": "https://github.com/NBISweden/AGAT/archive/v1.7.0.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_READY",
+      "tool_id": "agat_extra",
+      "version_selection_basis": "latest stable Bioconda main-channel release with a noarch package artifact"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NOARCH_PACKAGE_ARTIFACT",
+        "arm64": "NOARCH_PACKAGE_ARTIFACT"
+      },
+      "evaluated_candidate_version": null,
+      "new_reproducible_baseline_version": "4.14.0",
+      "package_artifacts": {
+        "noarch": "aicsimageio-4.14.0-pyhd8ed1ab_0.conda;sha256:d6b33ed157d0a7b2db598cb454f40d8cd7fb9815c5d8c971abd8e89fe1c92fa8"
+      },
+      "package_name": "aicsimageio",
+      "remaining_blockers": [],
+      "source_identity": "sha256:0f6684587b1d833ce5b10f3e81314e2a89269cd94bd09747fcd6460f3119855c",
+      "source_reference": "https://pypi.io/packages/source/a/aicsimageio/aicsimageio-4.14.0.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_READY",
+      "tool_id": "aicsimageio_extra",
+      "version_selection_basis": "latest stable conda-forge main-channel release with a noarch Python package artifact"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NOARCH_PACKAGE_REQUIRES_R_3_5_1",
+        "arm64": "NOT_ESTABLISHED"
+      },
+      "evaluated_candidate_version": "1.2.0",
+      "new_reproducible_baseline_version": null,
+      "package_artifacts": {
+        "noarch": "r-airr-1.2.0-r351h6115d3f_1.tar.bz2;md5:a76851608b2354e9bb3dd457aa21a425"
+      },
+      "package_name": "r-airr",
+      "remaining_blockers": [
+        "no reproducible baseline was selected because native arm64 dependency availability is not established",
+        "Dockerfile remains historically unpinned"
+      ],
+      "source_identity": "sha256:306cd7084b1ef0617af62e5815df538f2dcd6d6aaabb593df6f579e8ab5c5cef",
+      "source_reference": "https://cran.r-project.org/src/contrib/Archive/airr/airr_1.2.0.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+      "tool_id": "airr_extra",
+      "version_selection_basis": "candidate rejected: latest Bioconda package requires R 3.5.1 and no native arm64 dependency solution is established"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NATIVE_PACKAGE_ARTIFACT",
+        "arm64": "NATIVE_PACKAGE_ARTIFACT"
+      },
+      "evaluated_candidate_version": null,
+      "new_reproducible_baseline_version": "0.18.3",
+      "package_artifacts": {
+        "amd64": "alevin-fry-0.18.3-hd612981_0.conda;sha256:f99d828aecd7b90480e48869f1d9f392c9880fa69579ae31f51439d3d203c5d2",
+        "arm64": "alevin-fry-0.18.3-h6789a04_0.conda;sha256:680024b2efcee32468a8287c2e60ca234cdefbafbd515a71bf513a627990e5b2"
+      },
+      "package_name": "alevin-fry",
+      "remaining_blockers": [
+        "scientifically meaningful execution requires a valid RAD and permit-list fixture that is not available in repository evidence"
+      ],
+      "source_identity": "sha256:9452d87d9f621d2bf16230cfaf9b2b789407e1a98015361e49ec631f5e46631b",
+      "source_reference": "https://github.com/COMBINE-lab/alevin-fry/releases/download/v0.18.3/source.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+      "tool_id": "alevin_fry",
+      "version_selection_basis": "latest stable Bioconda main-channel release with distinct native linux-64 and linux-aarch64 artifacts"
+    },
+    {
+      "architecture_availability": {
+        "amd64": "NATIVE_PACKAGE_ARTIFACT",
+        "arm64": "NO_PACKAGE_ARTIFACT"
+      },
+      "evaluated_candidate_version": "1.26.0",
+      "new_reproducible_baseline_version": null,
+      "package_artifacts": {
+        "amd64": "bioconductor-alevinqc-1.26.0-r45ha27e39d_0.conda;sha256:ef7854ebd8dea12090a0913b1628af4632d1f62e47584af9821298dc23e91b5d"
+      },
+      "package_name": "bioconductor-alevinqc",
+      "remaining_blockers": [
+        "no reproducible baseline was selected because the current stable package has no linux-aarch64 artifact",
+        "Dockerfile remains historically unpinned"
+      ],
+      "source_identity": "md5:32c51a6cc456a519e7ed8914b3b9fd23",
+      "source_reference": "https://bioconductor.org/packages/3.22/bioc/src/contrib/alevinQC_1.26.0.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+      "tool_id": "alevinqc_extra",
+      "version_selection_basis": "candidate rejected: current stable package has a linux-64 artifact but no linux-aarch64 or noarch artifact"
+    }
+  ]
+}
