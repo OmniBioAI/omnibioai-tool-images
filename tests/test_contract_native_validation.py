@@ -1,5 +1,6 @@
 """Synthetic adapter tests: no container or scientific tool is executed."""
 import copy
+import configparser
 import io
 import json
 from pathlib import Path
@@ -351,3 +352,11 @@ def test_reconciliation_failure_summary_is_durable(plan, tmp_path):
     result = json.loads(output.read_text())
     assert result["status"] == "FAIL" and result["observed_records"] == 0
     assert result["release_complete"] is False and result["publication_authorized"] is False
+
+
+def test_checkout_gitlink_has_registered_repository():
+    configuration = configparser.ConfigParser()
+    configuration.read(REPO / ".gitmodules")
+    runtime = configuration['submodule "omnibioai-tool-runtime"']
+    assert runtime["path"] == "omnibioai-tool-runtime"
+    assert runtime["url"] == "https://github.com/OmniBioAI/omnibioai-tool-runtime.git"
