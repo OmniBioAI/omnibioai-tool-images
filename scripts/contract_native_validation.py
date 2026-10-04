@@ -255,7 +255,9 @@ def runtime_argv(phase: str, artifact: str, arch: str, work: Path, fixtures: Pat
     else:
         raise ValidationError("unknown artifact phase")
     # SIF cleanenv must not depend on the Docker entrypoint setting MAMBA_ROOT_PREFIX.
-    return prefix + ["run", "--no-capture-output", "--prefix", "/opt/conda", *argv]
+    # micromamba 1.5.8 attaches all streams by default. Conda's --no-capture-output
+    # is not a micromamba option and would be parsed as the command to execute.
+    return prefix + ["run", "--prefix", "/opt/conda", *argv]
 
 
 def inspect_sif(metadata: dict, expected_labels: dict, arch: str) -> None:

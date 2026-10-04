@@ -240,7 +240,8 @@ def test_micromamba_cache_is_ephemeral_without_relaxing_isolation(phase, arch, t
     assert "/unsafe/host-cache" not in " ".join(argv)
     assert argv[argv.index("--network") + 1] == "none"
     assert f"{tmp_path / 'fixtures'}:/work/validation-contracts/fixtures:ro" in argv
-    assert argv[-6:] == ["run", "--no-capture-output", "--prefix", "/opt/conda", *command]
+    assert argv[-5:] == ["run", "--prefix", "/opt/conda", *command]
+    assert "--no-capture-output" not in argv
     if phase == "oci":
         assert "--read-only" in argv
         assert argv[argv.index("--tmpfs") + 1] == "/tmp:rw"

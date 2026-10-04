@@ -229,3 +229,12 @@
 - Confirmed upstream micromamba 1.5.8 `run.cpp` uses `user_cache_dir()/proc`; `environment.cpp` reads `XDG_CACHE_HOME` before falling back to the home cache. Runtime invocations now explicitly set `XDG_CACHE_HOME=/tmp/omnibioai-validation-cache` in Docker and Apptainer.
 - Docker retains read-only rootfs, network none, writable isolated /tmp tmpfs and read-only fixtures. Apptainer retains cleanenv, containall, network none and no writable image/overlay; explicit container environment avoids leaking host cache settings. No Dockerfile, scientific contract, package pin or frozen factory file changed.
 - Four new OCI/SIF × amd64/arm64 argument regressions assert exact temporary cache, host-cache exclusion, environment activation and retained isolation. Adapter **159 PASS**; full repository **8,397 PASS / 13 SKIP / 0 FAIL**. Ruff/actionlint PASS; native execution remains unproven until fresh-source run passes.
+
+- Repair `7bc3d55daec0ca9ab26e66694f803a82956d6bec` passed remote CI `37233024787`; PR #14 merged normally as `4fcee973e2c69a898537d57a1d5b1a3558715b5c`.
+- Fresh native-only run [37233126785](https://github.com/OmniBioAI/omnibioai-tool-images/actions/runs/37233126785) dispatched from the exact repaired source; seven tools × native amd64/arm64. No publication path. Prior failures remain historical; no failed run was rerun.
+
+### Micromamba command compatibility diagnosis — 2026-10-04
+
+- Run 37233126785 first two 3D-DNA native entries reached terminal FAILURE at command 007, but the former cache error disappeared. New exact stderr: `exec: --: invalid option` in micromamba's generated temporary script. Other entries continue to collect evidence; release remains blocked.
+- Upstream `micromamba/src/run.cpp` at `micromamba-1.5.8` has no `--no-capture-output` flag, uses prefix-command parsing, and attaches all streams by default. The standalone runner had passed a Conda-only option, which was treated as a command. Removed that unsupported option; retained explicit `/opt/conda` activation, bounded stdout/stderr capture and every isolation flag.
+- Existing OCI/SIF × both-architecture regressions now assert absence of the unsupported option and exact invocation suffix. No image, scientific or frozen-factory change. Fresh-source execution will wait for testing/remote CI and terminal evidence from the current run.
