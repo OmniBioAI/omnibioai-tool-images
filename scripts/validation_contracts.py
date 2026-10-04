@@ -8,6 +8,7 @@ does not build images, contact a registry, or execute scientific tools.
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import hashlib
 import json
@@ -285,6 +286,36 @@ def _runtime_requirements(text: str) -> dict[str, bool]:
     }
 
 
+def _reviewed_canary_override(
+    repo_root: Path, tool_id: str, dockerfile_sha256: str
+) -> dict[str, Any] | None:
+    """Load a reviewed source-pinning contract only when its source is unchanged.
+
+    The source-pinning canary contains evidence that cannot be derived from a
+    generic Dockerfile scan (tool-specific parsers, smoke fixtures, and
+    upstream artifact identities).  Those contracts are explicit reviewed
+    inputs, not registry discoveries.  A Dockerfile hash mismatch deliberately
+    disables the override and lets normal fail-closed generation classify the
+    tool as blocked until the evidence is refreshed.
+    """
+
+    path = repo_root / "validation-contracts" / "schema-v1" / f"{tool_id}.json"
+    if not path.is_file():
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(value, dict) or "pinning" not in value:
+        return None
+    if value.get("dockerfile_sha256") != dockerfile_sha256:
+        return None
+    pinning = value.get("pinning")
+    if not isinstance(pinning, dict) or pinning.get("pinning_canary_schema_version") != 1:
+        return None
+    return copy.deepcopy(value)
+
+
 def _status_for(blocker_codes: Sequence[str]) -> str:
     unique = sorted(set(blocker_codes))
     if not unique:
@@ -301,6 +332,13 @@ def generate_contract(row: Mapping[str, str], repo_root: Path) -> dict[str, Any]
     if not dockerfile.is_file():
         raise ContractError(f"{tool_id}: missing Dockerfile {dockerfile_path}")
     raw = dockerfile.read_bytes()
+    dockerfile_sha256 = sha256_bytes(raw)
+    reviewed_override = _reviewed_canary_override(repo_root, tool_id, dockerfile_sha256)
+    if reviewed_override is not None:
+        # Validate the reviewed artifact against the current source before it
+        # participates in a newly generated inventory.  This preserves the
+        # exact evidence-backed contract while preventing stale source claims.
+        return reviewed_override
     text = raw.decode("utf-8")
     lines = _docker_lines(text)
     evidence: list[dict[str, Any]] = [
@@ -381,7 +419,7 @@ def generate_contract(row: Mapping[str, str], repo_root: Path) -> dict[str, Any]
         "tool_id": tool_id,
         "display_name": tool_id,
         "dockerfile_path": dockerfile_path,
-        "dockerfile_sha256": sha256_bytes(raw),
+        "dockerfile_sha256": dockerfile_sha256,
         "classification": row["repository_classification"],
         "eligibility": {
             "targeted": True,
