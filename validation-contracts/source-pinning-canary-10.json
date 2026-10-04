@@ -82,24 +82,31 @@
     },
     {
       "architecture_availability": {
-        "amd64": "NOARCH_PACKAGE_REQUIRES_PYTHON_2_7",
-        "arm64": "NOT_ESTABLISHED"
+        "amd64": "NOARCH_PACKAGE_WITH_NATIVE_PYTHON27_DEPENDENCY_SOLVE",
+        "arm64": "NOARCH_PACKAGE_WITH_NATIVE_PYTHON27_DEPENDENCY_SOLVE"
       },
       "evaluated_candidate_version": "0.9.7",
+      "legacy_runtime_review": {
+        "risk_acceptance": "NOT_ESTABLISHED",
+        "runtime": "Python 2.7.15",
+        "security_scan": "NOT_RUN",
+        "source": "https://www.python.org/doc/sunset-python-2/",
+        "upstream_support": "END_OF_LIFE"
+      },
       "new_reproducible_baseline_version": null,
       "package_artifacts": {
-        "noarch": "afterqc-0.9.7-hdfd78af_4.tar.bz2;md5:e1097f9eae2bf177048e8816034cc4d0"
+        "noarch": "afterqc-0.9.7-hdfd78af_4.tar.bz2;sha256:a0e73790cfd512ecf38f44f11a01812458d1bb7a22df592512e89d27976390f5"
       },
       "package_name": "afterqc",
       "remaining_blockers": [
-        "no reproducible baseline was selected because native arm64 dependency availability is not established",
+        "reproducible baseline selection deferred pending explicit unsupported Python 2.7 runtime review",
         "Dockerfile remains historically unpinned"
       ],
       "source_identity": "sha256:cd4b33f1874bf7588fecdd44a57ca85788022c689922e8186b8dc137c5631bc2",
       "source_reference": "https://github.com/OpenGene/AfterQC/archive/v0.9.7.tar.gz",
       "static_contract_status": "STATIC_CONTRACT_BLOCKED",
       "tool_id": "afterqc_extra",
-      "version_selection_basis": "candidate rejected: latest stable package requires Python 2.7 and no native arm64 dependency solution is established"
+      "version_selection_basis": "candidate deferred: native dependency solves exist for both architectures, but require unsupported Python 2.7.15; legacy-runtime review not established"
     },
     {
       "architecture_availability": {
@@ -139,24 +146,23 @@
     },
     {
       "architecture_availability": {
-        "amd64": "NOARCH_PACKAGE_REQUIRES_R_3_5_1",
-        "arm64": "NOT_ESTABLISHED"
+        "amd64": "NOARCH_PACKAGE_WITH_NATIVE_DEPENDENCY_SOLVE",
+        "arm64": "NOARCH_PACKAGE_WITH_NATIVE_DEPENDENCY_SOLVE"
       },
-      "evaluated_candidate_version": "1.2.0",
-      "new_reproducible_baseline_version": null,
+      "baseline_semantics_note": "new baseline 2.0.0 retains read_rearrangement; upstream removes alignment APIs; no historical intended version or runtime compatibility is claimed",
+      "evaluated_candidate_version": null,
+      "new_reproducible_baseline_version": "2.0.0",
       "package_artifacts": {
-        "noarch": "r-airr-1.2.0-r351h6115d3f_1.tar.bz2;md5:a76851608b2354e9bb3dd457aa21a425"
+        "noarch": "r-airr-2.0.0-r45hc72bb7e_0.conda;sha256:b8c733fff391dcbc1f13df2a1f46452fa05f9036c01303efb3850d5477f7847c"
       },
       "package_name": "r-airr",
-      "remaining_blockers": [
-        "no reproducible baseline was selected because native arm64 dependency availability is not established",
-        "Dockerfile remains historically unpinned"
-      ],
-      "source_identity": "sha256:306cd7084b1ef0617af62e5815df538f2dcd6d6aaabb593df6f579e8ab5c5cef",
-      "source_reference": "https://cran.r-project.org/src/contrib/Archive/airr/airr_1.2.0.tar.gz",
-      "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+      "previous_rejected_candidate_version": "1.2.0",
+      "remaining_blockers": [],
+      "source_identity": "sha256:e4932ec84dad46d37327ab5aa5a34b95095677b6392bff2f59fd473eb942da52",
+      "source_reference": "https://cran.r-project.org/src/contrib/airr_2.0.0.tar.gz",
+      "static_contract_status": "STATIC_CONTRACT_READY",
       "tool_id": "airr_extra",
-      "version_selection_basis": "candidate rejected: latest Bioconda package requires R 3.5.1 and no native arm64 dependency solution is established"
+      "version_selection_basis": "latest stable conda-forge r-airr release; exact noarch build with successful metadata-only linux-64 and linux-aarch64 dependency solves"
     },
     {
       "architecture_availability": {
@@ -170,12 +176,11 @@
         "arm64": "alevin-fry-0.18.3-h6789a04_0.conda;sha256:680024b2efcee32468a8287c2e60ca234cdefbafbd515a71bf513a627990e5b2"
       },
       "package_name": "alevin-fry",
-      "remaining_blockers": [
-        "scientifically meaningful execution requires a valid RAD and permit-list fixture that is not available in repository evidence"
-      ],
+      "remaining_blockers": [],
+      "smoke_scope": "bounded infer equivalence-class to gene-count smoke; RAD/permit-list/UMI resolution not exercised",
       "source_identity": "sha256:9452d87d9f621d2bf16230cfaf9b2b789407e1a98015361e49ec631f5e46631b",
       "source_reference": "https://github.com/COMBINE-lab/alevin-fry/releases/download/v0.18.3/source.tar.gz",
-      "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+      "static_contract_status": "STATIC_CONTRACT_READY",
       "tool_id": "alevin_fry",
       "version_selection_basis": "latest stable Bioconda main-channel release with distinct native linux-64 and linux-aarch64 artifacts"
     },

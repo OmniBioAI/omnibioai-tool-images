@@ -142,11 +142,13 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "abricate",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "5b95e0bc31e7cfdf102836c73de8a86035371320a13df140e0d922f374931df6",
+  "validation_contract_sha256": "53be925de09982e9a5875574d1455d319f64bf6e5e93b47fc928c79cdcaef273",
   "version_command": [
     "abricate",
     "--version"
   ],
   "version_expected_value": "1.4.0",
+  "version_observation_parser": "(?m)^abricate[ \\t]+([^\\r\\n]+)$",
+  "version_output_source": "either",
   "version_parser": "regex:(?m)^abricate\\s+(1\\.4\\.0)\\s*$"
 }

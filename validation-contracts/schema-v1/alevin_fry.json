@@ -4,12 +4,10 @@
     "statement": "read-only manifest inspection found linux/amd64 and linux/arm64 for mambaorg/micromamba:1.5.8; package architecture evidence is recorded below"
   },
   "base_image_reference": "mambaorg/micromamba:1.5.8",
-  "blocking_reasons": [
-    "scientifically meaningful execution requires a valid RAD and permit-list fixture that is not available in repository evidence"
-  ],
+  "blocking_reasons": [],
   "classification": "MULTIARCH_READY",
-  "contract_confidence": "MEDIUM",
-  "contract_status": "CONTRACT_BLOCKED_SMOKE",
+  "contract_confidence": "HIGH",
+  "contract_status": "CONTRACT_READY",
   "display_name": "alevin_fry",
   "dockerfile_path": "dockerfiles/Dockerfile.alevin_fry",
   "dockerfile_sha256": "b31f4429c6c1212f5c593d32f7d205b3559d393a103645afceb33b627fe55c33",
@@ -63,10 +61,22 @@
       "value": "ghcr.io/omnibioai/omnibioai-sif/alevin_fry"
     },
     {
+      "field": "smoke_fixture",
+      "quality": "DIRECT_REPOSITORY_EVIDENCE",
+      "source": "validation-contracts/fixtures/alevin-infer-tiny/README.md",
+      "value": "synthetic two-cell, two-gene, three-class input; symmetric singleton priors yield analytical expected count rows [7,7] and [3,3]; not executed"
+    },
+    {
+      "field": "smoke_format",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://github.com/COMBINE-lab/alevin-fry/blob/ad05742d274230f9141b2eabeebd1c1b31692199/src/eq_class.rs",
+      "value": "gzip label file: gene count, class count, then gene IDs followed by class ID; parser init_from_eqc_file"
+    },
+    {
       "field": "smoke_requirement",
       "quality": "DIRECT_UPSTREAM_EVIDENCE",
-      "source": "https://github.com/COMBINE-lab/alevin-fry",
-      "value": "scientific subcommands consume RAD mapping and permit-list inputs"
+      "source": "https://github.com/COMBINE-lab/alevin-fry/blob/ad05742d274230f9141b2eabeebd1c1b31692199/docs/source/infer.rst",
+      "value": "documented infer subcommand permits scientifically meaningful bounded equivalence-class gene inference without RAD input; this contract does not validate RAD processing"
     },
     {
       "field": "source_identity",
@@ -80,6 +90,13 @@
     "arm64"
   ],
   "expected_executable": "alevin-fry",
+  "fixture_sha256": {
+    "validation-contracts/fixtures/alevin-infer-tiny/counts.mtx": "d50b0c627f4844a0ceb06d352d5144d2d423be7f1f144547690895a60a6c4702",
+    "validation-contracts/fixtures/alevin-infer-tiny/eq_labels.txt.gz": "6465059c0289de1fd4594bab770ec8ed805978cab428e750a3cd5ea5a60ce37d",
+    "validation-contracts/fixtures/alevin-infer-tiny/expected.json": "a0bb0086c0482400917682f8e095f305fca34ae5d4a6aa868c3212574b71412f",
+    "validation-contracts/fixtures/alevin-infer-tiny/quants_mat_cols.txt": "2179b8de40ec954864d12cc3f5f68a58811f156d7ba3b26971eeea35a7aa43d0",
+    "validation-contracts/fixtures/alevin-infer-tiny/quants_mat_rows.txt": "c8d984910fa921f6f987f258a7fcb6a8ba3f762a32ae1634ea12fe1e4f6a373d"
+  },
   "native_amd64_expected": true,
   "native_arm64_expected": true,
   "package": "ghcr.io/omnibioai/omnibioai-sif/alevin_fry",
@@ -101,7 +118,7 @@
     "release_status": "NOT_PUBLISHED",
     "source_identity": "sha256:9452d87d9f621d2bf16230cfaf9b2b789407e1a98015361e49ec631f5e46631b",
     "source_identity_type": "UPSTREAM_ARCHIVE_SHA256",
-    "static_contract_status": "STATIC_CONTRACT_BLOCKED",
+    "static_contract_status": "STATIC_CONTRACT_READY",
     "version_selection_basis": "latest stable Bioconda main-channel release with distinct native linux-64 and linux-aarch64 artifacts"
   },
   "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
@@ -126,10 +143,8 @@
     ],
     "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
     "package_mapping_confirmed_read_only": true,
-    "remaining_deficiency_flags": [
-      "SMOKE_CONTRACT_MISSING"
-    ],
-    "smoke_network_requirement": "UNKNOWN"
+    "remaining_deficiency_flags": [],
+    "smoke_network_requirement": "NETWORK_FREE"
   },
   "runtime_database_required": false,
   "runtime_gpu_required": false,
@@ -139,20 +154,51 @@
   "scientific_version": "0.18.3",
   "scientific_version_evidence": "alevin-fry=0.18.3",
   "scientific_version_source": "new_reproducible_baseline_package_version",
-  "smoke_command": null,
-  "smoke_expected_outputs": [],
-  "smoke_inputs": [],
-  "smoke_success_condition": null,
+  "smoke_assertions": {
+    "evidence_scope": "gene inference only; excludes mapping, RAD, permit-list generation and UMI resolution",
+    "expectation_basis": "ANALYTICAL_SYMMETRY_NOT_OBSERVED_RUNTIME",
+    "expected_fixture": "validation-contracts/fixtures/alevin-infer-tiny/expected.json",
+    "kind": "matrix_market_gene_counts",
+    "output_directory": "smoke-output/alevin-infer",
+    "timeout_seconds": 60
+  },
+  "smoke_command": [
+    "alevin-fry",
+    "infer",
+    "-c",
+    "validation-contracts/fixtures/alevin-infer-tiny/counts.mtx",
+    "-e",
+    "validation-contracts/fixtures/alevin-infer-tiny/eq_labels.txt.gz",
+    "-o",
+    "smoke-output/alevin-infer",
+    "-t",
+    "2"
+  ],
+  "smoke_expected_outputs": [
+    "smoke-output/alevin-infer/quants_mat.mtx",
+    "smoke-output/alevin-infer/quants_mat_rows.txt",
+    "smoke-output/alevin-infer/quants_mat_cols.txt"
+  ],
+  "smoke_inputs": [
+    "validation-contracts/fixtures/alevin-infer-tiny/counts.mtx",
+    "validation-contracts/fixtures/alevin-infer-tiny/eq_labels.txt.gz",
+    "validation-contracts/fixtures/alevin-infer-tiny/quants_mat_rows.txt",
+    "validation-contracts/fixtures/alevin-infer-tiny/quants_mat_cols.txt",
+    "validation-contracts/fixtures/alevin-infer-tiny/expected.json"
+  ],
+  "smoke_success_condition": "exit 0 within 60 seconds; output labels and 2x2 MatrixMarket counts equal expected.json within absolute tolerance 0.0001; finite nonnegative values and row totals [14,6]; order-independent coordinate comparison, reject duplicate coordinates",
   "source_immutable_identity": "sha256:9452d87d9f621d2bf16230cfaf9b2b789407e1a98015361e49ec631f5e46631b",
   "source_reference": "https://github.com/COMBINE-lab/alevin-fry/releases/download/v0.18.3/source.tar.gz",
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "alevin_fry",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "8158a93000832f1eff8c791952a749e37672acee9e9a675c3844359c2e45d7fd",
+  "validation_contract_sha256": "89def6237aa466db2002ac35b816ee86cf72dcb98afe7ce2766c10dcfb5554ab",
   "version_command": [
     "alevin-fry",
     "--version"
   ],
   "version_expected_value": "0.18.3",
+  "version_observation_parser": "(?m)^alevin-fry[ \\t]+([^\\r\\n]+)$",
+  "version_output_source": "either",
   "version_parser": "regex:(?m)^alevin-fry\\s+(0\\.18\\.3)\\s*$"
 }

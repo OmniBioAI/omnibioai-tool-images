@@ -153,11 +153,13 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "agat_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "0fd38af58559f0c55d5cb9959fe97a77adaff740ff7fdaf44afacce6c474289a",
+  "validation_contract_sha256": "254843a87b40693630fd5967c80286f9a82b1ebd429f4090e1bde8c3b2097bab",
   "version_command": [
     "agat",
     "--version"
   ],
   "version_expected_value": "v1.7.0",
+  "version_observation_parser": "(?m)^(v[^\\r\\n]+)$",
+  "version_output_source": "either",
   "version_parser": "regex:(?m)^(v1\\.7\\.0)\\s*$"
 }
