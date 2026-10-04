@@ -191,3 +191,9 @@
 - Verified all 591 non-canary contracts byte-identical to remote main and zero diff for frozen workflow/engine/identity/integrity and reference Dockerfiles. Only AIRR's previously reviewed canary Dockerfile pin is included.
 - Isolated relevant tests **765/765 PASS**; full repository suite **8,307 PASS / 13 SKIP / 0 FAIL**. Ruff, actionlint, static contract validator and diff checks PASS. Skips include absent mounted SIF store; no missing runtime evidence is promoted to PASS.
 - No image build, workflow dispatch or publication yet. Next in autonomous sequence: exact-scope commit/push/remote verification, then controlled native-only workflow execution before assessing publication eligibility.
+
+### Remote validation branch and candidate handoff — 2026-10-04
+
+- Committed exact 41-file scope as `1f5db1500aeeccdd6b730edb48ce0fe2f034fc52`, pushed non-force branch, and independently verified remote SHA plus workflow/runner/test blobs 3/3. PR #11: https://github.com/OmniBioAI/omnibioai-tool-images/pull/11. Remote CI run `37229412691` passed.
+- Before native dispatch, added a success-only Actions artifact handoff retaining the validated SIF and its bound entry record. The former evidence-only retention excluded SIF payloads; without a handoff, future publication would lose the exact validated bytes when runners terminate. No registry write or release step was added.
+- Revalidated 69 adapter tests, actionlint and Ruff. Latest change must pass remote CI before merge. No native workflow dispatch, build or publication yet; original worktree preserved.

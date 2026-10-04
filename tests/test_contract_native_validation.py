@@ -207,6 +207,11 @@ def test_workflow_static_safety():
     assert workflow["jobs"]["native-validation"]["needs"] == "selection"
     assert workflow["jobs"]["native-validation"]["strategy"]["fail-fast"] == "false"
     assert workflow["jobs"]["reconcile"]["needs"] == ["selection", "native-validation"]
+    payload = [step for step in workflow["jobs"]["native-validation"]["steps"] if step.get("with", {}).get("name", "").startswith("contract-native-payload-")]
+    assert len(payload) == 1
+    assert payload[0]["if"] == "${{ success() }}"
+    assert "validated.sif" in payload[0]["with"]["path"]
+    assert "entry.json" in payload[0]["with"]["path"]
     for forbidden in ("packages: write", "oras", "docker login", "docker push", "--push", "sif_release", "setup-qemu", "publish=true"):
         assert forbidden not in path.read_text()
 

@@ -98,6 +98,18 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+      - name: Retain successful SIF candidate for later separately gated release
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-native-payload-${{ matrix.tool_id }}-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/native-evidence/validated.sif
+            ${{ runner.temp }}/native-evidence/entry.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
   reconcile:
     if: ${{ always() }}
     needs: [selection, native-validation]
