@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — mageck_count_adv
+# Purpose: Build the OmniBioAI container image for mageck_count_adv.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for mageck_count_adv
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -8,6 +11,7 @@ LABEL platform="linux/arm64"
 
 # mageck is not on PyPI; install from bioconda
 RUN conda install -y -c bioconda -c conda-forge python=3.11 mageck && conda clean -afy
+# Python dependencies
 RUN pip install --no-cache-dir numpy pandas scipy matplotlib seaborn
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
@@ -16,4 +20,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

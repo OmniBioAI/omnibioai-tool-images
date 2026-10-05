@@ -1,8 +1,12 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — crispresso2
+# Purpose: Build the OmniBioAI container image for crispresso2.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for crispresso2
 FROM --platform=linux/arm64 python:3.11-slim-bookworm
 LABEL maintainer="OmniBioAI <team@omnibioai.io>" tool="crispresso2" platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential bwa samtools && rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir CRISPResso2 || \
@@ -14,4 +18,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install -e . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — chai1
+# Purpose: Build the OmniBioAI container image for chai1.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for chai1
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -9,6 +12,7 @@ LABEL platform="linux/arm64"
 # chai-lab requires PyTorch; install heavy deps via conda then chai-lab --no-deps to skip the wheel.
 RUN conda install -y -c conda-forge python=3.11 biopython numpy \
     && conda clean -afy
+# Python dependencies
 RUN pip install --no-cache-dir chai-lab --no-deps
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
@@ -17,4 +21,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

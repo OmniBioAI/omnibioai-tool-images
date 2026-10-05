@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — gatk_haplotype_caller
+# Purpose: Build the OmniBioAI container image for gatk_haplotype_caller.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for gatk_haplotype_caller
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="gatk_haplotype_caller"
 LABEL platform="linux/arm64"
 
+# Tool installation
 RUN conda install -y -c bioconda -c conda-forge gatk4 && conda clean -afy
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
@@ -14,4 +18,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

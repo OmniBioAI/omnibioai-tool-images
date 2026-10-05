@@ -1,12 +1,20 @@
+# OmniBioAI — rseqc
+# Purpose: Build the OmniBioAI container image for rseqc.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:22.04
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev build-essential \
     libcurl4-openssl-dev zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
+# Python dependencies
 RUN pip3 install --no-cache-dir pyBigWig pysam && \
     pip3 install --no-cache-dir RSeQC
 WORKDIR /data
+# Entrypoint and default command
 CMD ["bam_stat.py", "--version"]
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir

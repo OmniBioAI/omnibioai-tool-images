@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — rfdiffusion
+# Purpose: Build the OmniBioAI container image for rfdiffusion.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for rfdiffusion
 FROM --platform=linux/arm64 python:3.11-slim-bookworm
 
@@ -6,8 +9,10 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="rfdiffusion"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential git && rm -rf /var/lib/apt/lists/*
+# Python dependencies
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir numpy scipy biopython
 # RFdiffusion is not on PyPI; install from GitHub or use as placeholder
@@ -18,4 +23,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — spotlight
+# Purpose: Build the OmniBioAI container image for spotlight.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for spotlight
 FROM --platform=linux/arm64 bioconductor/bioconductor_docker:RELEASE_3_18
 
@@ -6,7 +9,9 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="spotlight"
 LABEL platform="linux/arm64"
 
+# R/Bioconductor dependencies
 RUN Rscript -e "BiocManager::install('SPOTlight', ask=FALSE)"
+# Python dependencies
 RUN pip3 install --no-cache-dir numpy pandas scanpy anndata
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir
@@ -15,4 +20,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

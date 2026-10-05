@@ -1,2 +1,7 @@
+# OmniBioAI — accelerate
+# Purpose: Build the OmniBioAI container image for accelerate.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     accelerate=1.15.0=pyh5ded981_0 && micromamba clean --all --yes

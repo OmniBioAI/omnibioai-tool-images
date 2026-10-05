@@ -1,4 +1,9 @@
+# OmniBioAI — iqtree_extra
+# Purpose: Build the OmniBioAI container image for iqtree_extra.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge \
     iqtree=2.3.3 && \
     micromamba clean --all --yes

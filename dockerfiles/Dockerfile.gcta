@@ -1,12 +1,20 @@
+# OmniBioAI — gcta
+# Purpose: Build the OmniBioAI container image for gcta.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM bioconductor/bioconductor_docker:RELEASE_3_18
+# System dependencies
 RUN apt-get -o Acquire::AllowInsecureRepositories=true update \
     && apt-get install -y --allow-unauthenticated libblas-dev liblapack-dev libgomp1 \
     && rm -rf /var/lib/apt/lists/*
+# R/Bioconductor dependencies
 RUN R -e "install.packages('bigstatsr', repos='https://cran.r-project.org')"
+# Runtime dependencies
 RUN pip3 install boto3 azure-storage-blob azure-identity
 COPY omnibioai-tool-runtime/tools /app/tools
 COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

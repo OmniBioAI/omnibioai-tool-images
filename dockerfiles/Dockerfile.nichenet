@@ -1,3 +1,8 @@
+# OmniBioAI — nichenet
+# Purpose: Build the OmniBioAI container image for nichenet.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:latest
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge nichenetr \
     && micromamba clean --all --yes

@@ -1,2 +1,7 @@
+# OmniBioAI — kb_python
+# Purpose: Build the OmniBioAI container image for kb_python.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     kb-python && micromamba clean --all --yes

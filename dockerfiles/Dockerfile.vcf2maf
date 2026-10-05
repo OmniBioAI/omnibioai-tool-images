@@ -1,2 +1,7 @@
+# OmniBioAI — vcf2maf
+# Purpose: Build the OmniBioAI container image for vcf2maf.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     vcf2maf && micromamba clean --all --yes

@@ -1,4 +1,9 @@
+# OmniBioAI — fastqc_extra
+# Purpose: Build the OmniBioAI container image for fastqc_extra.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge \
     fastqc=0.12.1 && \
     micromamba clean --all --yes

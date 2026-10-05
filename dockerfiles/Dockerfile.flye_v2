@@ -1,2 +1,7 @@
+# OmniBioAI — flye_v2
+# Purpose: Build the OmniBioAI container image for flye_v2.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     flye && micromamba clean --all --yes

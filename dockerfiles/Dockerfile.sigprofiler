@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — sigprofiler
+# Purpose: Build the OmniBioAI container image for sigprofiler.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for sigprofiler
 FROM --platform=linux/arm64 ubuntu:22.04
 
@@ -6,7 +9,9 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="sigprofiler"
 LABEL platform="linux/arm64"
 
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip python3-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -20,4 +25,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

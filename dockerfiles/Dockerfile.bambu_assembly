@@ -1,8 +1,12 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — bambu_assembly
+# Purpose: Build the OmniBioAI container image for bambu_assembly.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for bambu_assembly
 FROM --platform=linux/arm64 rocker/r-ver:4.3.0
 LABEL maintainer="OmniBioAI <team@omnibioai.io>" tool="bambu_assembly" platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends libcurl4-openssl-dev libssl-dev samtools && rm -rf /var/lib/apt/lists/* && \
     Rscript -e "if (!requireNamespace('BiocManager',quietly=TRUE)) install.packages('BiocManager',repos='https://cloud.r-project.org'); BiocManager::install(c('bambu','GenomicRanges','BiocParallel'))"
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
@@ -12,4 +16,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install .
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

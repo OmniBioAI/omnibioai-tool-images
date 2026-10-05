@@ -1,3 +1,8 @@
+# OmniBioAI — bcftools_roh
+# Purpose: Build the OmniBioAI container image for bcftools_roh.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:latest
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge bcftools \
     && micromamba clean --all --yes

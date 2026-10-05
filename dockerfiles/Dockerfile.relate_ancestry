@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — relate_ancestry
+# Purpose: Build the OmniBioAI container image for relate_ancestry.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for relate_ancestry
 FROM --platform=linux/arm64 ubuntu:24.04
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="relate_ancestry"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget && rm -rf /var/lib/apt/lists/* && \
     wget -q https://zenodo.org/record/7195475/files/relate_v1.2.1_Linux.tar.gz && \
@@ -19,4 +23,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --break-system-packages
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

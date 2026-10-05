@@ -1,2 +1,7 @@
+# OmniBioAI — 3ddna_extra
+# Purpose: Build the OmniBioAI container image for 3ddna_extra.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     3d-dna=201008=hdfd78af_0 && micromamba clean --all --yes

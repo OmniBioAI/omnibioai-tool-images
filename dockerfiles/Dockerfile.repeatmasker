@@ -1,7 +1,14 @@
+# OmniBioAI — repeatmasker
+# Purpose: Build the OmniBioAI container image for repeatmasker.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:24.04
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip wget libgomp1 && rm -rf /var/lib/apt/lists/*
+# Tool installation
 RUN wget -q "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh" \
     -O /tmp/miniconda.sh \
     && bash /tmp/miniconda.sh -b -p /opt/conda -u \
@@ -9,10 +16,12 @@ RUN wget -q "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64
     && /opt/conda/bin/conda install -y -c bioconda -c conda-forge repeatmasker \
     && /opt/conda/bin/conda clean -afy
 ENV PATH="/opt/conda/bin:${PATH}"
+# Runtime dependencies
 RUN pip3 install boto3 azure-storage-blob azure-identity --break-system-packages --no-cache-dir
 COPY omnibioai-tool-runtime/tools /app/tools
 COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --break-system-packages
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

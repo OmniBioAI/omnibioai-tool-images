@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — featurecounts_adv
+# Purpose: Build the OmniBioAI container image for featurecounts_adv.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for featurecounts_adv
 FROM --platform=linux/arm64 ubuntu:24.04
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="featurecounts_adv"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget build-essential zlib1g-dev && rm -rf /var/lib/apt/lists/* && \
     wget -q https://sourceforge.net/projects/subread/files/subread-2.0.6/subread-2.0.6-Linux-aarch64.tar.gz && \
@@ -21,4 +25,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --break-system-packages
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

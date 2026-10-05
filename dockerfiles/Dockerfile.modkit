@@ -1,5 +1,11 @@
+# OmniBioAI — modkit
+# Purpose: Build the OmniBioAI container image for modkit.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:22.04
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates build-essential && \
     update-ca-certificates && \
@@ -9,6 +15,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 ENV PATH="/root/.cargo/bin:$PATH"
 RUN cargo install --git https://github.com/nanoporetech/modkit.git --locked
 WORKDIR /data
+# Entrypoint and default command
 CMD ["modkit", "--version"]
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir

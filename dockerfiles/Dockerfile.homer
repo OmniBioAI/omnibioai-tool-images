@@ -1,4 +1,9 @@
+# OmniBioAI — homer
+# Purpose: Build the OmniBioAI container image for homer.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:24.04
+# System dependencies
 RUN apt-get update && apt-get install -y python3-pip \
     perl \
     wget \
@@ -18,4 +23,5 @@ COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --break-system-packages
 
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

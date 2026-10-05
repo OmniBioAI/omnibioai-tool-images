@@ -1,3 +1,8 @@
+# OmniBioAI — m6anet
+# Purpose: Build the OmniBioAI container image for m6anet.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:latest
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge m6anet \
     && micromamba clean --all --yes

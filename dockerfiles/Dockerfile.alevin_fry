@@ -1,4 +1,9 @@
+# OmniBioAI — alevin_fry
+# Purpose: Build the OmniBioAI container image for alevin_fry.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Architecture-specific configuration
 RUN case "$(uname -m)" in \
       x86_64) package_build=hd612981_0 ;; \
       aarch64) package_build=h6789a04_0 ;; \

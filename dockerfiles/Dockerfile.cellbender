@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — cellbender
+# Purpose: Build the OmniBioAI container image for cellbender.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for cellbender
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -6,8 +9,10 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="cellbender"
 LABEL platform="linux/arm64"
 
+# Tool installation
 RUN conda install -y -c conda-forge python=3.11 \
     && conda clean -afy
+# Python dependencies
 RUN pip install --no-cache-dir cellbender --no-deps
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
@@ -16,4 +21,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

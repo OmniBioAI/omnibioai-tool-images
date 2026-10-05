@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — tensorflow_train_adv
+# Purpose: Build the OmniBioAI container image for tensorflow_train_adv.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for tensorflow_train_adv
 FROM --platform=linux/arm64 nvidia/cuda:12.1.0-runtime-ubuntu22.04
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="tensorflow_train_adv"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip && rm -rf /var/lib/apt/lists/* && \
     pip3 install --no-cache-dir tensorflow numpy pandas scikit-learn scipy matplotlib
@@ -16,4 +20,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

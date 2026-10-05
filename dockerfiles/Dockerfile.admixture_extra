@@ -1,4 +1,9 @@
+# OmniBioAI — admixture_extra
+# Purpose: Build the OmniBioAI container image for admixture_extra.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base \
     -c defaults -c bioconda -c conda-forge \
     -c r admixture 2>/dev/null || \

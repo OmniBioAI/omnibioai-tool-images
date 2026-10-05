@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — pmdtools
+# Purpose: Build the OmniBioAI container image for pmdtools.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for pmdtools
 FROM --platform=linux/arm64 python:3.11-slim-bookworm
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="pmdtools"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     samtools perl && rm -rf /var/lib/apt/lists/*
 # PMDtools is a Perl script (not on PyPI); install Perl dependencies + pysam
@@ -17,4 +21,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

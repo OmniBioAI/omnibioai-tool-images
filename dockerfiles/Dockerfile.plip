@@ -1,2 +1,7 @@
+# OmniBioAI — plip
+# Purpose: Build the OmniBioAI container image for plip.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     plip && micromamba clean --all --yes

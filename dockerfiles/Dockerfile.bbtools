@@ -1,9 +1,13 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — bbtools
+# Purpose: Build the OmniBioAI container image for bbtools.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for bbtools
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="bbtools"
 LABEL platform="linux/arm64"
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     default-jre curl && rm -rf /var/lib/apt/lists/* && \
     curl -sL https://sourceforge.net/projects/bbmap/files/BBMap_39.06.tar.gz/download \
@@ -18,4 +22,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

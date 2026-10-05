@@ -1,7 +1,13 @@
+# OmniBioAI — lime
+# Purpose: Build the OmniBioAI container image for lime.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM python:3.11-slim-bookworm
 
+# Python dependencies
 RUN pip install lime --no-cache-dir
 
+# Runtime dependencies
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
 
 COPY omnibioai-tool-runtime/tools /app/tools
@@ -10,4 +16,5 @@ COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
 
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

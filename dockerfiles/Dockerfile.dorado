@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — dorado
+# Purpose: Build the OmniBioAI container image for dorado.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for dorado
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="dorado"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget libgomp1 && rm -rf /var/lib/apt/lists/* && \
     wget -q https://cdn.oxfordnanoportal.com/software/analysis/dorado-0.8.3-linux-arm64.tar.gz && \
@@ -19,4 +23,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]
