@@ -1,14 +1,23 @@
+# OmniBioAI — flames
+# Purpose: Build the OmniBioAI container image for flames.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:22.04
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip r-base \
     libcurl4-openssl-dev libssl-dev libxml2-dev git && \
     rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends minimap2 && rm -rf /var/lib/apt/lists/*
+# Python dependencies
 RUN pip3 install --no-cache-dir pysam numpy pandas
+# R/Bioconductor dependencies
 RUN Rscript -e "install.packages('BiocManager', repos='https://cloud.r-project.org')" && \
     Rscript -e "BiocManager::install('FLAMES', ask=FALSE)"
 WORKDIR /data
+# Entrypoint and default command
 CMD ["Rscript", "-e", "library(FLAMES); message('FLAMES ready')"]
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir

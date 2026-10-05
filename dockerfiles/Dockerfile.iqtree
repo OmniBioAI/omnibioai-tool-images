@@ -1,5 +1,10 @@
+# OmniBioAI — iqtree
+# Purpose: Build the OmniBioAI container image for iqtree.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM python:3.11-slim-bookworm
 
+# System dependencies
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 RUN wget -q https://github.com/iqtree/iqtree2/releases/download/v2.3.6/iqtree-2.3.6-Linux-intel.tar.gz \
     -O /tmp/iqtree.tar.gz \
@@ -8,6 +13,7 @@ RUN wget -q https://github.com/iqtree/iqtree2/releases/download/v2.3.6/iqtree-2.
     && ln -s /opt/iqtree-2.3.6-Linux-intel/bin/iqtree2 /usr/local/bin/iqtree \
     && rm /tmp/iqtree.tar.gz
 
+# Runtime dependencies
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
 
 COPY omnibioai-tool-runtime/tools /app/tools
@@ -16,4 +22,5 @@ COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install -e . --no-cache-dir
 
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

@@ -1,2 +1,7 @@
+# OmniBioAI — rgi_card
+# Purpose: Build the OmniBioAI container image for rgi_card.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     rgi && micromamba clean --all --yes

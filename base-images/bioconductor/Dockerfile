@@ -1,9 +1,13 @@
 # syntax=docker/dockerfile:1.7
+# OmniBioAI — Bioconductor foundation
+# Purpose: Build the OmniBioAI R/Bioconductor foundation container image.
+# Author: Manish Kumar <manish@omnibioai.org>
 # OmniBioAI canonical Bioconductor foundation.
 # The upstream release tag is deliberate: it supplies the supported R/Bioc
 # pair and its maintained system dependency baseline. CI resolves and records
 # the immutable digest before release; no floating `latest` tag is used.
 ARG UPSTREAM_IMAGE=bioconductor/bioconductor_docker@sha256:5053f59de1c1a79b5a05d820ba722bae62ded0c1042e547189aa0226f111ea7e
+# Base image
 FROM ${UPSTREAM_IMAGE}
 
 ARG TARGETARCH
@@ -18,6 +22,7 @@ LABEL org.opencontainers.image.title="OmniBioAI Bioconductor scientific base" \
 
 USER root
 
+# System dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        build-essential \
@@ -38,6 +43,7 @@ RUN apt-get update \
 
 COPY base-images/bioconductor/install-base.R /usr/local/share/omnibioai/install-base.R
 COPY base-images/bioconductor/package-manifest.csv /usr/local/share/omnibioai/package-manifest.csv
+# R/Bioconductor dependencies
 RUN Rscript /usr/local/share/omnibioai/install-base.R \
     && rm -f /usr/local/share/omnibioai/install-base.R
 
@@ -50,6 +56,7 @@ COPY base-images/bioconductor/smoke-test.sh /usr/local/share/omnibioai/smoke-tes
 # Re-run after copying the verifier so the image build fails on manifest drift.
 RUN Rscript /usr/local/share/omnibioai/verify-base.R
 
+# Runtime environment
 ENV LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     HOME=/home/omnibioai \
@@ -59,4 +66,5 @@ ENV LANG=C.UTF-8 \
 USER omnibioai
 WORKDIR /workspace
 
+# Entrypoint and default command
 CMD ["R"]

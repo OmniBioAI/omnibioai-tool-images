@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — anota2seq
+# Purpose: Build the OmniBioAI container image for anota2seq.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for anota2seq
 FROM --platform=linux/arm64 rocker/r-ver:4.3.0
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="anota2seq"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcurl4-openssl-dev libssl-dev && rm -rf /var/lib/apt/lists/* && \
     Rscript -e "if (!requireNamespace('BiocManager',quietly=TRUE)) install.packages('BiocManager',repos='https://cloud.r-project.org'); BiocManager::install(c('anota2seq','DESeq2','edgeR','limma'))"
@@ -16,4 +20,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install .
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

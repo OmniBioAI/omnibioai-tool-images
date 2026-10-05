@@ -1,4 +1,9 @@
+# OmniBioAI — bracken
+# Purpose: Build the OmniBioAI container image for bracken.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM python:3.11-bookworm AS builder
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ make wget && rm -rf /var/lib/apt/lists/*
 RUN wget -q https://github.com/jenniferlu717/Bracken/archive/refs/tags/v2.9.tar.gz \
@@ -16,10 +21,12 @@ COPY --from=builder /tmp/bracken /usr/local/bin/bracken
 COPY --from=builder /tmp/bracken-build /usr/local/bin/bracken-build
 COPY --from=builder /tmp/est_abundance.py /usr/local/bin/est_abundance.py
 RUN chmod +x /usr/local/bin/bracken /usr/local/bin/bracken-build /usr/local/bin/kmer2read_distr
+# Runtime dependencies
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
 COPY omnibioai-tool-runtime/tools /app/tools
 COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install -e . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

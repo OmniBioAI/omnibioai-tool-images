@@ -1,3 +1,8 @@
+# OmniBioAI — vcflib
+# Purpose: Build the OmniBioAI container image for vcflib.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:latest
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge vcflib \
     && micromamba clean --all --yes

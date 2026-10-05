@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — beagle5_impute
+# Purpose: Build the OmniBioAI container image for beagle5_impute.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for beagle5_impute
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="beagle5_impute"
 LABEL platform="linux/arm64"
 
+# Tool installation
 RUN conda install -y -c conda-forge openjdk wget && conda clean -afy && \
     wget -q https://faculty.washington.edu/browning/beagle/beagle.06Aug24.a91.jar \
         -O /opt/beagle.jar && \
@@ -18,4 +22,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

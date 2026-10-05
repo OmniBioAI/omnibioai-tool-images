@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — price
+# Purpose: Build the OmniBioAI container image for price.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for price
 FROM --platform=linux/arm64 ubuntu:24.04
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="price"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-17-jre-headless wget && rm -rf /var/lib/apt/lists/* && \
     wget -q https://derisilab.ucsf.edu/software/price/PriceRelease13.tgz && \
@@ -20,4 +24,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --break-system-packages
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

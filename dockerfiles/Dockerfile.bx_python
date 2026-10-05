@@ -1,2 +1,7 @@
+# OmniBioAI — bx_python
+# Purpose: Build the OmniBioAI container image for bx_python.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     bx-python && micromamba clean --all --yes

@@ -1,5 +1,11 @@
+# OmniBioAI — philosopher
+# Purpose: Build the OmniBioAI container image for philosopher.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:24.04
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip libgomp1 zlib1g wget unzip \
     && rm -rf /var/lib/apt/lists/*
@@ -9,10 +15,12 @@ RUN wget -q "https://github.com/Nesvilab/philosopher/releases/download/v5.1.0/ph
     && mv /tmp/philosopher_dir/philosopher /usr/local/bin/philosopher \
     && chmod +x /usr/local/bin/philosopher \
     && rm -rf /tmp/philosopher.zip /tmp/philosopher_dir
+# Runtime dependencies
 RUN pip3 install boto3 azure-storage-blob azure-identity --break-system-packages --no-cache-dir
 COPY omnibioai-tool-runtime/tools /app/tools
 COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --break-system-packages
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

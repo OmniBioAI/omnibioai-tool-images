@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — arcashla
+# Purpose: Build the OmniBioAI container image for arcashla.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for arcashla
 FROM --platform=linux/arm64 python:3.11-slim-bookworm
 
@@ -6,11 +9,14 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="arcashla"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git samtools bowtie2 && rm -rf /var/lib/apt/lists/*
+# Python dependencies
 RUN pip install --no-cache-dir numpy pandas biopython
 # arcas-hla setup.py references a missing 'src' dir; clone and use directly instead.
 RUN git clone --depth 1 https://github.com/RabadanLab/arcasHLA.git /opt/arcasHLA
+# Runtime environment
 ENV PATH="/opt/arcasHLA:${PATH}"
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
@@ -19,4 +25,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

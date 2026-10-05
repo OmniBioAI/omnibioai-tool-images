@@ -1,2 +1,7 @@
+# OmniBioAI — yara
+# Purpose: Build the OmniBioAI container image for yara.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     yara && micromamba clean --all --yes

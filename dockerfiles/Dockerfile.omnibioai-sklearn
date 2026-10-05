@@ -1,8 +1,13 @@
+# OmniBioAI — omnibioai-sklearn
+# Purpose: Build the OmniBioAI container image for omnibioai-sklearn.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM python:3.12-bookworm
 LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="omnibioai-sklearn"
 LABEL purpose="ghcr-docker-image-for-workflow-bundles"
 
+# Runtime dependencies
 RUN pip install --no-cache-dir \
     scikit-learn pandas numpy scipy joblib \
     boto3 azure-storage-blob azure-identity
@@ -12,4 +17,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

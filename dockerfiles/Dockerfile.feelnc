@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — feelnc
+# Purpose: Build the OmniBioAI container image for feelnc.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for feelnc
 FROM --platform=linux/arm64 ubuntu:22.04
 
@@ -6,7 +9,9 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="feelnc"
 LABEL platform="linux/arm64"
 
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     perl r-base python3 python3-pip libgomp1 && rm -rf /var/lib/apt/lists/*
 # FEELnc conda package requires kmerinshort which has no ARM64 build in bioconda
@@ -18,4 +23,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

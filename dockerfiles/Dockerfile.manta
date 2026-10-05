@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — manta
+# Purpose: Build the OmniBioAI container image for manta.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for manta
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -11,6 +14,7 @@ RUN conda install -y -c conda-forge python=3.11 \
     && conda clean -afy
 RUN conda create -n manta -y -c bioconda -c conda-forge manta \
     && conda clean -afy
+# Runtime environment
 ENV PATH="/opt/conda/envs/manta/bin:${PATH}"
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
@@ -19,4 +23,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

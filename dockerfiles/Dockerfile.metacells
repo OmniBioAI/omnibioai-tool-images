@@ -1,9 +1,16 @@
+# OmniBioAI — metacells
+# Purpose: Build the OmniBioAI container image for metacells.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM python:3.10-slim-bookworm
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential gcc g++ cmake git \
     && rm -rf /var/lib/apt/lists/*
+# Python dependencies
 RUN pip install --no-cache-dir numpy scipy pandas
 RUN pip install --no-cache-dir metacells
+# Runtime dependencies
 RUN pip install --no-cache-dir boto3 azure-storage-blob azure-identity
 
 # OmniBioAI tool runtime
@@ -13,4 +20,5 @@ COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
 
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

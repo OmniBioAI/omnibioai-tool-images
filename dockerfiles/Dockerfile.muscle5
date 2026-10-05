@@ -1,9 +1,16 @@
+# OmniBioAI — muscle5
+# Purpose: Build the OmniBioAI container image for muscle5.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM continuumio/miniconda3:latest
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# Tool installation
 RUN conda install -y -c bioconda -c conda-forge muscle && \
     conda clean -afy && \
     ln -sf $(which muscle) /usr/local/bin/muscle5
 WORKDIR /data
+# Entrypoint and default command
 CMD ["muscle5", "-version"]
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir

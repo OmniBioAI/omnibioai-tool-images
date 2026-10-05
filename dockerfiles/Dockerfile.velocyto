@@ -1,17 +1,24 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — velocyto
+# Purpose: Build the OmniBioAI container image for velocyto.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for velocyto
 FROM --platform=linux/arm64 python:3.11-slim-bookworm
 LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="velocyto"
 LABEL platform="linux/arm64"
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential samtools libz-dev libhdf5-dev && rm -rf /var/lib/apt/lists/*
+# Python dependencies
 RUN pip install Cython pysam loompy --no-cache-dir && \
     pip install velocyto --no-cache-dir
+# Runtime dependencies
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
 COPY omnibioai-tool-runtime/tools /app/tools
 COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

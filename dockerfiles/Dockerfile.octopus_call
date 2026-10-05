@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — octopus_call
+# Purpose: Build the OmniBioAI container image for octopus_call.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for octopus_call
 FROM --platform=linux/arm64 ubuntu:24.04
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="octopus_call"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget samtools bcftools && rm -rf /var/lib/apt/lists/* && \
     wget -q https://github.com/luntergroup/octopus/releases/download/v0.7.4/octopus-linux-arm64 \
@@ -18,4 +22,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --break-system-packages
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

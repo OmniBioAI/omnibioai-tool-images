@@ -1,2 +1,7 @@
+# OmniBioAI — isore_extra
+# Purpose: Build the OmniBioAI container image for isore_extra.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM mambaorg/micromamba:1.5.8
+# Tool installation
 RUN micromamba install -y -n base -c bioconda -c conda-forge     bioconductor-isore && micromamba clean --all --yes

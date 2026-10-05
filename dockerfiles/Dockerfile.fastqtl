@@ -1,4 +1,9 @@
+# OmniBioAI — fastqtl
+# Purpose: Build the OmniBioAI container image for fastqtl.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:22.04
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
 # tensorqtl is the GPU-accelerated ARM64-compatible FastQTL equivalent
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -6,8 +11,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates git && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/*
+# Python dependencies
 RUN pip3 install --no-cache-dir tensorqtl pandas numpy scipy
 WORKDIR /data
+# Entrypoint and default command
 CMD ["python3", "-c", "import tensorqtl; print('FastQTL/tensorqtl ready')"]
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir

@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — schmutzi
+# Purpose: Build the OmniBioAI container image for schmutzi with an ARM64 unavailability placeholder.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for schmutzi
 FROM --platform=linux/arm64 python:3.11-slim-bookworm
 
@@ -15,4 +18,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

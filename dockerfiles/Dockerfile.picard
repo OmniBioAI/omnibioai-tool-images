@@ -1,6 +1,12 @@
+# OmniBioAI — picard
+# Purpose: Build the OmniBioAI container image for picard.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:22.04
 ARG PICARD_VERSION=3.1.1
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-17-jre-headless wget ca-certificates && \
     rm -rf /var/lib/apt/lists/*
@@ -9,6 +15,7 @@ RUN wget -q https://github.com/broadinstitute/picard/releases/download/${PICARD_
 RUN echo '#!/bin/bash\nexec java -Xmx8g -jar /opt/picard.jar "$@"' > /usr/local/bin/picard && \
     chmod +x /usr/local/bin/picard
 WORKDIR /data
+# Entrypoint and default command
 CMD ["picard", "--version"]
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir

@@ -1,10 +1,17 @@
+# OmniBioAI — doubletfinder
+# Purpose: Build the OmniBioAI container image for doubletfinder.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM bioconductor/bioconductor_docker:RELEASE_3_18
+# R/Bioconductor dependencies
 RUN R -e "install.packages(c('Seurat','remotes','hdf5r'), repos='https://cran.r-project.org')"
 RUN R -e "remotes::install_github('chris-mcginnis-ucsf/DoubletFinder')"
+# Runtime dependencies
 RUN pip3 install boto3 azure-storage-blob azure-identity
 COPY omnibioai-tool-runtime/tools /app/tools
 COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

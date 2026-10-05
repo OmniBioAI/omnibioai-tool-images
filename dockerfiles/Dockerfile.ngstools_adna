@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — ngstools_adna
+# Purpose: Build the OmniBioAI container image for ngstools_adna.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for ngstools_adna
 FROM --platform=linux/arm64 python:3.11-slim-bookworm
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="ngstools_adna"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     samtools bwa && rm -rf /var/lib/apt/lists/* && \
     pip install --no-cache-dir numpy pandas scipy pysam biopython
@@ -16,4 +20,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install -e . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

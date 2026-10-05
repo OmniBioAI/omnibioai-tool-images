@@ -1,10 +1,17 @@
+# OmniBioAI — memechip
+# Purpose: Build the OmniBioAI container image for memechip.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:22.04
 ARG MEME_VERSION=5.5.5
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential wget perl python3 python3-pip \
     libexpat1-dev zlib1g-dev libxslt1-dev libxml2-dev && \
     rm -rf /var/lib/apt/lists/*
+# Python dependencies
 RUN pip3 install --no-cache-dir numpy
 RUN wget -q https://meme-suite.org/meme/meme-software/${MEME_VERSION}/meme-${MEME_VERSION}.tar.gz \
     -O /tmp/meme.tar.gz && \
@@ -15,6 +22,7 @@ RUN wget -q https://meme-suite.org/meme/meme-software/${MEME_VERSION}/meme-${MEM
     rm /tmp/meme.tar.gz
 ENV PATH=/opt/meme/bin:/opt/meme/libexec/meme-${MEME_VERSION}:$PATH
 WORKDIR /data
+# Entrypoint and default command
 CMD ["meme-chip", "--help"]
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir

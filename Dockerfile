@@ -1,3 +1,6 @@
+# OmniBioAI — Tool Images UI and API
+# Purpose: Build the OmniBioAI tool-image catalog UI and API container.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ── Stage 1: Build React UI ────────────────────────────────────────────────────
 FROM --platform=$BUILDPLATFORM node:20-bookworm-slim AS ui-builder
 WORKDIR /ui
@@ -10,12 +13,14 @@ RUN npm run build
 FROM python:3.12-slim-bookworm AS backend
 LABEL org.opencontainers.image.source=https://github.com/man4ish/omnibioai
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY api/ ./api/
 
+# Python dependencies
 RUN pip install --no-cache-dir uvicorn fastapi sse-starlette
 
 COPY --from=ui-builder /ui/dist /usr/share/nginx/html
@@ -32,7 +37,9 @@ RUN printf 'server {\n\
 }\n' > /etc/nginx/conf.d/tool-images.conf && \
     rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default
 
+# Runtime environment
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8097 5179
 
+# Entrypoint and default command
 CMD ["bash", "-c", "service nginx start && python -m uvicorn api.server:app --host 0.0.0.0 --port 8097"]

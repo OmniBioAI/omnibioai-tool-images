@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — semibin_binning
+# Purpose: Build the OmniBioAI container image for semibin_binning.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for semibin_binning
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -8,6 +11,7 @@ LABEL platform="linux/arm64"
 
 # hmmer not available in python:3.11-slim-bookworm ARM64; use conda
 RUN conda install -y -c bioconda -c conda-forge python=3.11 hmmer prodigal && conda clean -afy
+# Python dependencies
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir SemiBin numpy pandas scikit-learn
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
@@ -17,4 +21,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

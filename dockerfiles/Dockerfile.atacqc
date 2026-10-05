@@ -1,10 +1,18 @@
+# OmniBioAI — atacqc
+# Purpose: Build the OmniBioAI container image for atacqc.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM bioconductor/bioconductor_docker:RELEASE_3_18
+# System dependencies
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
+# R/Bioconductor dependencies
 RUN R -e "BiocManager::install(c('ATACseqQC','BSgenome.Hsapiens.UCSC.hg38'))"
+# Runtime dependencies
 RUN pip3 install boto3 azure-storage-blob azure-identity
 COPY omnibioai-tool-runtime/tools /app/tools
 COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — talon_transcriptome
+# Purpose: Build the OmniBioAI container image for talon_transcriptome.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for talon_transcriptome
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -6,6 +9,7 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="talon_transcriptome"
 LABEL platform="linux/arm64"
 
+# Tool installation
 RUN conda install -y -c bioconda -c conda-forge \
     python=3.11 samtools minimap2 talon pysam numpy pandas biopython \
     && conda clean -afy
@@ -16,4 +20,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

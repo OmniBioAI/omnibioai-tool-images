@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — hdxms
+# Purpose: Build the OmniBioAI container image for hdxms.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for hdxms
 FROM --platform=linux/arm64 continuumio/miniconda3:latest
 
@@ -10,6 +13,7 @@ LABEL platform="linux/arm64"
 # pre-install numpy/pandas/scipy/matplotlib via conda then install without isolation.
 RUN conda install -y -c conda-forge python=3.11 numpy pandas scipy matplotlib \
     && conda clean -afy
+# Python dependencies
 RUN pip install --no-cache-dir hdxms-datasets pyhdx --no-build-isolation
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
@@ -18,4 +22,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

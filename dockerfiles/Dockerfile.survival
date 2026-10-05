@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — survival
+# Purpose: Build the OmniBioAI container image for survival.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for survival
 FROM --platform=linux/arm64 r-base:4.3.1
 
@@ -6,10 +9,13 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="survival"
 LABEL platform="linux/arm64"
 
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip libcurl4-openssl-dev libssl-dev libxml2-dev && \
     rm -rf /var/lib/apt/lists/*
+# R/Bioconductor dependencies
 RUN Rscript -e "install.packages(c('survival','survminer','ggplot2','dplyr'), repos='https://cloud.r-project.org')"
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir --break-system-packages
@@ -18,4 +24,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir --break-system-packages
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

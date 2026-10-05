@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — impute2
+# Purpose: Build the OmniBioAI container image for impute2.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for impute2
 FROM --platform=linux/arm64 ubuntu:24.04
 
@@ -6,7 +9,9 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="impute2"
 LABEL platform="linux/arm64"
 
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip python3 && rm -rf /var/lib/apt/lists/*
 # IMPUTE2 only provides x86_64 static binaries (no ARM64 release)
@@ -18,4 +23,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --break-system-packages
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]

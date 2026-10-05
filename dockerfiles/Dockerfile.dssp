@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — dssp
+# Purpose: Build the OmniBioAI container image for dssp.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for dssp
 FROM --platform=linux/arm64 python:3.11-slim-bookworm
 
@@ -6,7 +9,9 @@ LABEL maintainer="OmniBioAI <team@omnibioai.io>"
 LABEL tool="dssp"
 LABEL platform="linux/arm64"
 
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends dssp && rm -rf /var/lib/apt/lists/*
+# Runtime dependencies
 RUN pip install boto3 azure-storage-blob azure-identity --no-cache-dir
 
 COPY omnibioai-tool-runtime/tools /app/tools
@@ -15,4 +20,5 @@ COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip install . --no-cache-dir
 
+# Entrypoint and default command
 CMD ["python", "-m", "tools.generic_sif_runner.run"]

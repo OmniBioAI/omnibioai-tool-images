@@ -1,9 +1,16 @@
+# OmniBioAI — bowtie2
+# Purpose: Build the OmniBioAI container image for bowtie2.
+# Author: Manish Kumar <manish@omnibioai.org>
+# Base image
 FROM ubuntu:22.04
+# Runtime environment
 ENV DEBIAN_FRONTEND=noninteractive
+# System dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bowtie2 python3 python3-pip && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /data
+# Entrypoint and default command
 CMD ["bowtie2", "--version"]
 # ── OmniBioAI tool runtime ─────────────────────────────────────────────────
 RUN pip3 install boto3 azure-storage-blob azure-identity --no-cache-dir

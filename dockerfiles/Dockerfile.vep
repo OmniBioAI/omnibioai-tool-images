@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# OmniBioAI — vep
+# Purpose: Build the OmniBioAI container image for vep.
+# Author: Manish Kumar <manish@omnibioai.org>
 # ARM64 image for vep
 FROM --platform=linux/arm64 ensemblorg/ensembl-vep:release_112.0
 
@@ -7,6 +10,7 @@ LABEL tool="vep"
 LABEL platform="linux/arm64"
 
 USER root
+# System dependencies
 RUN apt-get -o Acquire::AllowInsecureRepositories=true update \
     && apt-get install -y --allow-unauthenticated python3-pip \
     && rm -rf /var/lib/apt/lists/*
@@ -17,4 +21,5 @@ COPY omnibioai-tool-runtime/omni_tool_runtime /app/omni_tool_runtime
 COPY omnibioai-tool-runtime/pyproject.toml /app/pyproject.toml
 WORKDIR /app
 RUN pip3 install . --no-cache-dir
+# Entrypoint and default command
 CMD ["python3", "-m", "tools.generic_sif_runner.run"]
