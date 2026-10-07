@@ -1,0 +1,126 @@
+From f5dff5fc8531701c457f779f027e610790075bbe Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 3 Oct 2026 06:03:30 +0000
+Subject: [PATCH] ci: run the test suite on pushes and pull requests
+
+The repository's workflows are all manual (workflow_dispatch), so nothing
+checked pushes or pull requests.
+
+.github/workflows/ci.yml runs on Python 3.11 for pushes and pull
+requests to main:
+- pytest, which pytest.ini scopes to the API unit tests with a 95%
+  coverage gate on api/;
+- the full tests/ directory: SIF identity, Bedtools canary, multi-arch
+  pilot, and Dockerfile checks.
+It installs the package, the test requirements, and the API service's
+runtime dependencies (uvicorn, fastapi, sse-starlette, as in the service
+Dockerfile). Permissions are read-only; the manual workflows are
+unchanged.
+
+sif/ is a symlink to the workstation's external SIF drive, so three tests
+that check the drive itself (test_sif_directory_exists,
+test_at_least_one_sif_built, test_summary_with_extra_sifs) failed
+anywhere it is not mounted. They now skip with an explicit reason when
+sif/ does not resolve to a directory, as the class's other SIF tests
+already do; with the drive mounted they run unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_016nxi4bp7DP1ancERNUUfzj
+---
+ .github/workflows/ci.yml  | 43 +++++++++++++++++++++++++++++++++++++++
+ tests/test_dockerfiles.py | 11 ++++++++++
+ 2 files changed, 54 insertions(+)
+ create mode 100644 .github/workflows/ci.yml
+
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+new file mode 100644
+index 0000000..7c4a120
+--- /dev/null
++++ b/.github/workflows/ci.yml
+@@ -0,0 +1,43 @@
++name: CI
++
++on:
++  push:
++    branches: [main]
++  pull_request:
++    branches: [main]
++
++permissions:
++  contents: read
++
++jobs:
++  test:
++    name: Tests (Python 3.11)
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++
++      - uses: actions/setup-python@v5
++        with:
++          python-version: "3.11"
++          cache: pip
++          cache-dependency-path: |
++            pyproject.toml
++            requirements-test.txt
++
++      # The API service's dependencies match the service Dockerfile
++      # (uvicorn, fastapi, sse-starlette); the package supplies the rest.
++      - name: Install dependencies
++        run: |
++          python -m pip install --upgrade pip
++          python -m pip install -r requirements-test.txt pytest-cov -e . \
++            uvicorn fastapi sse-starlette
++
++      # pytest.ini selects the API unit tests and enforces 95% coverage of api/.
++      - name: API unit tests (coverage gate)
++        run: pytest
++
++      # The rest of tests/: SIF identity, Bedtools canary, multi-arch pilot,
++      # and Dockerfile checks. Tests that need the workstation's mounted SIF
++      # store skip with an explicit reason.
++      - name: Full test suite
++        run: pytest tests -o addopts="--tb=short -q -rs"
+diff --git a/tests/test_dockerfiles.py b/tests/test_dockerfiles.py
+index eaf4521..ffe667e 100644
+--- a/tests/test_dockerfiles.py
++++ b/tests/test_dockerfiles.py
+@@ -60,6 +60,14 @@ def get_all_tools() -> list[str]:
+         if "." in p.name
+     ])
+ 
++# sif/ is a symlink to the workstation's external SIF drive. Tests that check
++# the drive itself only mean something where it is mounted (not in CI).
++requires_sif_store = pytest.mark.skipif(
++    not SIF_DIR.is_dir(),
++    reason=f"SIF store not mounted: {SIF_DIR} does not resolve to a directory",
++)
++
++
+ def get_built_tools() -> list[str]:
+     """Tools that have corresponding SIF files."""
+     return sorted([
+@@ -175,10 +183,12 @@ class TestDockerfileStructure:
+ class TestSIFFiles:
+     """Checks on built SIF images: non-empty, minimum size, valid Singularity format, and a matching Dockerfile."""
+ 
++    @requires_sif_store
+     def test_sif_directory_exists(self):
+         """SIF directory exists."""
+         assert SIF_DIR.exists(), f"SIF directory not found: {SIF_DIR}"
+ 
++    @requires_sif_store
+     def test_at_least_one_sif_built(self):
+         """At least one SIF file has been built."""
+         assert len(BUILT_TOOLS) > 0, "No SIF files found"
+@@ -396,6 +406,7 @@ class TestCoverage:
+         assert result.returncode == 0
+         assert "hello" in result.stdout
+ 
++    @requires_sif_store
+     def test_summary_with_extra_sifs(self, tmp_path, monkeypatch):
+         """Test summary branch when extra SIFs exist."""
+         import sys
+-- 
+2.43.0
+

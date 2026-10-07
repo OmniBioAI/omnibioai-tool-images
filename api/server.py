@@ -1,3 +1,13 @@
+"""
+OmniBioAI api.server.
+
+Purpose:
+    Defines HTTP route handlers for api.server, including health, list_tools, get_dockerfile and get_build_log.
+
+Author:
+    Manish Kumar <manish@omnibioai.org>
+"""
+
 import asyncio
 import os
 import subprocess
