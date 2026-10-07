@@ -32,7 +32,7 @@ jobs:
           python -m pip install -r requirements-test.txt pytest-cov -e . \
             uvicorn fastapi sse-starlette
 
-      # pytest.ini selects the API unit tests and enforces 95% coverage of api/.
+      # pytest.ini selects the API unit tests and enforces 98% coverage of api/.
       - name: API unit tests (coverage gate)
         run: pytest
 

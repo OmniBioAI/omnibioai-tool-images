@@ -29,7 +29,7 @@ omnibioai-tool-images/
 ├── frontend/tool-images-ui/  ← React + TypeScript UI (Vite) — see "Frontend" below
 ├── sif/                  ← built Singularity SIF images (gitignored)
 ├── build_logs/           ← build output logs (gitignored)
-├── tests/                ← pytest test suite (coverage configured at 95% minimum)
+├── tests/                ← pytest test suite (coverage configured at 98% minimum)
 ├── scripts/
 │   ├── build_all.sh                          ← build all images
 │   ├── build_missing_sifs.sh                 ← rebuild only missing/failed SIFs

@@ -45,8 +45,8 @@ omit = [
 ]
 
 [tool.coverage.report]
-# Lowered to realistic level for infra-heavy repo
-fail_under = 95
+# Keep every configured coverage run above the repository quality gate.
+fail_under = 98
 show_missing = true
 skip_covered = false
 exclude_lines = [
