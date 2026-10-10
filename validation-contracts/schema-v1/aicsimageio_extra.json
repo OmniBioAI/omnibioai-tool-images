@@ -10,7 +10,7 @@
   "contract_status": "CONTRACT_READY",
   "display_name": "aicsimageio_extra",
   "dockerfile_path": "dockerfiles/Dockerfile.aicsimageio_extra",
-  "dockerfile_sha256": "c639376939aa4cf7b41a4f2b21b0a8b29d569507997e583ab6f03a1549d7d25f",
+  "dockerfile_sha256": "f2603d170cec1084f1917a197d12842d35e290f3054692c24209d983c353460a",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -149,7 +149,7 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "aicsimageio_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "392c12d169b104cfe37f6a07275e7b5fbca6ed6e23b84cf9b0b2cb61eb1d2d21",
+  "validation_contract_sha256": "91ce3a1855b926bbc64525d7da3150f84fa3e092b43a7d2fe0f6c9dcd688d6ba",
   "version_command": [
     "python",
     "-c",

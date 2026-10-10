@@ -10,7 +10,7 @@
   "contract_status": "CONTRACT_READY",
   "display_name": "abricate",
   "dockerfile_path": "dockerfiles/Dockerfile.abricate",
-  "dockerfile_sha256": "33505dffb6491b1ccea9757cc9401775c23a6b68935e2fe625f74cf4675c2661",
+  "dockerfile_sha256": "44d3aaf5425d6fae32b9ce7aed067f03f63da79364998eda491e069a82ef18a2",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -142,7 +142,7 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "abricate",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "53be925de09982e9a5875574d1455d319f64bf6e5e93b47fc928c79cdcaef273",
+  "validation_contract_sha256": "481e449fc9c36d53918ceed02f41b78598c44f85ff6b182f5fc5bb5f419daa0e",
   "version_command": [
     "abricate",
     "--version"

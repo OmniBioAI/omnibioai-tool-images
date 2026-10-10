@@ -13,7 +13,7 @@
   "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
   "display_name": "afterqc_extra",
   "dockerfile_path": "dockerfiles/Dockerfile.afterqc_extra",
-  "dockerfile_sha256": "bf43d069e3c976c9f31cbf62943b9c47a6554cfab2676144a337043394ac5ba3",
+  "dockerfile_sha256": "7d46b428d8b0114fc5b2302e6063624ef6d7f3d3719a54f65fabc282ba03ddae",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -185,7 +185,7 @@
   "source_type": "unknown_unpinned",
   "tool_id": "afterqc_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "2f3b551d0ce9a2d27585d4ab345f8f6dd81f060139c26647e604fcf679492d82",
+  "validation_contract_sha256": "8dcfb68c1b4c048a4adc872c87eacc95c13d352a54d28cbfa5745543bb34e55a",
   "version_command": [
     "after.py",
     "--version"

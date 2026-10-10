@@ -13,7 +13,7 @@
   "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
   "display_name": "admixtools",
   "dockerfile_path": "dockerfiles/Dockerfile.admixtools",
-  "dockerfile_sha256": "87d2633a583bf4df46e6ac2a2d3da65fef10f05818090680bd00c3318f83db33",
+  "dockerfile_sha256": "3b06f81bf3fe9b3dd7099e065138bc8c6e231f8e60adf92f721cd01d3e19e011",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -159,7 +159,7 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "admixtools",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "7e904c83d44c40f68c65f1c8146ae2286cc278bc74641113cb33fc600f8b5c07",
+  "validation_contract_sha256": "85f6aec8326485ec36563fc76fe76a985fac9d98f7a37fdf662fe3bc1394c31f",
   "version_command": [
     "qp3Pop",
     "-v"

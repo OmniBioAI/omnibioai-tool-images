@@ -10,7 +10,7 @@
   "contract_status": "CONTRACT_READY",
   "display_name": "accelerate",
   "dockerfile_path": "dockerfiles/Dockerfile.accelerate",
-  "dockerfile_sha256": "e6313670f8a64490074874f0b2d0331e380075218026520588b55da77f61e84e",
+  "dockerfile_sha256": "98d869250a4e01466d23dd1365cb491af0428a3080b3e46aa560c2260ad7484c",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -147,7 +147,7 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "accelerate",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "ee015c8dd47bdc8571f390a40e5a0b7dc6da41bbc9be6f292f023660b4941fe0",
+  "validation_contract_sha256": "37c3f97f163e507de870a0f9855a734c96df52dd20a9ca17bb88b960c027797e",
   "version_command": [
     "accelerate",
     "env"

@@ -13,7 +13,7 @@
   "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
   "display_name": "alevinqc_extra",
   "dockerfile_path": "dockerfiles/Dockerfile.alevinqc_extra",
-  "dockerfile_sha256": "2054aa8d695d4eb611f7bbfdae7a94117d32d917bd6d30697850e4f81882e042",
+  "dockerfile_sha256": "275b7b64f8b0b701711c62075c99c9e2cfaf80b8cb281e6a4283b027c89dfaa7",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -185,7 +185,7 @@
   "source_type": "unknown_unpinned",
   "tool_id": "alevinqc_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "ee1219d4554d161772dabdc2662a4c290856e7c451fc156160a0ac686df2bcef",
+  "validation_contract_sha256": "a810366a7cd66e9d95d491a64ca38e526345b9f2267688ced912076851d81b91",
   "version_command": [
     "Rscript",
     "-e",

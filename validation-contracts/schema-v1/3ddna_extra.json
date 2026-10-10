@@ -10,7 +10,7 @@
   "contract_status": "CONTRACT_READY",
   "display_name": "3ddna_extra",
   "dockerfile_path": "dockerfiles/Dockerfile.3ddna_extra",
-  "dockerfile_sha256": "add545162daba89c8cedca20fe474846cad8edd6649540a60012df1e52adb21d",
+  "dockerfile_sha256": "a6bf09dd597bed34bd537da2b60b8f7f2eb6acd88059c592a4e1da5d371b3469",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -144,7 +144,7 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "3ddna_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "118d91c766df34effef5cfd70d5f88e263157e6d5f23d225a7ed380fe5e453e8",
+  "validation_contract_sha256": "6846cbbea78d1fb30ce85744521732b2a6a56de8f5d5270dddc7341d8cfa365c",
   "version_command": [
     "3d-dna",
     "--help"

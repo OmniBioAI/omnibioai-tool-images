@@ -10,7 +10,7 @@
   "contract_status": "CONTRACT_READY",
   "display_name": "alevin_fry",
   "dockerfile_path": "dockerfiles/Dockerfile.alevin_fry",
-  "dockerfile_sha256": "b31f4429c6c1212f5c593d32f7d205b3559d393a103645afceb33b627fe55c33",
+  "dockerfile_sha256": "9e90580f69bce3ff532e5077edff2f6e854f3a03bc8a156451842ed1745f0986",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -192,7 +192,7 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "alevin_fry",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "89def6237aa466db2002ac35b816ee86cf72dcb98afe7ce2766c10dcfb5554ab",
+  "validation_contract_sha256": "152774fc8c4d9cb1aaba3d51c97ec4f8d9d17695bb5751faaa9132c7b1337c73",
   "version_command": [
     "alevin-fry",
     "--version"
