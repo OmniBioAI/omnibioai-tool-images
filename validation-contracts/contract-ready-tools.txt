@@ -3,3 +3,5 @@ abricate
 accelerate
 agat_extra
 aicsimageio_extra
+airr_extra
+alevin_fry

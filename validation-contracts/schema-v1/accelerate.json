@@ -147,11 +147,13 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "accelerate",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "d4bed397d759fe866bdcd3c5c7197add9ed6ba5660a5e039ac6bf8ea03160a34",
+  "validation_contract_sha256": "ee015c8dd47bdc8571f390a40e5a0b7dc6da41bbc9be6f292f023660b4941fe0",
   "version_command": [
     "accelerate",
     "env"
   ],
   "version_expected_value": "1.15.0",
+  "version_observation_parser": "(?m)^- `Accelerate` version: ([^\\r\\n]+)$",
+  "version_output_source": "either",
   "version_parser": "regex:(?m)^- `Accelerate` version: (1\\.15\\.0)\\s*$"
 }

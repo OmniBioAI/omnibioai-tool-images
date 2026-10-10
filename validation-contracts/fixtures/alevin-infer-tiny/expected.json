@@ -1,0 +1,8 @@
+{
+  "columns": ["geneA", "geneB"],
+  "entries": [[1, 1, 7.0], [1, 2, 7.0], [2, 1, 3.0], [2, 2, 3.0]],
+  "row_totals": [14.0, 6.0],
+  "rows": ["AAAAAAAAAAAAAAAC", "AAAAAAAAAAAAAAAG"],
+  "shape": [2, 2],
+  "tolerance": 0.0001
+}

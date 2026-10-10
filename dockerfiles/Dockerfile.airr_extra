@@ -1,2 +1,3 @@
 FROM mambaorg/micromamba:1.5.8
-RUN micromamba install -y -n base -c bioconda -c conda-forge     r-airr && micromamba clean --all --yes
+RUN micromamba install -y -n base -c bioconda -c conda-forge \
+    "conda-forge::r-airr=2.0.0=r45hc72bb7e_0" && micromamba clean --all --yes

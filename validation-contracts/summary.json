@@ -7,10 +7,10 @@
   "blocked_architecture_count": 0,
   "blocked_executable_count": 0,
   "blocked_license_count": 0,
-  "blocked_multiple_reasons_count": 595,
+  "blocked_multiple_reasons_count": 594,
   "blocked_package_mapping_count": 0,
   "blocked_runtime_dependency_count": 0,
-  "blocked_smoke_count": 1,
+  "blocked_smoke_count": 0,
   "blocked_source_identity_count": 0,
   "blocked_tools": [
     {
@@ -23,26 +23,11 @@
     },
     {
       "blocking_reasons": [
-        "no reproducible baseline was selected because native arm64 dependency availability is not established",
+        "reproducible baseline selection deferred pending explicit unsupported Python 2.7 runtime review",
         "Dockerfile remains historically unpinned"
       ],
       "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
       "tool_id": "afterqc_extra"
-    },
-    {
-      "blocking_reasons": [
-        "no reproducible baseline was selected because native arm64 dependency availability is not established",
-        "Dockerfile remains historically unpinned"
-      ],
-      "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
-      "tool_id": "airr_extra"
-    },
-    {
-      "blocking_reasons": [
-        "scientifically meaningful execution requires a valid RAD and permit-list fixture that is not available in repository evidence"
-      ],
-      "contract_status": "CONTRACT_BLOCKED_SMOKE",
-      "tool_id": "alevin_fry"
     },
     {
       "blocking_reasons": [
@@ -5922,7 +5907,7 @@
     }
   ],
   "blocked_version_count": 0,
-  "contract_ready_count": 5,
+  "contract_ready_count": 7,
   "contract_target_count": 601,
   "multiarch_ready_count": 860,
   "package_intersection_count": 611,
@@ -5931,7 +5916,9 @@
     "abricate",
     "accelerate",
     "agat_extra",
-    "aicsimageio_extra"
+    "aicsimageio_extra",
+    "airr_extra",
+    "alevin_fry"
   ],
   "reference_tools_excluded": 10,
   "schema_version": 1,

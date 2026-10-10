@@ -4,16 +4,13 @@
     "statement": "read-only manifest inspection found linux/amd64 and linux/arm64 for mambaorg/micromamba:1.5.8; package architecture evidence is recorded below"
   },
   "base_image_reference": "mambaorg/micromamba:1.5.8",
-  "blocking_reasons": [
-    "no reproducible baseline was selected because native arm64 dependency availability is not established",
-    "Dockerfile remains historically unpinned"
-  ],
+  "blocking_reasons": [],
   "classification": "MULTIARCH_READY",
-  "contract_confidence": "MEDIUM",
-  "contract_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
+  "contract_confidence": "HIGH",
+  "contract_status": "CONTRACT_READY",
   "display_name": "airr_extra",
   "dockerfile_path": "dockerfiles/Dockerfile.airr_extra",
-  "dockerfile_sha256": "9ad8e4e64ed3bbc4cd3e1946c3f67627cba7b830627a60da5366f5782c7023e7",
+  "dockerfile_sha256": "31f0d3e8f850b39361c7f11f35523d93d2004b5ff40e054d2762aa991c1c0175",
   "eligibility": {
     "mapping_status": "EXACT",
     "package_mapping_confirmed": true,
@@ -23,14 +20,14 @@
     {
       "field": "architecture",
       "quality": "DIRECT_UPSTREAM_EVIDENCE",
-      "source": "https://api.anaconda.org/package/bioconda/r-airr",
-      "value": "package is noarch; base manifest provides linux/amd64 and linux/arm64"
+      "source": "https://api.anaconda.org/package/conda-forge/r-airr",
+      "value": "noarch r-airr 2.0.0 with native R 4.5.3, readr, stringi, yaml, jsonlite metadata dependency solutions on linux-64 and linux-aarch64"
     },
     {
       "field": "architecture_availability",
       "quality": "DIRECT_UPSTREAM_EVIDENCE",
-      "source": "https://api.anaconda.org/package/bioconda/r-airr",
-      "value": "{\"amd64\": \"NOARCH_PACKAGE_REQUIRES_R_3_5_1\", \"arm64\": \"NOT_ESTABLISHED\"}"
+      "source": "https://api.anaconda.org/package/conda-forge/r-airr",
+      "value": "{\"amd64\": \"NOARCH_PACKAGE_WITH_NATIVE_DEPENDENCY_SOLVE\", \"arm64\": \"NOARCH_PACKAGE_WITH_NATIVE_DEPENDENCY_SOLVE\"}"
     },
     {
       "field": "base_image_reference",
@@ -42,14 +39,20 @@
     {
       "field": "baseline_version",
       "quality": "DIRECT_UPSTREAM_EVIDENCE",
-      "source": "https://api.anaconda.org/package/bioconda/r-airr",
-      "value": "candidate rejected: latest Bioconda package requires R 3.5.1 and no native arm64 dependency solution is established"
+      "source": "https://api.anaconda.org/package/conda-forge/r-airr",
+      "value": "latest stable conda-forge r-airr release; exact noarch build with successful metadata-only linux-64 and linux-aarch64 dependency solves"
     },
     {
       "field": "classification",
       "quality": "DIRECT",
       "source": "validation-contracts/evidence/current-package-preflight.csv",
       "value": "MULTIARCH_READY"
+    },
+    {
+      "field": "dependency_solution",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://conda.anaconda.org/conda-forge",
+      "value": "conda create --dry-run --json --override-channels -c conda-forge --strict-channel-priority --no-default-packages --subdir <linux-64|linux-aarch64> r-airr=2.0.0=r45hc72bb7e_0; CONDA_OVERRIDE_GLIBC=2.17; both exit 0, success=true, 120 packages; no installation or execution"
     },
     {
       "field": "fixture",
@@ -64,16 +67,28 @@
       "value": "ghcr.io/omnibioai/omnibioai-sif/airr_extra"
     },
     {
+      "field": "package_identity",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://api.anaconda.org/package/conda-forge/r-airr",
+      "value": "r-airr-2.0.0-r45hc72bb7e_0.conda;sha256:b8c733fff391dcbc1f13df2a1f46452fa05f9036c01303efb3850d5477f7847c"
+    },
+    {
       "field": "package_runtime",
       "quality": "DIRECT_REPOSITORY_EVIDENCE",
       "source": "dockerfiles/Dockerfile.airr_extra",
       "value": "Dockerfile installs r-airr into a Micromamba environment"
     },
     {
+      "field": "smoke_api",
+      "quality": "DIRECT_UPSTREAM_EVIDENCE",
+      "source": "https://cran.r-project.org/src/contrib/airr_2.0.0.tar.gz",
+      "value": "R/Interface.R defines read_rearrangement(file, base=c(\"1\", \"0\"), ...); DESCRIPTION version 2.0.0, NeedsCompilation=no, License=CC BY 4.0; NEWS retains rearrangement API while removing alignment APIs"
+    },
+    {
       "field": "source_identity",
       "quality": "DIRECT_UPSTREAM_EVIDENCE",
-      "source": "https://cran.r-project.org/src/contrib/Archive/airr/airr_1.2.0.tar.gz",
-      "value": "sha256:306cd7084b1ef0617af62e5815df538f2dcd6d6aaabb593df6f579e8ab5c5cef"
+      "source": "https://cran.r-project.org/src/contrib/airr_2.0.0.tar.gz",
+      "value": "sha256:e4932ec84dad46d37327ab5aa5a34b95095677b6392bff2f59fd473eb942da52"
     }
   ],
   "expected_architectures": [
@@ -82,27 +97,29 @@
   ],
   "expected_executable": "Rscript",
   "native_amd64_expected": true,
-  "native_arm64_expected": false,
+  "native_arm64_expected": true,
   "package": "ghcr.io/omnibioai/omnibioai-sif/airr_extra",
   "pinning": {
     "architecture_availability": {
-      "amd64": "NOARCH_PACKAGE_REQUIRES_R_3_5_1",
-      "arm64": "NOT_ESTABLISHED"
+      "amd64": "NOARCH_PACKAGE_WITH_NATIVE_DEPENDENCY_SOLVE",
+      "arm64": "NOARCH_PACKAGE_WITH_NATIVE_DEPENDENCY_SOLVE"
     },
-    "evaluated_candidate_version": "1.2.0",
+    "baseline_semantics_note": "new baseline 2.0.0 retains read_rearrangement; upstream removes alignment APIs; no historical intended version or runtime compatibility is claimed",
+    "evaluated_candidate_version": null,
     "historical_intended_version": "UNKNOWN",
     "native_build_validation_status": "NOT_RUN",
-    "new_reproducible_baseline_version": null,
+    "new_reproducible_baseline_version": "2.0.0",
     "package_artifacts": {
-      "noarch": "r-airr-1.2.0-r351h6115d3f_1.tar.bz2;md5:a76851608b2354e9bb3dd457aa21a425"
+      "noarch": "r-airr-2.0.0-r45hc72bb7e_0.conda;sha256:b8c733fff391dcbc1f13df2a1f46452fa05f9036c01303efb3850d5477f7847c"
     },
     "package_name": "r-airr",
     "pinning_canary_schema_version": 1,
+    "previous_rejected_candidate_version": "1.2.0",
     "release_status": "NOT_PUBLISHED",
-    "source_identity": "sha256:306cd7084b1ef0617af62e5815df538f2dcd6d6aaabb593df6f579e8ab5c5cef",
+    "source_identity": "sha256:e4932ec84dad46d37327ab5aa5a34b95095677b6392bff2f59fd473eb942da52",
     "source_identity_type": "UPSTREAM_ARCHIVE_SHA256",
-    "static_contract_status": "STATIC_CONTRACT_BLOCKED",
-    "version_selection_basis": "candidate rejected: latest Bioconda package requires R 3.5.1 and no native arm64 dependency solution is established"
+    "static_contract_status": "STATIC_CONTRACT_READY",
+    "version_selection_basis": "latest stable conda-forge r-airr release; exact noarch build with successful metadata-only linux-64 and linux-aarch64 dependency solves"
   },
   "registry_namespace": "ghcr.io/omnibioai/omnibioai-sif",
   "remediation": {
@@ -126,11 +143,7 @@
     ],
     "initial_status": "CONTRACT_BLOCKED_MULTIPLE_REASONS",
     "package_mapping_confirmed_read_only": true,
-    "remaining_deficiency_flags": [
-      "SCIENTIFIC_VERSION_MISSING",
-      "SOURCE_IDENTITY_MISSING",
-      "ARCHITECTURE_EVIDENCE_MISSING"
-    ],
+    "remaining_deficiency_flags": [],
     "smoke_network_requirement": "NETWORK_FREE"
   },
   "runtime_database_required": false,
@@ -138,9 +151,9 @@
   "runtime_license_required": false,
   "runtime_network_required": false,
   "runtime_reference_data_required": false,
-  "scientific_version": null,
-  "scientific_version_evidence": null,
-  "scientific_version_source": null,
+  "scientific_version": "2.0.0",
+  "scientific_version_evidence": "conda-forge::r-airr=2.0.0=r45hc72bb7e_0",
+  "scientific_version_source": "new_reproducible_baseline_package_version",
   "smoke_command": [
     "Rscript",
     "-e",
@@ -151,17 +164,19 @@
     "validation-contracts/fixtures/airr-tiny.tsv"
   ],
   "smoke_success_condition": "exit 0 after parsing exactly one schema-valid AIRR rearrangement with the expected sequence_id",
-  "source_immutable_identity": null,
-  "source_reference": null,
-  "source_type": "unknown_unpinned",
+  "source_immutable_identity": "sha256:e4932ec84dad46d37327ab5aa5a34b95095677b6392bff2f59fd473eb942da52",
+  "source_reference": "https://cran.r-project.org/src/contrib/airr_2.0.0.tar.gz",
+  "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "airr_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "afd201499e17c9305cc49259e5d11244050cccc81cb03974f626a8d01c68100d",
+  "validation_contract_sha256": "a664271f274553502f21bb8375713a8c03d3b88a957bf65f8cc0e7b43ade1b39",
   "version_command": [
     "Rscript",
     "-e",
     "cat(as.character(packageVersion('airr')), '\\n')"
   ],
-  "version_expected_value": null,
-  "version_parser": "regex:(?m)^([0-9]+(?:\\.[0-9]+)+)\\s*$"
+  "version_expected_value": "2.0.0",
+  "version_observation_parser": "(?m)^([^\\r\\n]+)$",
+  "version_output_source": "stdout",
+  "version_parser": "regex:\\A(2\\.0\\.0)\\s*\\Z"
 }
