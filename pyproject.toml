@@ -34,10 +34,19 @@ package-dir = { "" = "." }
 packages = ["scripts"]
 
 # -----------------------------
-# COVERAGE CONFIG (FIXED)
+# COVERAGE CONFIG
+#
+# pytest.ini is the single source of truth for pytest/coverage invocation
+# (pytest resolves config files in order pytest.ini > pyproject.toml >
+# tox.ini > setup.cfg and stops at the first match, so a
+# [tool.pytest.ini_options] table here would be silently ignored while
+# pytest.ini exists -- it previously was, which is why the CI gate only
+# ever measured api/ via tests/test_api_server_units.py instead of the
+# full suite against api/+scripts/). coverage.py's own config lookup is
+# independent of that and still reads [tool.coverage.*] below.
 # -----------------------------
 [tool.coverage.run]
-source = ["scripts"]
+source = ["api", "scripts"]
 omit = [
     "tests/*",
     "dockerfiles/*",
@@ -54,26 +63,4 @@ exclude_lines = [
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
-]
-
-# -----------------------------
-# PYTEST CONFIG (FIXED)
-# -----------------------------
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = "test_*.py"
-
-# KEY FIX: prevent failure when no Python coverage is collected
-addopts = """
--v
---cov=scripts
---cov-report=term-missing
---cov-report=html:htmlcov
---no-cov-on-fail
-"""
-
-# Optional: mark slow/container tests
-markers = [
-  "docker: tests involving Docker builds",
-  "sif: tests involving Singularity images",
 ]

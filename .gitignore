@@ -7,7 +7,9 @@ dockerfiles/subread-*
 dockerfiles/obsolete/
 .coverage
 coverage.json
-tests/__pycache__/
+coverage.xml
+__pycache__/
+*.pyc
 omnibioai_tool_images.egg-info/
 *.egg-info/
 push_omnibioai.log

@@ -32,12 +32,17 @@ jobs:
           python -m pip install -r requirements-test.txt pytest-cov -e . \
             uvicorn fastapi sse-starlette
 
-      # pytest.ini selects the API unit tests and enforces 98% coverage of api/.
-      - name: API unit tests (coverage gate)
+      # pytest.ini runs the full tests/ suite and enforces 98% combined
+      # coverage of api/+scripts/. Tests that need the workstation's
+      # mounted SIF store skip with an explicit reason.
+      - name: Full test suite (api+scripts coverage gate)
         run: pytest
 
-      # The rest of tests/: SIF identity, Bedtools canary, multi-arch pilot,
-      # and Dockerfile checks. Tests that need the workstation's mounted SIF
-      # store skip with an explicit reason.
-      - name: Full test suite
-        run: pytest tests -o addopts="--tb=short -q -rs"
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: error
+          retention-days: 30

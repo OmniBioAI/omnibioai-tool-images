@@ -46,6 +46,74 @@ def test_scope_rejection(tool):
         native.load_contract(REPO, tool)
 
 
+@pytest.mark.parametrize("relative", ["/etc/passwd", "", "../outside-repo"])
+def test_contained_rejects_absolute_empty_or_escaping_paths(relative):
+    with pytest.raises(native.ValidationError):
+        native.contained(REPO, relative)
+
+
+def test_fixture_hashes_rejects_declared_mismatch():
+    contract = native.load_contract(REPO, "abricate")
+    contract["fixture_sha256"] = {"wrong-name": "a" * 64}
+    with pytest.raises(native.ValidationError):
+        native.fixture_hashes(contract, REPO)
+
+
+def test_package_pin_rejects_malformed_declaration():
+    contract = native.load_contract(REPO, "abricate")
+    contract["pinning"]["package_artifacts"]["noarch"] = "not-a-valid-declaration"
+    with pytest.raises(native.ValidationError):
+        native.package_pin(contract, "amd64")
+
+
+def test_package_pin_rejects_name_version_mismatch():
+    contract = native.load_contract(REPO, "abricate")
+    contract["pinning"]["package_artifacts"]["noarch"] = "wrongname-9.9.9-build.conda;sha256:" + "a" * 64
+    with pytest.raises(native.ValidationError):
+        native.package_pin(contract, "amd64")
+
+
+@pytest.mark.parametrize("mutate", [
+    lambda c: c.update(tool_id="bedtools"),
+    lambda c: c.update(contract_status="CONTRACT_BLOCKED_SMOKE"),
+    lambda c: c.update(runtime_network_required=True),
+    lambda c: c.update(version_command=["ok", ""]),
+    lambda c: c.update(version_output_source="nowhere"),
+])
+def test_load_contract_rejects_malformed_canary_contract(repo_copy, mutate):
+    from scripts.validation_contracts import contract_hash
+
+    path = repo_copy / "validation-contracts/schema-v1/abricate.json"
+    value = json.loads(path.read_text())
+    mutate(value)
+    value["validation_contract_sha256"] = contract_hash(value)
+    path.write_text(json.dumps(value))
+    with pytest.raises(native.ValidationError):
+        native.load_contract(repo_copy, "abricate")
+
+
+def test_make_plan_rejects_malformed_commit():
+    with pytest.raises(native.ValidationError):
+        native.make_plan(REPO, "not-a-full-git-sha")
+
+
+def test_make_plan_rejects_package_collision(repo_copy):
+    from scripts.validation_contracts import contract_hash
+
+    path = repo_copy / "validation-contracts/schema-v1/accelerate.json"
+    value = json.loads(path.read_text())
+    value["package"] = native.load_contract(REPO, "abricate")["package"]
+    value["validation_contract_sha256"] = contract_hash(value)
+    path.write_text(json.dumps(value))
+    with pytest.raises(native.ValidationError):
+        native.make_plan(repo_copy, COMMIT)
+
+
+def test_select_entry_rejects_unknown_tool_arch_pair(plan):
+    with pytest.raises(native.ValidationError):
+        native.select_entry(plan, REPO, plan["plan_sha256"], "unknown_tool", "amd64")
+
+
 @pytest.mark.parametrize("change", [
     lambda p: p["entries"].pop(), lambda p: p["entries"].append(p["entries"][0]),
     lambda p: p["entries"][0].update(arch="ppc64le"), lambda p: p["entries"][0].update(tool_id="bedtools"),
@@ -184,6 +252,19 @@ def test_complete_reconciliation(plan, records, tmp_path):
     lambda r: r[0]["conversion"].update(archive_sha256="b" * 64),
     lambda r: r[0]["sif_inspect"]["data"]["attributes"]["labels"].update({"org.label-schema.build-arch": "arm64"}),
     lambda r: r[0]["candidate"]["build_inputs"].update(source_immutable_identity="mutable"),
+    lambda r: r[0].update(tool_id="wrong_tool"),
+    lambda r: r[0]["runner_evidence"].update(target_architecture="arm64", runner={"os": "Linux", "arch": "ARM64"},
+                                              uname_m="aarch64", execution_mode="NATIVE"),
+    lambda r: r[0]["candidate"].update(tool_id=r[0]["candidate"]["tool_id"].upper()),
+    lambda r: r[0].update(oci_archive_sha256="not-hex"),
+    lambda r: r[0]["oci"].update(runtime_architecture="mips"),
+    lambda r: r[0]["oci"]["executable"].update(status="FAIL"),
+    lambda r: r[0]["oci"]["version_raw"].update(argv=["totally", "different"]),
+    lambda r: r[0]["oci"]["version_raw"].update(timed_out=True),
+    lambda r: r[0]["oci"]["version"].update(observed_version="9.9.9"),
+    lambda r: next(x for x in r if x["tool_id"] == "alevin_fry")["oci"]["smoke"].update(smoke_outputs_verified=False),
+    lambda r: r[0]["oci"]["smoke"].update(status="FAIL"),
+    lambda r: r[0].update(sbom_status="UNKNOWN"),
 ])
 def test_terminal_negative_evidence(plan, records, change, tmp_path):
     change(records)
@@ -226,6 +307,54 @@ def test_argv_boundaries_and_network(tmp_path):
         assert argv[-len(command):] == command
         assert argv[argv.index("--network") + 1] == "none"
         assert any(value.endswith(":ro") for value in argv)
+
+
+def test_runtime_argv_rejects_unknown_phase(tmp_path):
+    with pytest.raises(native.ValidationError):
+        native.runtime_argv("bogus", "artifact", "amd64", tmp_path, tmp_path, ["uname"])
+
+
+@pytest.mark.parametrize("stdout,arch", [
+    ("no executable line here\n", "amd64"),
+    ("executable=/opt/conda/bin/tool\nmachine=183 0\n", "amd64"),
+])
+def test_validate_executable_rejects_missing_path_or_wrong_architecture(stdout, arch):
+    with pytest.raises(native.ValidationError):
+        native.validate_executable({"stdout": stdout}, arch)
+
+
+def test_smoke_result_rejects_failed_or_unbounded_command():
+    contract = native.load_contract(REPO, "abricate")
+    with pytest.raises(native.ValidationError):
+        native.smoke_result(contract, REPO, REPO, {"returncode": 1, "elapsed_seconds": 1, "stdout": "", "stderr": ""})
+    with pytest.raises(native.ValidationError):
+        native.smoke_result(contract, REPO, REPO, {"returncode": 0, "elapsed_seconds": 999, "stdout": "", "stderr": ""})
+
+
+def test_smoke_result_rejects_missing_or_invalid_agat_output(tmp_path):
+    contract = native.load_contract(REPO, "agat_extra")
+    result = {"returncode": 0, "elapsed_seconds": 1, "stdout": "", "stderr": ""}
+    with pytest.raises(native.ValidationError):
+        native.smoke_result(contract, REPO, tmp_path, result)
+    (tmp_path / "smoke.gff3").write_text("not a gff3 file\n")
+    with pytest.raises(native.ValidationError):
+        native.smoke_result(contract, REPO, tmp_path, result)
+
+
+def test_smoke_result_rejects_agat_output_missing_expected_feature_ids(tmp_path):
+    contract = native.load_contract(REPO, "agat_extra")
+    result = {"returncode": 0, "elapsed_seconds": 1, "stdout": "", "stderr": ""}
+    (tmp_path / "smoke.gff3").write_text(
+        "##gff-version 3\nchr1\tfixture\tgene\t1\t2\t.\t+\t.\tID=unexpected_gene\n"
+    )
+    with pytest.raises(native.ValidationError):
+        native.smoke_result(contract, REPO, tmp_path, result)
+
+
+def test_smoke_result_rejects_unsupported_tool_semantics():
+    with pytest.raises(native.ValidationError):
+        native.smoke_result({"tool_id": "not_a_canary_tool"}, REPO, REPO,
+                             {"returncode": 0, "elapsed_seconds": 1, "stdout": "", "stderr": ""})
 
 
 @pytest.mark.parametrize("phase", ["oci", "sif"])
@@ -350,6 +479,23 @@ def test_process_logs_and_timeout_are_durable(tmp_path, monkeypatch, state):
     assert bool(killed) == (state == "timeout")
 
 
+def test_commands_rejects_oversized_evidence(tmp_path, monkeypatch):
+    class FakeProcess:
+        pid = 123456
+
+        def wait(self, timeout=None):
+            return 0
+
+    def popen(argv, **kwargs):
+        kwargs["stdout"].write("x" * (1024 * 1024 + 1))
+        return FakeProcess()
+
+    monkeypatch.setattr(native.subprocess, "Popen", popen)
+    commands = native.Commands(tmp_path)
+    with pytest.raises(native.ValidationError):
+        commands(["fake"], timeout=1)
+
+
 @pytest.mark.parametrize("tool", native.TOOLS)
 @pytest.mark.parametrize("arch", native.RUNNERS)
 @pytest.mark.parametrize("field", ["name", "version", "build", "fn", "subdir", "checksum"])
@@ -361,6 +507,25 @@ def test_installed_package_pin_fail_closed(tool, arch, field):
     pin[key] = "wrong"
     with pytest.raises(native.ValidationError):
         native.verify_package(pin, contract, arch)
+
+
+def test_main_plan_command_writes_plan_and_github_output(tmp_path):
+    plan_path = tmp_path / "plan.json"
+    github_output = tmp_path / "gh_output.txt"
+    assert native.main(["plan", "--repo", str(REPO), "--source-commit", COMMIT,
+                        "--plan", str(plan_path), "--github-output", str(github_output)]) == 0
+    written = json.loads(plan_path.read_text())
+    assert written == native.make_plan(REPO, COMMIT)
+    output_text = github_output.read_text()
+    assert f"plan_sha256={written['plan_sha256']}" in output_text
+    assert output_text.startswith("matrix=")
+
+
+def test_main_reconcile_requires_records_and_output(plan, tmp_path):
+    path = tmp_path / "plan.json"
+    native.write_json(path, plan)
+    assert native.main(["reconcile", "--repo", str(REPO), "--plan", str(path),
+                        "--plan-sha256", plan["plan_sha256"]]) == 1
 
 
 def test_reconciliation_failure_summary_is_durable(plan, tmp_path):
