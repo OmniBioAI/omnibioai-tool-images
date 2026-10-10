@@ -169,11 +169,11 @@
   "source_type": "upstream_archive_sha256_and_pinned_conda_version",
   "tool_id": "airr_extra",
   "validation_contract_schema_version": 1,
-  "validation_contract_sha256": "a664271f274553502f21bb8375713a8c03d3b88a957bf65f8cc0e7b43ade1b39",
+  "validation_contract_sha256": "1228dfdb0a64d12a3a7fb951df3991a6279c76beba36520883175aff1d4f5228",
   "version_command": [
     "Rscript",
     "-e",
-    "cat(as.character(packageVersion('airr')), '\\n')"
+    "writeLines(as.character(packageVersion('airr')))"
   ],
   "version_expected_value": "2.0.0",
   "version_observation_parser": "(?m)^([^\\r\\n]+)$",

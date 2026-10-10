@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from scripts.validation_contracts import contract_hash, sha256_file
+from scripts.validation_smoke import SmokeValidationError, validate_version_evidence
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -244,6 +245,19 @@ def test_airr_new_baseline_is_channel_qualified_without_historical_or_runtime_cl
 def test_airr_parser_rejects_missing_wrong_or_ambiguous_output(output: str) -> None:
     contract = load_contract("airr_extra")
     assert re.search(contract["version_parser"].removeprefix("regex:"), output) is None
+
+
+@pytest.mark.parametrize("output", ["", "1.2.0\n", "2.0.0\n1.2.0\n", "2.0.0\n2.0.0\n", "2.0.0 \n"])
+def test_airr_runtime_evidence_rejects_invalid_version(output: str) -> None:
+    with pytest.raises(SmokeValidationError):
+        validate_version_evidence(load_contract("airr_extra"), REPO,
+                                  stdout=output, stderr="", returncode=0)
+
+
+def test_airr_runtime_evidence_accepts_unpadded_version() -> None:
+    result = validate_version_evidence(load_contract("airr_extra"), REPO,
+                                       stdout="2.0.0\n", stderr="", returncode=0)
+    assert result["observed_version"] == "2.0.0"
 
 
 def test_alevin_infer_fixture_has_valid_matrix_and_equivalence_class_indices() -> None:

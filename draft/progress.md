@@ -238,3 +238,11 @@
 - Run 37233126785 first two 3D-DNA native entries reached terminal FAILURE at command 007, but the former cache error disappeared. New exact stderr: `exec: --: invalid option` in micromamba's generated temporary script. Other entries continue to collect evidence; release remains blocked.
 - Upstream `micromamba/src/run.cpp` at `micromamba-1.5.8` has no `--no-capture-output` flag, uses prefix-command parsing, and attaches all streams by default. The standalone runner had passed a Conda-only option, which was treated as a command. Removed that unsupported option; retained explicit `/opt/conda` activation, bounded stdout/stderr capture and every isolation flag.
 - Existing OCI/SIF × both-architecture regressions now assert absence of the unsupported option and exact invocation suffix. No image, scientific or frozen-factory change. Fresh-source execution will wait for testing/remote CI and terminal evidence from the current run.
+
+### AIRR version output repair — 2026-10-10
+
+- Resumed from the isolated branch's terminal audit: native run 37233513840 passed 12/14 entries; both AIRR entries rejected the padded version output. GitHub independently confirms the run completed with failure at source 5fca5a906bd21770260af20901d190944410af56.
+- Changed only AIRR's version command to `writeLines(as.character(packageVersion('airr')))`, retaining the generic and contract parsers, scientific baseline, package pins and Dockerfile. Recomputed its contract hash and both inventory references.
+- Added six runtime-evidence regressions covering exact valid output and missing, wrong, conflicting, duplicate and trailing-space output. Local R formatting execution with a stubbed packageVersion returned exact bytes `2.0.0\n`; this is formatting evidence, not AIRR package validation.
+- The original main workspace has pre-existing Dockerfile hash mismatches. Validated against a temporary copy of the native-validation branch at `/private/tmp/omnibioai-airr-validation-20261010`: focused tests **464 PASS**, static contract validator PASS, Ruff PASS. Original workspace's broader checks remain blocked by those prior source mismatches.
+- Repair is local and uncommitted. Fresh remote CI and all fourteen native entries still need to pass before publication eligibility. No dispatch or publication occurred during this repair.
