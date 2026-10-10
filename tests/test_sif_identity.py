@@ -455,3 +455,276 @@ def test_normal_validation_path_keeps_the_authoritative_dockerfile(tmp_path):
     source = tmp_path / "Dockerfile"
     source.write_text("FROM scratch\n")
     assert pilot_runner.architecture_bound_dockerfile(source, tmp_path / "unused", "") == str(source)
+
+
+# --- Additional coverage: field validation error paths ----------------------
+
+
+def test_require_text_rejects_blank_field():
+    result = evaluate(candidate(tool_id="   "))
+    assert result.decision is identity.Decision.ERROR
+    assert "non-empty text" in result.reason
+
+
+def test_require_sha256_strips_sha256_prefix():
+    value = candidate(dockerfile_sha256="sha256:" + "0" * 64)
+    normalized = identity.normalize_candidate(value)
+    assert normalized["dockerfile_sha256"] == "0" * 64
+
+
+def test_require_sha256_rejects_non_hex_text():
+    result = evaluate(candidate(dockerfile_sha256="not-a-valid-digest"))
+    assert result.decision is identity.Decision.ERROR
+    assert "full SHA256 digest" in result.reason
+
+
+def test_build_inputs_rejects_floating_point_values():
+    result = evaluate(candidate(build_inputs={"ratio": 1.5}))
+    assert result.decision is identity.Decision.ERROR
+    assert "floating-point" in result.reason
+
+
+def test_build_inputs_accepts_list_values():
+    value = candidate(build_inputs={"tags": ["a", "b", 1, None, True]})
+    normalized = identity.normalize_candidate(value)
+    assert normalized["build_inputs"]["tags"] == ["a", "b", 1, None, True]
+
+
+def test_build_inputs_rejects_non_string_nested_keys():
+    result = evaluate(candidate(build_inputs={"nested": {1: "x"}}))
+    assert result.decision is identity.Decision.ERROR
+    assert "non-empty strings" in result.reason
+
+
+def test_build_inputs_rejects_non_json_values():
+    result = evaluate(candidate(build_inputs={"weird": {1, 2, 3}}))
+    assert result.decision is identity.Decision.ERROR
+    assert "non-JSON value" in result.reason
+
+
+@pytest.mark.parametrize("bad_path", ["/etc/passwd", "../evil", "..", "."])
+def test_dockerfile_path_rejects_absolute_and_traversal_paths(bad_path):
+    result = evaluate(candidate(dockerfile_path=bad_path))
+    assert result.decision is identity.Decision.ERROR
+    assert "repository-relative path" in result.reason
+
+
+def test_normalize_candidate_rejects_non_mapping_input():
+    with pytest.raises(identity.IdentityError, match="candidate must be an object"):
+        identity.normalize_candidate([1, 2, 3])
+
+
+def test_evaluate_publication_fails_closed_for_non_mapping_candidate():
+    result = identity.evaluate_publication([1, 2, 3], {"artifacts": []})
+    assert result.decision is identity.Decision.ERROR
+
+
+def test_unsupported_schema_version_fails_closed():
+    result = evaluate(candidate(schema_version="2"))
+    assert result.decision is identity.Decision.ERROR
+    assert "unsupported schema_version" in result.reason
+
+
+def test_non_canonical_tool_id_fails_closed():
+    result = evaluate(candidate(tool_id="Invalid Tool!"))
+    assert result.decision is identity.Decision.ERROR
+    assert "not canonical" in result.reason
+
+
+def test_malformed_source_commit_fails_closed():
+    result = evaluate(candidate(source_commit="not-a-commit"))
+    assert result.decision is identity.Decision.ERROR
+    assert "40-character Git commit" in result.reason
+
+
+@pytest.mark.parametrize(
+    ("smoke", "provenance"), [("FAIL", "PASS"), ("PASS", "FAIL"), ("FAIL", "FAIL")]
+)
+def test_non_passing_smoke_or_provenance_status_fails_closed(smoke, provenance):
+    result = evaluate(candidate(smoke_status=smoke, provenance_status=provenance))
+    assert result.decision is identity.Decision.ERROR
+    assert "smoke and provenance status" in result.reason
+
+
+def test_build_inputs_must_be_a_mapping():
+    result = evaluate(candidate(build_inputs=[1, 2, 3]))
+    assert result.decision is identity.Decision.ERROR
+    assert "build_inputs must be an object" in result.reason
+
+
+def test_tag_component_rejects_version_with_no_representable_characters():
+    with pytest.raises(identity.IdentityError, match="cannot be represented"):
+        identity.immutable_tag(candidate(scientific_version="!!!"))
+
+
+def test_generated_tag_exceeding_oci_limits_fails_closed():
+    with pytest.raises(identity.IdentityError, match="not a valid OCI tag"):
+        identity.immutable_tag(candidate(scientific_version="2.30.0" * 25))
+
+
+# --- Additional coverage: registry-state validation error paths -------------
+
+
+def test_registry_state_must_be_a_mapping():
+    result = identity.evaluate_publication(candidate(), "not-a-mapping")
+    assert result.decision is identity.Decision.ERROR
+    assert "registry state must be an object" in result.reason
+
+
+def test_registry_artifacts_must_be_a_list():
+    result = identity.evaluate_publication(candidate(), {"artifacts": "not-a-list"})
+    assert result.decision is identity.Decision.ERROR
+    assert "registry artifacts must be a list" in result.reason
+
+
+def test_registry_artifact_without_text_tag_fails_closed():
+    result = identity.evaluate_publication(candidate(), {"artifacts": [{"no_tag": True}]})
+    assert result.decision is identity.Decision.ERROR
+    assert "text tag" in result.reason
+
+
+def test_registry_artifact_with_non_string_tag_fails_closed():
+    result = identity.evaluate_publication(candidate(), {"artifacts": [{"tag": 123}]})
+    assert result.decision is identity.Decision.ERROR
+
+
+def test_registry_sif_sha256_must_be_valid_hex():
+    value = candidate(target_architecture="amd64")
+    result = evaluate(value, [{"tag": "amd64", "sif_sha256": "not-hex"}])
+    assert result.decision is identity.Decision.ERROR
+    assert "registry sif_sha256" in result.reason
+
+
+def test_legacy_architecture_tag_without_sif_sha256_is_legacy_artifact():
+    value = candidate(target_architecture="arm64")
+    result = evaluate(value, [{"tag": "arm64"}])
+    assert result.decision is identity.Decision.PUBLISH_NEW
+    assert result.legacy_status is identity.LegacyStatus.LEGACY_ARTIFACT
+    assert result.legacy_tag_present is True
+    assert result.legacy_content_sha256 is None
+
+
+def test_duplicate_immutable_tags_in_registry_snapshot_fail_closed():
+    value = candidate()
+    tag = identity.immutable_tag(value)
+    entries = [artifact(value, tag=tag), artifact(value, tag=tag)]
+    result = evaluate(value, entries)
+    assert result.decision is identity.Decision.ERROR
+    assert "duplicate immutable tags" in result.reason
+
+
+def test_same_tag_remote_metadata_invalid_blocks_metadata_missing():
+    value = candidate()
+    entry = artifact(value)
+    # Keep build_identity_sha256 present (so the explicit key-presence check
+    # passes) but strip every other required field so identity_metadata()
+    # itself raises when re-validating the stored remote metadata.
+    entry["identity_metadata"] = {"build_identity_sha256": "f" * 64}
+    result = evaluate(value, [entry])
+    assert result.decision is identity.Decision.BLOCK_METADATA_MISSING
+    assert "invalid" in result.reason
+
+
+def test_other_tag_without_identity_metadata_is_skipped_in_full_identity_search():
+    value = candidate()
+    entries = [
+        {"tag": "sif-v1-some-other-tag", "sif_sha256": "9" * 64},
+        {"tag": "sif-v1-another-tag"},
+    ]
+    result = evaluate(value, entries)
+    assert result.decision is identity.Decision.PUBLISH_NEW
+
+
+def test_other_tag_with_invalid_identity_metadata_is_skipped_in_full_identity_search():
+    value = candidate()
+    entry = {
+        "tag": "sif-v1-some-other-tag",
+        "identity_metadata": {"build_identity_sha256": "f" * 64},
+    }
+    result = evaluate(value, [entry])
+    assert result.decision is identity.Decision.PUBLISH_NEW
+
+
+def test_other_tag_with_mismatched_build_identity_does_not_block_publish():
+    value = candidate()
+    other = candidate(source_commit="f" * 40)
+    entry = artifact(other, tag="sif-v1-unrelated-reference")
+    result = evaluate(value, [entry])
+    assert result.decision is identity.Decision.PUBLISH_NEW
+
+
+# --- Additional coverage: direct in-process CLI (main) ----------------------
+
+
+def test_main_direct_success_reports_publish_new(tmp_path, capsys):
+    candidate_path = tmp_path / "candidate.json"
+    state_path = tmp_path / "state.json"
+    candidate_path.write_text(json.dumps(candidate()))
+    state_path.write_text(json.dumps({"artifacts": []}))
+    rc = identity.main([
+        "--candidate", str(candidate_path), "--registry-state", str(state_path),
+    ])
+    assert rc == 0
+    captured = capsys.readouterr()
+    assert "DECISION=PUBLISH_NEW" in captured.out
+    assert "REGISTRY_WRITE_PERFORMED=NO" in captured.out
+    assert "TOOL=bedtools" in captured.out
+    assert "IMMUTABLE_TAG_PRESENT=NO" in captured.out
+
+
+def test_main_direct_blocking_decision_returns_two_and_unknown_metadata(tmp_path, capsys):
+    candidate_path = tmp_path / "candidate.json"
+    state_path = tmp_path / "state.json"
+    # An unsupported architecture makes identity_metadata() raise both inside
+    # evaluate_publication (-> Decision.ERROR) and again inside _print_result's
+    # own re-derivation of metadata, exercising its except/fallback branch.
+    candidate_path.write_text(json.dumps(candidate(target_architecture="ppc64le")))
+    state_path.write_text(json.dumps({"artifacts": []}))
+    rc = identity.main([
+        "--candidate", str(candidate_path), "--registry-state", str(state_path),
+    ])
+    assert rc == 2
+    captured = capsys.readouterr()
+    assert "DECISION=ERROR" in captured.out
+    assert "TOOL=UNKNOWN" in captured.out
+    assert "IMMUTABLE_TAG=UNKNOWN" in captured.out
+
+
+def test_main_direct_invalid_json_candidate_fails_closed(tmp_path, capsys):
+    candidate_path = tmp_path / "candidate.json"
+    state_path = tmp_path / "state.json"
+    candidate_path.write_text("{not-json")
+    state_path.write_text(json.dumps({"artifacts": []}))
+    rc = identity.main([
+        "--candidate", str(candidate_path), "--registry-state", str(state_path),
+    ])
+    assert rc == 2
+    captured = capsys.readouterr()
+    assert "DECISION=ERROR" in captured.out
+    assert "REGISTRY_WRITE_PERFORMED=NO" in captured.out
+
+
+def test_main_direct_candidate_file_must_contain_an_object(tmp_path, capsys):
+    candidate_path = tmp_path / "candidate.json"
+    state_path = tmp_path / "state.json"
+    candidate_path.write_text(json.dumps([1, 2, 3]))
+    state_path.write_text(json.dumps({"artifacts": []}))
+    rc = identity.main([
+        "--candidate", str(candidate_path), "--registry-state", str(state_path),
+    ])
+    assert rc == 2
+    captured = capsys.readouterr()
+    assert "DECISION=ERROR" in captured.out
+
+
+def test_main_direct_missing_candidate_file_fails_closed(tmp_path, capsys):
+    state_path = tmp_path / "state.json"
+    state_path.write_text(json.dumps({"artifacts": []}))
+    rc = identity.main([
+        "--candidate", str(tmp_path / "does-not-exist.json"),
+        "--registry-state", str(state_path),
+    ])
+    assert rc == 2
+    captured = capsys.readouterr()
+    assert "DECISION=ERROR" in captured.out
+    assert "cannot read" in captured.out

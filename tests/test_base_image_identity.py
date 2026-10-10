@@ -199,6 +199,34 @@ def test_resolve_base_image_identity_end_to_end(monkeypatch):
     assert bii.resolve_base_image_identity(BASE_REF) == f"{BASE_REF}@{VALID_DIGEST}"
 
 
+def test_main_success_writes_identity_line_to_github_env(monkeypatch, tmp_path):
+    def fake_run(*args, **kwargs):
+        return subprocess.CompletedProcess(
+            args=args, returncode=0, stdout=full_output(), stderr=""
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    github_env = tmp_path / "env.txt"
+    github_env.write_text("EXISTING=1\n")
+    rc = bii.main(["--base-ref", BASE_REF, "--github-env", str(github_env)])
+    assert rc == 0
+    assert github_env.read_text() == f"EXISTING=1\nPILOT_BASE_IMAGE_IDENTITY={BASE_REF}@{VALID_DIGEST}\n"
+
+
+def test_main_success_prints_identity_line_when_no_github_env(monkeypatch, capsys):
+    def fake_run(*args, **kwargs):
+        return subprocess.CompletedProcess(
+            args=args, returncode=0, stdout=full_output(), stderr=""
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.delenv("GITHUB_ENV", raising=False)
+    rc = bii.main(["--base-ref", BASE_REF])
+    assert rc == 0
+    captured = capsys.readouterr()
+    assert captured.out.strip() == f"PILOT_BASE_IMAGE_IDENTITY={BASE_REF}@{VALID_DIGEST}"
+
+
 def test_main_fails_closed_and_writes_nothing_on_buildx_failure(monkeypatch, tmp_path):
     def fake_run(*args, **kwargs):
         return subprocess.CompletedProcess(
