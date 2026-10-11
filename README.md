@@ -65,6 +65,21 @@ pytest tests/ -v -k "not test_tool_runs_in_sif"
 
 ---
 
+## Tool Runtime dependency
+
+Tool image builds use the canonical `omnibioai-tool-runtime` repository as an external, commit-pinned build input. The resolver in `scripts/runtime_resolver.py` accepts `TOOL_RUNTIME_DIR` for an existing clean checkout, uses the sibling ecosystem checkout when available, and otherwise stages a temporary checkout at the approved `TOOL_RUNTIME_COMMIT`. It validates the exact commit and fails closed for missing, dirty, or mismatched inputs. Dockerfiles retain their existing `omnibioai-tool-runtime/` copy paths.
+
+The historical nested runtime Gitlink was removed from active metadata. Historical references to its former SHA remain in audit records. The current approved runtime SHA is `34a80219335f5dbeedeb7f0e6a4439913d12e25f`.
+
+## ORAS dependency
+
+Historical vendored ORAS 1.1.0 artifacts were removed because active CI and
+release code do not consume them. Manual release operations require a verified
+`oras` executable available through `PATH`. CI installs ORAS 1.3.0 from the
+upstream release archive, verifies the architecture-specific SHA-256 checksum,
+and then installs it for the job. Generated SIF images and build logs remain
+ignored and external to Git.
+
 ## Distribution
 
 Once SIFs are built, four scripts push them off this machine to a remote
@@ -73,7 +88,7 @@ store. None of these are wired into the API — they're run manually, host-side:
 | Script | Target | Requires |
 |---|---|---|
 | `scripts/push_to_hf.sh` | Hugging Face dataset repo `omnibioai/omnibioai-sif-images` | `huggingface-cli`, logged in |
-| `scripts/push_to_ghcr.sh` | `ghcr.io/omnibioai/omnibioai-sif/<tool>:arm64` via `oras` (vendored in `scripts/`, auto-installed if missing) | `GH_USER` and `GH_TOKEN` env vars |
+| `scripts/push_to_ghcr.sh` | `ghcr.io/omnibioai/omnibioai-sif/<tool>:arm64` via an `oras` executable on `PATH` | `GH_USER` and `GH_TOKEN` env vars |
 | `scripts/upload_sifs_s3.sh` | `s3://<S3_SIF_BUCKET>-<AWS account ID>/` (bucket auto-created) | AWS CLI credentials |
 | `scripts/upload_sifs_azure.sh` | Azure Blob container `${AZURE_SIF_CONTAINER:-omnibioai-sif}` (auto-created) | `AZURE_STORAGE_CONNECTION_STRING` |
 

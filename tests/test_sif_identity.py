@@ -42,7 +42,7 @@ def candidate(**changes):
         "provenance_status": "PASS",
         "build_inputs": {
             "package_revision": "2.30.0+dfsg-3",
-            "runtime_commit": "a4f3da56c2e6e9fd85e54ba009f6f3456de3b5b5",
+            "runtime_commit": "34a80219335f5dbeedeb7f0e6a4439913d12e25f",
             "source_checksum": "4" * 64,
         },
         "operational_provenance": {
