@@ -541,9 +541,7 @@ def test_reconciliation_failure_summary_is_durable(plan, tmp_path):
     assert result["release_complete"] is False and result["publication_authorized"] is False
 
 
-def test_checkout_gitlink_has_registered_repository():
-    configuration = configparser.ConfigParser()
-    configuration.read(REPO / ".gitmodules")
-    runtime = configuration['submodule "omnibioai-tool-runtime"']
-    assert runtime["path"] == "omnibioai-tool-runtime"
-    assert runtime["url"] == "https://github.com/OmniBioAI/omnibioai-tool-runtime.git"
+def test_runtime_is_resolved_externally_at_canonical_sha():
+    from scripts.runtime_resolver import DEFAULT_COMMIT
+    assert not (REPO / ".gitmodules").exists()
+    assert DEFAULT_COMMIT == "34a80219335f5dbeedeb7f0e6a4439913d12e25f"

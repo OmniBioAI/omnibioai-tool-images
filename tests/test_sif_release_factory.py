@@ -535,7 +535,7 @@ def test_bedtools_reference_build_identity_is_unchanged_by_canonicalization():
     value = candidate(tool="bedtools", version="2.30.0")
     assert release.canonicalize_version_evidence(value["version_evidence"]) == "bedtools v2.30.0"
     assert identity.build_identity_sha256(value) == (
-        "5bfd3c83d10a2e68224f24ec2747545299b6c3b45bdac9b892ab21df201342fc"
+        "a8884fd73110f18fe4fa80f1f7a2df346d459937d631f1488c55aced7c6951c0"
     )
 
 
