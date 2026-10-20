@@ -16,7 +16,7 @@
 #
 set -euo pipefail
 
-BASE_DIR="$HOME/Desktop/machine/omnibioai-tool-images"
+BASE_DIR="$HOME/Desktop/omnibioai-ecosystem/omnibioai-tool-images"
 DOCKERFILE_DIR="$BASE_DIR/dockerfiles"
 SIF_DIR="$BASE_DIR/sif/OmniBioAI-SIFs"
 REGISTRY_PORT=5000

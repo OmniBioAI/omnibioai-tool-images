@@ -5,7 +5,7 @@
 # then native aarch64 conda -> pip -> qemu x86_64 emulation -> SIF conversion.
 #
 # Usage:
-#   cd /home/manish/Desktop/machine/omnibioai-tool-images
+#   cd /home/manish/Desktop/omnibioai-ecosystem/omnibioai-tool-images
 #   bash build_20_more_tools.sh
 
 set -uo pipefail

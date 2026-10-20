@@ -15,7 +15,7 @@
 #   6. Log final success/failure breakdown
 #
 # Usage:
-#   cd /home/manish/Desktop/machine/omnibioai-tool-images
+#   cd /home/manish/Desktop/omnibioai-ecosystem/omnibioai-tool-images
 #   bash build_60_new_tools.sh
 #
 # Requires: docker, docker buildx with qemu emulation, apptainer/singularity

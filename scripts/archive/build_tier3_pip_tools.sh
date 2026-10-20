@@ -3,11 +3,11 @@
 # (no bioconda/quay.io/Galaxy-depot ARM64 image exists for these; built from Dockerfiles instead)
 set -uo pipefail
 
-SIF_DIR=/home/manish/Desktop/machine/omnibioai-tool-images/sif
-DF_DIR=/home/manish/Desktop/machine/omnibioai-tool-images/dockerfiles
-LOG_DIR=/home/manish/Desktop/machine/omnibioai-tool-images/build_logs
+SIF_DIR=/home/manish/Desktop/omnibioai-ecosystem/omnibioai-tool-images/sif
+DF_DIR=/home/manish/Desktop/omnibioai-ecosystem/omnibioai-tool-images/dockerfiles
+LOG_DIR=/home/manish/Desktop/omnibioai-ecosystem/omnibioai-tool-images/build_logs
 mkdir -p "$LOG_DIR"
-cd /home/manish/Desktop/machine/omnibioai-tool-images
+cd /home/manish/Desktop/omnibioai-ecosystem/omnibioai-tool-images
 
 GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[1;33m'; NC='\033[0m'
 

@@ -7,9 +7,9 @@
 # <file> uname -m`) and deleted. Kept here for history only. See
 # scripts/archive/README.md.
 set -e
-SIF_DIR=~/Desktop/machine/omnibioai-tool-images/sif
-LOG=~/Desktop/machine/omnibioai-tool-images/build_logs/build_200_$(date +%Y%m%d).log
-mkdir -p ~/Desktop/machine/omnibioai-tool-images/build_logs
+SIF_DIR=~/Desktop/omnibioai-ecosystem/omnibioai-tool-images/sif
+LOG=~/Desktop/omnibioai-ecosystem/omnibioai-tool-images/build_logs/build_200_$(date +%Y%m%d).log
+mkdir -p ~/Desktop/omnibioai-ecosystem/omnibioai-tool-images/build_logs
 cd $SIF_DIR
 
 SUCCESS=0
@@ -261,5 +261,5 @@ echo "❌ Failed:  $FAILED"
 echo "⏭️  Skipped: $SKIPPED"
 echo ""
 echo "Total SIF images now:"
-ls ~/Desktop/machine/omnibioai-tool-images/sif/*.sif | wc -l
+ls ~/Desktop/omnibioai-ecosystem/omnibioai-tool-images/sif/*.sif | wc -l
 echo "========================================"

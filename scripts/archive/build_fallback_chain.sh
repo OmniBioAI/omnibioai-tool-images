@@ -8,7 +8,7 @@
 #   3. Give up, log to failed_final.txt for manual/source-build follow-up
 #
 # Usage:
-#   cd /home/manish/Desktop/machine/omnibioai-tool-images
+#   cd /home/manish/Desktop/omnibioai-ecosystem/omnibioai-tool-images
 #   bash build_fallback_chain.sh
 #
 # Requires: docker buildx with qemu emulation support.

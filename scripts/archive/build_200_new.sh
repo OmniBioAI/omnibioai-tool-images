@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/Desktop/machine/omnibioai-tool-images
+cd ~/Desktop/omnibioai-ecosystem/omnibioai-tool-images
 
 for tool_pkg in \
   "bwa_mem2:bwa-mem2" \

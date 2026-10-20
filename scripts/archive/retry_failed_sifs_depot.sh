@@ -9,9 +9,9 @@
 # Retry build for previously-failed SIFs using resolved Galaxy depot URLs
 # (real tags verified against https://depot.galaxyproject.org/singularity/ index,
 #  since quay.io/biocontainers ARM64 images were missing for these tools)
-SIF_DIR=~/Desktop/machine/omnibioai-tool-images/sif
-LOG=~/Desktop/machine/omnibioai-tool-images/build_logs/retry_depot_$(date +%Y%m%d_%H%M).log
-mkdir -p ~/Desktop/machine/omnibioai-tool-images/build_logs
+SIF_DIR=~/Desktop/omnibioai-ecosystem/omnibioai-tool-images/sif
+LOG=~/Desktop/omnibioai-ecosystem/omnibioai-tool-images/build_logs/retry_depot_$(date +%Y%m%d_%H%M).log
+mkdir -p ~/Desktop/omnibioai-ecosystem/omnibioai-tool-images/build_logs
 cd "$SIF_DIR"
 
 SUCCESS=0
@@ -158,5 +158,5 @@ echo "❌ Failed:  $FAILED"
 echo "⏭️  Skipped: $SKIPPED"
 echo ""
 echo "Total SIF images now:"
-ls ~/Desktop/machine/omnibioai-tool-images/sif/*.sif | wc -l
+ls ~/Desktop/omnibioai-ecosystem/omnibioai-tool-images/sif/*.sif | wc -l
 echo "========================================"
