@@ -7,6 +7,8 @@ WORKDIR /ui
 COPY frontend/tool-images-ui/package*.json ./
 RUN npm ci
 COPY frontend/tool-images-ui/ ./
+ARG VITE_STUDIO_DEV_ORIGIN=""
+ENV VITE_STUDIO_DEV_ORIGIN=$VITE_STUDIO_DEV_ORIGIN
 RUN npm run build
 
 # ── Stage 2: Python API + nginx ───────────────────────────────────────────────
@@ -29,6 +31,7 @@ RUN printf 'server {\n\
     listen 5179;\n\
     root /usr/share/nginx/html;\n\
     index index.html;\n\
+    add_header Content-Security-Policy "frame-ancestors '\''self'\'' https://webstudio.omnibioai.org" always;\n\
     location /_svc/toolimages/ { alias /usr/share/nginx/html/; try_files $uri $uri/ /_svc/toolimages/index.html; }\n\
     location / { try_files $uri $uri/ /index.html; }\n\
     location /v1/ { proxy_pass http://127.0.0.1:8097; proxy_set_header Host $host; }\n\

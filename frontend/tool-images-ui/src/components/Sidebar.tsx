@@ -1,18 +1,18 @@
 import type { Tool } from '../types'
 
 const CATEGORY_COLORS: Record<string, string> = {
-  'Bio Core': '#4fc3f7',
-  'Variant Analysis': '#a78bfa',
-  'RNA-seq': '#f97316',
-  'Metagenomics': '#22c55e',
-  'Epigenomics': '#ec4899',
-  'Single-cell': '#06b6d4',
-  'Proteomics': '#eab308',
-  'Structural Biology': '#f87171',
-  'ML / AI': '#00c9a7',
-  'More Bioinformatics': '#94a3b8',
-  'Population Genetics': '#c084fc',
-  'Other': '#6b7280',
+  'Bio Core': 'var(--category-bio)',
+  'Variant Analysis': 'var(--category-variant)',
+  'RNA-seq': 'var(--category-rna)',
+  'Metagenomics': 'var(--category-metagenomics)',
+  'Epigenomics': 'var(--category-epigenomics)',
+  'Single-cell': 'var(--category-single-cell)',
+  'Proteomics': 'var(--category-proteomics)',
+  'Structural Biology': 'var(--category-structural)',
+  'ML / AI': 'var(--category-ml)',
+  'More Bioinformatics': 'var(--category-more)',
+  'Population Genetics': 'var(--category-population)',
+  'Other': 'var(--category-other)',
 }
 
 interface Props {
@@ -40,7 +40,7 @@ export default function Sidebar({ tools, activeCategory, onCategorySelect }: Pro
     : `${totalSizeMb.toFixed(0)} MB`
 
   return (
-    <aside style={{
+    <aside className="app-sidebar" style={{
       width: 188,
       minWidth: 188,
       background: 'var(--bg1)',
@@ -78,7 +78,7 @@ export default function Sidebar({ tools, activeCategory, onCategorySelect }: Pro
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
         {Object.entries(cats).sort((a, b) => a[0].localeCompare(b[0])).map(([cat, { total }]) => {
-          const color = CATEGORY_COLORS[cat] ?? '#6b7280'
+          const color = CATEGORY_COLORS[cat] ?? 'var(--category-other)'
           const isActive = activeCategory === cat
           return (
             <button
@@ -124,10 +124,10 @@ export default function Sidebar({ tools, activeCategory, onCategorySelect }: Pro
           Storage
         </div>
         <StorageStat label="Total size" value={sizeLabel} color="var(--accent)" />
-        <StorageStat label="Built" value={String(totalBuilt)} color="#00e5a0" />
-        <StorageStat label="Reused" value={String(totalReused)} color="#0094ff" />
-        <StorageStat label="License" value={String(totalLicense)} color="#f59e0b" />
-        <StorageStat label="Missing" value={String(totalMissing)} color="#ef4444" />
+        <StorageStat label="Built" value={String(totalBuilt)} color="var(--color-success)" />
+        <StorageStat label="Reused" value={String(totalReused)} color="var(--color-info)" />
+        <StorageStat label="License" value={String(totalLicense)} color="var(--color-warning)" />
+        <StorageStat label="Missing" value={String(totalMissing)} color="var(--color-danger)" />
       </div>
     </aside>
   )

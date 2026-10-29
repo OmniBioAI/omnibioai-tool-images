@@ -1,59 +1,46 @@
-/* OmniBioAI Design Tokens v1.0 — Phase 2 migration */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
+@import './vendor/omnibioai-design-tokens.css';
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* color-token-mapping:start */
+:root[data-theme="dark"][data-accent="teal"] { --color-accent: #00e5a0; --color-accent-dim: rgba(0,229,160,.20); --color-accent-border: rgba(0,229,160,.7); --color-accent-surface: rgba(0,229,160,.14); --color-on-accent: #00150e; }
+:root[data-theme="dark"][data-accent="blue"] { --color-accent: #75b8ff; --color-accent-dim: rgba(117,184,255,.20); --color-accent-border: rgba(117,184,255,.7); --color-accent-surface: rgba(117,184,255,.14); --color-on-accent: #00101f; }
+:root[data-theme="dark"][data-accent="purple"] { --color-accent: #c084fc; --color-accent-dim: rgba(192,132,252,.20); --color-accent-border: rgba(192,132,252,.7); --color-accent-surface: rgba(192,132,252,.14); --color-on-accent: #1a0828; }
+:root[data-theme="dark"][data-accent="orange"] { --color-accent: #ffb26b; --color-accent-dim: rgba(255,178,107,.20); --color-accent-border: rgba(255,178,107,.7); --color-accent-surface: rgba(255,178,107,.14); --color-on-accent: #241000; }
+:root[data-theme="light"][data-accent="teal"],
+:root[data-theme="light"][data-accent="blue"],
+:root[data-theme="light"][data-accent="purple"],
+:root[data-theme="light"][data-accent="orange"] {
+  --color-accent-dim: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  --color-accent-border: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  --color-accent-surface: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+/* color-token-mapping:end */
 
 :root {
-  /* Backgrounds */
-  --bg: #0f1117;
-  --bg1: #1a1d2e;
-  --bg2: #212436;
-  --bg3: #2a2d3e;
-  --bg4: rgba(0,229,160,0.04);
-  --bg5: rgba(0,229,160,0.07);
-
-  /* Borders */
-  --border: #2a2d3e;
-  --border2: #3a3d4e;
-
-  /* Text */
-  --text: #ffffff;
-  --text-dim: #c9cdd8;
-  --color-text-muted: #6b7280;
-  --text2: #6b7280;
-  --text3: #4b5563;
-
-  /* Accent */
-  --color-accent: #00e5a0;
-  --accent: #00e5a0;
-  --accent-dim: rgba(0,229,160,0.10);
-  --teal: #00e5a0;
-  --teal-dim: rgba(0,229,160,0.08);
-  --teal-dim2: rgba(0,229,160,0.14);
-
-  /* Status */
-  --color-danger: #ef4444;
-  --color-warning: #f59e0b;
-  --color-success: #22c55e;
-
-  /* Radius */
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-
-  /* Fonts */
-  --font-mono: 'IBM Plex Mono', monospace;
-  --font-sans: system-ui, -apple-system, sans-serif;
-  --font-body: var(--font-sans);
-
-  /* Backward-compat aliases */
-  --red: var(--color-danger);
-  --amber: var(--color-warning);
-  --green: var(--color-success);
-  --r: var(--radius-lg);
-  --rl: var(--radius-xl);
-  --text-muted: var(--color-text-muted);
+  --bg1: var(--color-bg-surface);
+  --bg2: var(--color-bg-surface2);
+  --bg3: var(--color-bg-surface3);
+  --border: var(--color-border-muted);
+  --border2: var(--color-border);
+  --text-dim: var(--color-text-secondary);
+  --text3: var(--color-text-dim);
+  --accent-dim: var(--color-accent-dim);
+  --accent-border: var(--color-accent-border);
   --font: var(--font-mono);
+  --category-bio: var(--color-info);
+  --category-variant: var(--color-accent);
+  --category-rna: var(--color-warning);
+  --category-metagenomics: var(--color-success);
+  --category-epigenomics: var(--color-danger);
+  --category-single-cell: var(--color-accent);
+  --category-proteomics: var(--color-warning);
+  --category-structural: var(--color-danger);
+  --category-ml: var(--color-accent);
+  --category-more: var(--color-text-muted);
+  --category-population: var(--color-accent);
+  --category-other: var(--color-text-dim);
 }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body, #root {
   height: 100%;
@@ -65,18 +52,17 @@ html, body, #root {
   overflow: hidden;
 }
 
-button {
-  font-family: var(--font-sans);
-  cursor: pointer;
-  border: none;
-  outline: none;
-}
+button { font-family: var(--font-sans); cursor: pointer; border: none; outline: none; }
+input { font-family: var(--font-sans); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-input {
-  font-family: var(--font-sans);
-}
+html[data-embedded="true"] .app-top-bar { display: none !important; }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+[data-density="compact"] .app-top-bar { height: 44px !important; min-height: 44px !important; }
+
+@media (max-width: 600px) {
+  .app-icon-nav, .app-sidebar { display: none !important; }
+  .app-top-bar { padding-inline: 10px !important; }
+  .app-top-bar-search { margin-left: 0 !important; }
+  .app-top-bar-badge { display: none !important; }
+}

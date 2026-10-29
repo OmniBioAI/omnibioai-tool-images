@@ -2,25 +2,25 @@ import { RefreshCw, FileText, Key } from 'lucide-react'
 import type { Tool, ToolStatus } from '../types'
 
 const CATEGORY_COLORS: Record<string, string> = {
-  'Bio Core': '#4fc3f7',
-  'Variant Analysis': '#a78bfa',
-  'RNA-seq': '#f97316',
-  'Metagenomics': '#22c55e',
-  'Epigenomics': '#ec4899',
-  'Single-cell': '#06b6d4',
-  'Proteomics': '#eab308',
-  'Structural Biology': '#f87171',
-  'ML / AI': '#00c9a7',
-  'More Bioinformatics': '#94a3b8',
-  'Population Genetics': '#c084fc',
-  'Other': '#6b7280',
+  'Bio Core': 'var(--category-bio)',
+  'Variant Analysis': 'var(--category-variant)',
+  'RNA-seq': 'var(--category-rna)',
+  'Metagenomics': 'var(--category-metagenomics)',
+  'Epigenomics': 'var(--category-epigenomics)',
+  'Single-cell': 'var(--category-single-cell)',
+  'Proteomics': 'var(--category-proteomics)',
+  'Structural Biology': 'var(--category-structural)',
+  'ML / AI': 'var(--category-ml)',
+  'More Bioinformatics': 'var(--category-more)',
+  'Population Genetics': 'var(--category-population)',
+  'Other': 'var(--category-other)',
 }
 
 const STATUS_STYLE: Record<ToolStatus, { bg: string; color: string; label: string }> = {
-  built: { bg: 'rgba(0,229,160,0.12)', color: '#00e5a0', label: 'built' },
-  reused: { bg: 'rgba(0,148,255,0.12)', color: '#0094ff', label: 'reused' },
-  license: { bg: 'rgba(245,158,11,0.12)', color: '#f59e0b', label: 'license' },
-  missing: { bg: 'rgba(239,68,68,0.12)', color: '#ef4444', label: 'missing' },
+  built: { bg: 'var(--color-bg-elevated)', color: 'var(--color-success)', label: 'built' },
+  reused: { bg: 'var(--color-bg-elevated)', color: 'var(--color-info)', label: 'reused' },
+  license: { bg: 'var(--color-bg-elevated)', color: 'var(--color-warning)', label: 'license' },
+  missing: { bg: 'var(--color-bg-elevated)', color: 'var(--color-danger)', label: 'missing' },
 }
 
 interface Props {
@@ -64,7 +64,7 @@ export default function ToolTable({ tools, selected, onSelect, onRebuild, onView
           {tools.map(tool => {
             const isSelected = selected?.name === tool.name
             const ss = STATUS_STYLE[tool.status]
-            const catColor = CATEGORY_COLORS[tool.category] ?? '#6b7280'
+            const catColor = CATEGORY_COLORS[tool.category] ?? 'var(--category-other)'
             const sizeRatio = maxSizeMb > 0 && tool.sif_size_mb ? tool.sif_size_mb / maxSizeMb : 0
             const updatedLabel = tool.updated_at
               ? new Date(tool.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -138,7 +138,7 @@ export default function ToolTable({ tools, selected, onSelect, onRebuild, onView
                       <ActionBtn
                         icon={<Key size={11} />}
                         label="Get license"
-                        color="#f59e0b"
+                        color="var(--color-warning)"
                         onClick={e => e.stopPropagation()}
                       />
                     )}

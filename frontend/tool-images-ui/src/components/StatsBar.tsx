@@ -15,10 +15,10 @@ export default function StatsBar({ tools }: Props) {
       background: 'var(--border)',
       borderBottom: '1px solid var(--border)',
     }}>
-      <StatCard label="Built & ready" value={built} color="#00e5a0" />
-      <StatCard label="Reused SIF" value={reused} color="#0094ff" />
-      <StatCard label="Needs license" value={license} color="#f59e0b" />
-      <StatCard label="Missing / broken" value={missing} color="#ef4444" />
+      <StatCard label="Built & ready" value={built} color="var(--color-success)" />
+      <StatCard label="Reused SIF" value={reused} color="var(--color-info)" />
+      <StatCard label="Needs license" value={license} color="var(--color-warning)" />
+      <StatCard label="Missing / broken" value={missing} color="var(--color-danger)" />
     </div>
   )
 }
