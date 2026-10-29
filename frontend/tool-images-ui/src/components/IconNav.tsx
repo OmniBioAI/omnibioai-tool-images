@@ -13,10 +13,10 @@ const NAV_ITEMS = [
 
 export default function IconNav({ active }: Props) {
   return (
-    <nav style={{
+    <nav className="app-icon-nav" style={{
       width: 52,
       minWidth: 52,
-      background: '#080a0e',
+      background: 'var(--color-bg-elevated)',
       borderRight: '1px solid var(--border)',
       display: 'flex',
       flexDirection: 'column',
@@ -36,7 +36,7 @@ export default function IconNav({ active }: Props) {
         marginBottom: 20,
         flexShrink: 0,
       }}>
-        <span style={{ color: '#0a0c10', fontWeight: 700, fontSize: 14 }}>O</span>
+        <span style={{ color: 'var(--on-accent)', fontWeight: 700, fontSize: 14 }}>O</span>
       </div>
 
       {NAV_ITEMS.map(({ id, icon: Icon, label }) => {
@@ -50,7 +50,7 @@ export default function IconNav({ active }: Props) {
               height: 36,
               borderRadius: 8,
               background: isActive ? 'var(--accent-dim)' : 'transparent',
-              border: isActive ? '1px solid rgba(0,201,167,0.3)' : '1px solid transparent',
+              border: isActive ? '1px solid var(--accent-border)' : '1px solid transparent',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

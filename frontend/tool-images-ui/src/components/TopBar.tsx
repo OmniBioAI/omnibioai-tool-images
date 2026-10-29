@@ -14,7 +14,7 @@ export default function TopBar({ search, onSearch, onBuildAll, building, totalSi
     : `${totalSizeMb.toFixed(0)} MB`
 
   return (
-    <div style={{
+    <div className="app-top-bar" style={{
       height: 52,
       minHeight: 52,
       background: 'var(--bg1)',
@@ -31,7 +31,7 @@ export default function TopBar({ search, onSearch, onBuildAll, building, totalSi
         </span>
       </div>
 
-      <div style={{ flex: 1, maxWidth: 320, marginLeft: 16, position: 'relative' }}>
+      <div className="app-top-bar-search" style={{ flex: 1, maxWidth: 320, marginLeft: 16, position: 'relative' }}>
         <Search size={13} style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
         <input
           type="text"
@@ -48,13 +48,13 @@ export default function TopBar({ search, onSearch, onBuildAll, building, totalSi
             fontSize: 12,
             outline: 'none',
           }}
-          onFocus={e => (e.target.style.borderColor = 'rgba(0,201,167,0.4)')}
+          onFocus={e => (e.target.style.borderColor = 'var(--accent-border)')}
           onBlur={e => (e.target.style.borderColor = 'var(--border)')}
         />
       </div>
 
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Badge label="ARM64" color="#a78bfa" />
+        <Badge label="ARM64" color="var(--color-purple)" />
         <Badge label={sizeLabel} color="var(--text-muted)" />
 
         <button
@@ -67,7 +67,7 @@ export default function TopBar({ search, onSearch, onBuildAll, building, totalSi
             padding: '5px 12px',
             borderRadius: 6,
             background: building ? 'var(--bg3)' : 'var(--accent)',
-            color: building ? 'var(--text-muted)' : '#0a0c10',
+            color: building ? 'var(--text-muted)' : 'var(--on-accent)',
             fontSize: 12,
             fontWeight: 600,
             fontFamily: 'var(--font)',
@@ -86,7 +86,7 @@ export default function TopBar({ search, onSearch, onBuildAll, building, totalSi
 
 function Badge({ label, color }: { label: string; color: string }) {
   return (
-    <span style={{
+    <span className="app-top-bar-badge" style={{
       padding: '2px 7px',
       borderRadius: 4,
       background: 'var(--bg3)',

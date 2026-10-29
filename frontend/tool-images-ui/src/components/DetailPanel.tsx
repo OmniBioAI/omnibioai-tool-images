@@ -113,7 +113,7 @@ export default function DetailPanel({ tool, onClose, onShowDockerfile }: Props) 
             </div>
           )}
           <div style={{
-            background: '#050709',
+            background: 'var(--color-bg)',
             border: '1px solid var(--border)',
             borderRadius: 5,
             padding: 8,
@@ -121,7 +121,7 @@ export default function DetailPanel({ tool, onClose, onShowDockerfile }: Props) 
             overflowY: 'auto',
             fontFamily: 'var(--font)',
             fontSize: 10,
-            color: '#8aff80',
+            color: 'var(--color-success)',
             lineHeight: 1.6,
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-all',
@@ -183,7 +183,7 @@ function PanelBtn({ icon, label, accent, disabled, onClick }: { icon: React.Reac
         borderRadius: 5,
         background: accent ? 'var(--accent)' : 'var(--bg3)',
         border: `1px solid ${accent ? 'transparent' : 'var(--border)'}`,
-        color: accent ? '#0a0c10' : 'var(--text-dim)',
+        color: accent ? 'var(--on-accent)' : 'var(--text-dim)',
         fontFamily: 'var(--font)',
         fontSize: 11,
         fontWeight: accent ? 600 : 400,
@@ -197,6 +197,6 @@ function PanelBtn({ icon, label, accent, disabled, onClick }: { icon: React.Reac
 }
 
 function statusColor(s: string): string {
-  const map: Record<string, string> = { built: '#00e5a0', reused: '#0094ff', license: '#f59e0b', missing: '#ef4444' }
+  const map: Record<string, string> = { built: 'var(--color-success)', reused: 'var(--color-info)', license: 'var(--color-warning)', missing: 'var(--color-danger)' }
   return map[s] ?? 'var(--text-dim)'
 }

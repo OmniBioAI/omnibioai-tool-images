@@ -80,7 +80,7 @@ export default function App() {
               Loading tools…
             </div>
           ) : error ? (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#ef4444' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--color-danger)' }}>
               <span>{error}</span>
               <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Run: python api/server.py</span>
             </div>
@@ -107,7 +107,7 @@ export default function App() {
 
       {dockerfileModal && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100,
+          position: 'fixed', inset: 0, background: 'color-mix(in srgb, var(--color-bg) 70%, transparent)', zIndex: 100,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }} onClick={() => setDockerfileModal(null)}>
           <div style={{
@@ -129,7 +129,7 @@ export default function App() {
             <pre style={{
               flex: 1, overflowY: 'auto', padding: 16,
               fontFamily: 'var(--font)', fontSize: 12, lineHeight: 1.7,
-              color: '#e2e8f0', margin: 0, background: '#050709',
+              color: 'var(--color-text-soft)', margin: 0, background: 'var(--color-bg)',
               whiteSpace: 'pre-wrap', wordBreak: 'break-word',
             }}>
               {dockerfileModal.content}
