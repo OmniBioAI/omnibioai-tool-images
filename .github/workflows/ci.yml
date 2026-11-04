@@ -16,6 +16,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check out pinned private Tool Runtime
+        uses: actions/checkout@v4
+        with:
+          repository: OmniBioAI/omnibioai-tool-runtime
+          ref: 34a80219335f5dbeedeb7f0e6a4439913d12e25f
+          path: omnibioai-tool-runtime
+          token: ${{ secrets.TOOL_RUNTIME_REPO_TOKEN }}
+
+      - name: Verify the Tool Runtime pin
+        working-directory: omnibioai-tool-runtime
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "34a80219335f5dbeedeb7f0e6a4439913d12e25f"
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
