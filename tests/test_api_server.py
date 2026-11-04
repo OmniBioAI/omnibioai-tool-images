@@ -9,9 +9,11 @@ import asyncio
 import sys
 from pathlib import Path
 from typing import AsyncGenerator
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 ROOT = Path(__file__).parent.parent
@@ -27,11 +29,25 @@ from server import (  # noqa: E402
     CATEGORY_MAP,
     DOCKERFILES_DIR,
     LICENSE_NEEDED,
+    MANAGE_PERMISSION,
     SKIP_TOOLS,
     SIF_DIR,
+    _validate_identity,
+    require_manage_config,
 )
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _authorized_api_by_default():
+    """Keep legacy endpoint tests focused on their original behavior."""
+    app.dependency_overrides[require_manage_config] = lambda: {
+        "valid": True,
+        "permissions": [MANAGE_PERMISSION],
+    }
+    yield
+    app.dependency_overrides.pop(require_manage_config, None)
 
 
 # ── helpers: pick real files from disk ───────────────────────────────────────
@@ -94,6 +110,84 @@ class TestHealth:
         resp = client.get("/health")
         assert resp.status_code == 200
         assert resp.json() == {"status": "ok"}
+
+
+class TestAuthorization:
+    """The UI access check and direct API calls enforce IAM themselves."""
+
+    @staticmethod
+    def _use_real_dependency():
+        app.dependency_overrides.pop(require_manage_config, None)
+
+    def test_ui_access_check_returns_403_for_non_admin_session(self):
+        self._use_real_dependency()
+        with patch.object(server, "_validate_identity", return_value={"valid": True, "permissions": ["tools.read"]}):
+            response = client.get("/access", headers={"Authorization": "Bearer user-token"})
+        assert response.status_code == 403
+
+    def test_service_nginx_gates_the_ui_independently(self):
+        dockerfile = (ROOT / "Dockerfile").read_text()
+        assert "location /_svc/toolimages/ { auth_request /_toolimages_access;" in dockerfile
+        assert "location / { auth_request /_toolimages_access;" in dockerfile
+        assert "proxy_pass http://127.0.0.1:8097/access;" in dockerfile
+        assert "error_page 401 = @toolimages_unauthorized;" in dockerfile
+
+    def test_ui_access_check_allows_manage_config_admin(self):
+        self._use_real_dependency()
+        with patch.object(server, "_validate_identity", return_value={"valid": True, "permissions": [MANAGE_PERMISSION]}):
+            response = client.get("/access", headers={"Authorization": "Bearer admin-token"})
+        assert response.status_code == 200
+        assert response.json() == {"allowed": True, "permission": MANAGE_PERMISSION}
+
+    def test_direct_build_api_returns_403_for_non_admin_session(self):
+        self._use_real_dependency()
+        with patch.object(server, "_validate_identity", return_value={"valid": True, "permissions": []}):
+            response = client.post(f"/v1/build/{REAL_TOOL}", headers={"Authorization": "Bearer user-token"})
+        assert response.status_code == 403
+
+    def test_direct_build_api_works_for_manage_config_admin(self):
+        self._use_real_dependency()
+        with (
+            patch.object(server, "_validate_identity", return_value={"valid": True, "permissions": [MANAGE_PERMISSION]}),
+            patch.object(server, "_stream_build", _fake_stream_ok),
+        ):
+            response = client.post(f"/v1/build/{REAL_TOOL}", headers={"Authorization": "Bearer admin-token"})
+        assert response.status_code == 200
+        assert "Building..." in response.text
+
+    @pytest.mark.parametrize("authorization", [None, "Basic abc", "Bearer", "Bearer   "])
+    def test_missing_or_malformed_bearer_token_returns_401(self, authorization):
+        with pytest.raises(HTTPException) as exc:
+            require_manage_config(authorization)
+        assert exc.value.status_code == 401
+
+    def test_invalid_or_expired_identity_returns_401(self):
+        response = MagicMock(status_code=200)
+        response.json.return_value = {"valid": False}
+        with patch.object(server.httpx, "post", return_value=response), pytest.raises(HTTPException) as exc:
+            _validate_identity("expired")
+        assert exc.value.status_code == 401
+
+    def test_valid_identity_comes_only_from_iam_response(self):
+        identity = {"valid": True, "permissions": [MANAGE_PERMISSION]}
+        response = MagicMock(status_code=200)
+        response.json.return_value = identity
+        with patch.object(server.httpx, "post", return_value=response):
+            assert _validate_identity("token") == identity
+
+    def test_iam_connection_failure_returns_503(self):
+        request = httpx.Request("POST", "http://auth/auth/validate")
+        with patch.object(server.httpx, "post", side_effect=httpx.ConnectError("down", request=request)), pytest.raises(HTTPException) as exc:
+            _validate_identity("token")
+        assert exc.value.status_code == 503
+
+    @pytest.mark.parametrize("response", [MagicMock(status_code=500), MagicMock(status_code=200)])
+    def test_bad_iam_response_returns_503(self, response):
+        if response.status_code == 200:
+            response.json.side_effect = ValueError("not json")
+        with patch.object(server.httpx, "post", return_value=response), pytest.raises(HTTPException) as exc:
+            _validate_identity("token")
+        assert exc.value.status_code == 503
 
 
 # ── 2. List tools ─────────────────────────────────────────────────────────────

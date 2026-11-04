@@ -170,11 +170,12 @@ were fixed in commit `5d85eb2` ("update Dockerfile contract checks").
 | Method | Endpoint | Status |
 |--------|----------|--------|
 | GET | `/health` | Working |
-| GET | `/v1/tools` | Working — lists tools discovered from `dockerfiles/Dockerfile.*` |
-| GET | `/v1/tools/{tool}/dockerfile` | Working — returns the raw Dockerfile |
-| GET | `/v1/tools/{tool}/log` | Working — returns the build log if one exists |
-| POST | `/v1/build/{tool}` | **Known non-functional** (documented in code, issue #13, closed won't-fix) |
-| POST | `/v1/build-all` | **Known non-functional** (same reason) |
+| GET | `/access` | Working — `manage_config` access check used by nginx |
+| GET | `/v1/tools` | Working — `manage_config`; lists tools discovered from `dockerfiles/Dockerfile.*` |
+| GET | `/v1/tools/{tool}/dockerfile` | Working — `manage_config`; returns the raw Dockerfile |
+| GET | `/v1/tools/{tool}/log` | Working — `manage_config`; returns the build log if one exists |
+| POST | `/v1/build/{tool}` | `manage_config`; **known non-functional** after authorization (documented in code, issue #13, closed won't-fix) |
+| POST | `/v1/build-all` | `manage_config`; **known non-functional** after authorization (same reason) |
 
 The two build endpoints shell out to `scripts/build_all.sh`, but the container
 this API runs in only has `api/` copied into it — no Docker CLI, no
@@ -189,6 +190,10 @@ The API container exposes two ports in the Compose deployment:
 
 - `8097` — FastAPI API (`/health`, `/v1/*`, and `/docs`)
 - `5179` — nginx-served React frontend, proxying `/v1/*` to the API
+
+The UI and every `/v1/*` route require an IAM-validated bearer token carrying
+`manage_config`. Both the service's nginx and FastAPI enforce this independently;
+`/health` remains public for container liveness.
 
 The standalone Docker image copies the API and frontend only. Compose mounts
 the host `dockerfiles/`, `sif/`, and `build_logs/` directories into the

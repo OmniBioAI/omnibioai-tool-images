@@ -15,7 +15,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import AsyncGenerator
 
-from fastapi import FastAPI, HTTPException
+import httpx
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from sse_starlette.sse import EventSourceResponse
@@ -24,6 +25,8 @@ BASE = Path(__file__).parent.parent
 DOCKERFILES_DIR = BASE / "dockerfiles"
 SIF_DIR = BASE / "sif"
 BUILD_LOGS_DIR = BASE / "build_logs"
+IAM_URL = os.getenv("IAM_URL", "http://auth-service:8001").rstrip("/")
+MANAGE_PERMISSION = "manage_config"
 
 CATEGORY_MAP: dict[str, str] = {
     # Bio Core
@@ -175,6 +178,37 @@ app.add_middleware(
 )
 
 
+def _validate_identity(token: str) -> dict:
+    """Ask IAM to validate the token; never trust locally decoded claims."""
+    try:
+        response = httpx.post(
+            f"{IAM_URL}/auth/validate",
+            json={"token": token},
+            timeout=5.0,
+        )
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=503, detail="Authentication service unavailable") from exc
+    if response.status_code != 200:
+        raise HTTPException(status_code=503, detail="Authentication service unavailable")
+    try:
+        identity = response.json()
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail="Invalid authentication service response") from exc
+    if not isinstance(identity, dict) or identity.get("valid") is not True:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    return identity
+
+
+def require_manage_config(authorization: str | None = Header(default=None)) -> dict:
+    scheme, _, token = (authorization or "").partition(" ")
+    if scheme.lower() != "bearer" or not token.strip():
+        raise HTTPException(status_code=401, detail="Bearer token required")
+    identity = _validate_identity(token.strip())
+    if MANAGE_PERMISSION not in (identity.get("permissions") or []):
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return identity
+
+
 def _tool_info(tool: str) -> dict:
     sif_path = SIF_DIR / f"{tool}_arm64.sif"
     sif_exists = sif_path.exists()
@@ -213,7 +247,13 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/v1/tools")
+@app.get("/access", dependencies=[Depends(require_manage_config)])
+def access_check():
+    """Permission-aware nginx auth_request target for the Tool Images UI."""
+    return {"allowed": True, "permission": MANAGE_PERMISSION}
+
+
+@app.get("/v1/tools", dependencies=[Depends(require_manage_config)])
 def list_tools():
     tools = []
     for df in sorted(DOCKERFILES_DIR.glob("Dockerfile.*")):
@@ -224,7 +264,7 @@ def list_tools():
     return tools
 
 
-@app.get("/v1/tools/{tool}/dockerfile", response_class=PlainTextResponse)
+@app.get("/v1/tools/{tool}/dockerfile", response_class=PlainTextResponse, dependencies=[Depends(require_manage_config)])
 def get_dockerfile(tool: str):
     df = DOCKERFILES_DIR / f"Dockerfile.{tool}"
     if not df.exists():
@@ -232,7 +272,7 @@ def get_dockerfile(tool: str):
     return df.read_text()
 
 
-@app.get("/v1/tools/{tool}/log", response_class=PlainTextResponse)
+@app.get("/v1/tools/{tool}/log", response_class=PlainTextResponse, dependencies=[Depends(require_manage_config)])
 def get_build_log(tool: str):
     log = BUILD_LOGS_DIR / f"{tool}.log"
     if not log.exists():
@@ -266,7 +306,7 @@ async def _stream_build(cmd: list[str]) -> AsyncGenerator[dict, None]:
 # routes are left as-is (they'll fail with exit 127) rather than silently
 # reworked into something that looks functional but isn't the real build
 # mechanism.
-@app.post("/v1/build/{tool}")
+@app.post("/v1/build/{tool}", dependencies=[Depends(require_manage_config)])
 def build_tool(tool: str):
     df = DOCKERFILES_DIR / f"Dockerfile.{tool}"
     if not df.exists():
@@ -275,7 +315,7 @@ def build_tool(tool: str):
     return EventSourceResponse(_stream_build(cmd))
 
 
-@app.post("/v1/build-all")
+@app.post("/v1/build-all", dependencies=[Depends(require_manage_config)])
 def build_all():
     cmd = ["bash", "scripts/build_all.sh", "--parallel", "4"]
     return EventSourceResponse(_stream_build(cmd))
