@@ -23,7 +23,7 @@ WORKDIR /app
 COPY api/ ./api/
 
 # Python dependencies
-RUN pip install --no-cache-dir uvicorn fastapi sse-starlette
+RUN pip install --no-cache-dir uvicorn fastapi httpx sse-starlette
 
 COPY --from=ui-builder /ui/dist /usr/share/nginx/html
 
@@ -32,8 +32,10 @@ RUN printf 'server {\n\
     root /usr/share/nginx/html;\n\
     index index.html;\n\
     add_header Content-Security-Policy "frame-ancestors '\''self'\'' https://webstudio.omnibioai.org" always;\n\
-    location /_svc/toolimages/ { alias /usr/share/nginx/html/; try_files $uri $uri/ /_svc/toolimages/index.html; }\n\
-    location / { try_files $uri $uri/ /index.html; }\n\
+    location = /_toolimages_access { internal; proxy_pass http://127.0.0.1:8097/access; proxy_pass_request_body off; proxy_set_header Content-Length ""; proxy_set_header Authorization $http_authorization; }\n\
+    location @toolimages_unauthorized { default_type application/json; return 401 '\''{"error":"unauthorized","message":"Valid admin session required"}'\''; }\n\
+    location /_svc/toolimages/ { auth_request /_toolimages_access; error_page 401 = @toolimages_unauthorized; alias /usr/share/nginx/html/; try_files $uri $uri/ /_svc/toolimages/index.html; }\n\
+    location / { auth_request /_toolimages_access; error_page 401 = @toolimages_unauthorized; try_files $uri $uri/ /index.html; }\n\
     location /v1/ { proxy_pass http://127.0.0.1:8097; proxy_set_header Host $host; }\n\
     location /health { proxy_pass http://127.0.0.1:8097; }\n\
     location /docs   { proxy_pass http://127.0.0.1:8097; }\n\
