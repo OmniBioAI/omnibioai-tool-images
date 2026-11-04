@@ -14,7 +14,12 @@ jobs:
     name: Tests (Python 3.11)
     runs-on: ubuntu-latest
     steps:
+      # Keep both repositories as siblings. Runtime resolution deliberately
+      # looks beside the Tool Images checkout, matching local development and
+      # release-build layout rather than relying on a CI-only override.
       - uses: actions/checkout@v4
+        with:
+          path: omnibioai-tool-images
 
       - name: Check out pinned private Tool Runtime
         uses: actions/checkout@v4
@@ -35,12 +40,13 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: |
-            pyproject.toml
-            requirements-test.txt
+            omnibioai-tool-images/pyproject.toml
+            omnibioai-tool-images/requirements-test.txt
 
       # The API service's dependencies match the service Dockerfile
       # (uvicorn, fastapi, sse-starlette); the package supplies the rest.
       - name: Install dependencies
+        working-directory: omnibioai-tool-images
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements-test.txt pytest-cov -e . \
@@ -50,6 +56,7 @@ jobs:
       # coverage of api/+scripts/. Tests that need the workstation's
       # mounted SIF store skip with an explicit reason.
       - name: Full test suite (api+scripts coverage gate)
+        working-directory: omnibioai-tool-images
         run: pytest
 
       - name: Upload coverage report
@@ -57,6 +64,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-xml
-          path: coverage.xml
+          path: omnibioai-tool-images/coverage.xml
           if-no-files-found: error
           retention-days: 30
